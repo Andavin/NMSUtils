@@ -1,0 +1,5 @@
+name: NMSUtils
+version: ${project.version}
+main: com.andavin.NMSUtils
+authors: [Andavin]
+description: A basic utility plugin for commonly used NMS libraries that are missing from Bukkit.
