@@ -21,8 +21,7 @@ import java.util.stream.Collectors;
  * @since May 28, 2018
  * @author Andavin
  */
-@SuppressWarnings("ConstantConditions")
-final class ChunkVisual {
+public final class ChunkVisual {
 
     private static final int MAX_BLOCKS = 64;
     private static final Field CHUNK, M_BLOCK_DATA, POSITION, S_BLOCK_DATA;
@@ -50,6 +49,7 @@ final class ChunkVisual {
 
     ChunkVisual(final long chunk) {
         this.chunk = chunk;
+        //noinspection ConstantConditions
         this.chunkPair = Reflection.getInstance(CHUNK_PAIR, LongHash.msw(chunk), LongHash.lsw(chunk));
     }
 

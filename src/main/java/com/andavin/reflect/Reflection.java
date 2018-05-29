@@ -449,7 +449,7 @@ public final class Reflection {
         final Set<String> excluded;
         if (exclude.length != 0) {
 
-            excluded = new HashSet<>(exclude.length);
+            excluded = new HashSet<>((int) (exclude.length / 0.75));
             for (final Class<?> clazz : exclude) {
                 excluded.add(clazz.getName());
             }
