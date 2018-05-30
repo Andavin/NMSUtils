@@ -4,16 +4,19 @@ import com.andavin.reflect.Reflection;
 import com.andavin.util.LongHash;
 import com.andavin.util.PacketSender;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -45,7 +48,7 @@ public final class ChunkVisual {
 
     private final long chunk;
     private final Object chunkPair;
-    private final Set<VisualBlock> blocks = new HashSet<>();
+    private final Map<Short, VisualBlock> blocks = new HashMap<>();
 
     ChunkVisual(final long chunk) {
         this.chunk = chunk;
@@ -64,6 +67,18 @@ public final class ChunkVisual {
     }
 
     /**
+     * Get a snapshot the current blocks in this chunk.
+     * This will be the same {@link VisualBlock block}
+     * objects that are currently in the chunk, but in
+     * a new collection.
+     *
+     * @return A new {@link Set} of the blocks in this chunk.
+     */
+    Set<VisualBlock> snapshot() {
+        return new HashSet<>(this.blocks.values());
+    }
+
+    /**
      * Add a new block to this chunk. If the block is already
      * present in this chunk then it will be replaced and sent
      * to the clients on the next update.
@@ -71,7 +86,62 @@ public final class ChunkVisual {
      * @param block The {@link VisualBlock block} to add.
      */
     public void addBlock(final VisualBlock block) {
-        this.blocks.add(block);
+        this.blocks.put(block.getPackedPos(), block);
+    }
+
+    /**
+     * Shift all of the blocks that are contained in this chunk
+     * to be visualized a single block in a direction.
+     * <p>
+     * If all of the blocks, once shifted, do not fit within this
+     * chunk anymore, then all of the blocks that are not in this
+     * chunk will be returned as an overflow list.
+     * <p>
+     * Note that it is suggested to invoke {@link #reset(Player)}
+     * on this chunk before calling this method in order to remove
+     * all blocks that are previously visualized as this method will
+     * replace all old blocks with the new shifted ones.
+     *
+     * @param direction The {@link BlockFace direction} to shift the blocks in.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public List<VisualBlock> shift(final BlockFace direction) {
+        return this.shift(1, direction);
+    }
+
+    /**
+     * Shift all of the blocks that are contained in this chunk
+     * to be visualized a certain amount of blocks in a direction.
+     * <p>
+     * If all of the blocks, once shifted, do not fit within this
+     * chunk anymore, then all of the blocks that are not in this
+     * chunk will be returned as an overflow list.
+     * <p>
+     * Note that it is suggested to invoke {@link #reset(Player)}
+     * on this chunk before calling this method in order to remove
+     * all blocks that are previously visualized as this method will
+     * replace all old blocks with the new shifted ones.
+     *
+     * @param distance The distance (in blocks) to shift.
+     * @param direction The {@link BlockFace direction} to shift the blocks in.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public List<VisualBlock> shift(final int distance, final BlockFace direction) {
+
+        final List<VisualBlock> blocks = new LinkedList<>(this.blocks.values());
+        this.blocks.clear();
+        blocks.removeIf(block -> {
+
+            final VisualBlock shifted = block.shift(distance, direction);
+            if (shifted.getChunk() == this.chunk) { // Make sure it is still in this chunk
+                this.blocks.put(shifted.getPackedPos(), shifted);
+                return true;
+            }
+
+            return false;
+        });
+
+        return blocks;
     }
 
     /**
@@ -83,10 +153,55 @@ public final class ChunkVisual {
 
         if (!this.blocks.isEmpty()) {
             final List<Object> packets = new LinkedList<>();
-            final List<VisualBlock> blocks = new ArrayList<>(this.blocks);
+            final List<VisualBlock> blocks = new ArrayList<>(this.blocks.values());
             this.createPackets(blocks, packets);
             PacketSender.sendPackets(player, packets);
         }
+    }
+
+    /**
+     * Send all of the fake block types to the given {@link Player},
+     * but only update blocks that must be updated. If the block is
+     * the same type and still exists after the previous snapshot,
+     * then it will not be updated.
+     *
+     * @param player The player to send the {@link VisualBlock blocks} to.
+     * @param snapshot The {@link #snapshot() snapshot} of a previous
+     *                 version of this chunk.
+     */
+    public void visualize(final Player player, final Set<VisualBlock> snapshot) {
+
+        if (this.blocks.isEmpty()) {
+            this.reset(player);
+            return;
+        }
+
+        /*
+         * Three different kinds of blocks that need updated:
+         * 1. Blocks that changed type
+         * 3. Blocks added
+         * 2. Blocks removed
+         */
+
+        final World world = player.getWorld();
+        final List<Object> packets = new LinkedList<>();
+        final List<VisualBlock> needsUpdate = new LinkedList<>();
+        snapshot.forEach(block -> {
+
+            final VisualBlock current = this.blocks.get(block.getPackedPos());
+            if (current == null) {
+                // The block was removed
+                needsUpdate.add(block.getRealType(world));
+            } else if (current.getType() != block.getType() || current.getData() != block.getData()) {
+                // The block type was changed
+                needsUpdate.add(current);
+            }
+        });
+
+        // Blocks that were added
+        this.blocks.values().stream().filter(block -> !snapshot.contains(block)).forEach(needsUpdate::add);
+        this.createPackets(needsUpdate, packets);
+        PacketSender.sendPacket(player, packets);
     }
 
     /**
@@ -100,7 +215,7 @@ public final class ChunkVisual {
         if (!this.blocks.isEmpty()) {
             final World world = player.getWorld();
             final List<Object> packets = new LinkedList<>();
-            final List<VisualBlock> blocks = this.blocks.stream()
+            final List<VisualBlock> blocks = this.blocks.values().stream()
                     .map(block -> block.getRealType(world)).collect(Collectors.toList());
             this.createPackets(blocks, packets);
             PacketSender.sendPackets(player, packets);

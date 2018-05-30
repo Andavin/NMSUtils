@@ -1,13 +1,16 @@
 package com.andavin.visual;
 
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -48,6 +51,68 @@ public final class AreaVisual {
     public void visualize(final Player player) {
         this.visualized.computeIfAbsent(player.getUniqueId(), uuid -> new WeakReference<>(player));
         this.chunks.values().forEach(chunk -> chunk.visualize(player));
+    }
+
+    /**
+     * Refresh all visualized blocks for all of the players
+     * that have been previously {@link #visualize(Player)
+     * visualized} to.
+     * <p>
+     * In other words, this method will {@link #reset() reset}
+     * all blocks and then visualize again for all players.
+     */
+    public void refresh() {
+        this.refresh(null);
+    }
+
+    /**
+     * Refresh all visualized blocks for all of the players
+     * that have been previously {@link #visualize(Player)
+     * visualized} to.
+     * <p>
+     * In other words, this method will {@link #reset() reset}
+     * all blocks and then visualize again for all players.
+     *
+     * @param action The action to be run in between reset and re-visualization.
+     *               This could be shifting, adding blocks etc.
+     */
+    public void refresh(final Runnable action) {
+
+        // TODO a refresh that optimizing removing and recreating
+        // Take a snapshot of the chunk's blocks
+        // Take action on the chunk
+        // Reset blocks that were removed while adding new blocks
+        if (!this.visualized.isEmpty()) {
+
+            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
+                    .forEach(player -> this.chunks.values().forEach(chunk -> {
+
+                        if (action != null) {
+                            final Set<VisualBlock> blocks = chunk.snapshot();
+                            action.run();
+                            chunk.visualize(player, blocks);
+                        } else {
+                            chunk.visualize(player, chunk.snapshot());
+                        }
+                    }));
+        }
+    }
+
+    /**
+     * Reset all of the blocks that have been visualized within
+     * this area.
+     * <p>
+     * If a {@link Player} that has been visualized to is not online
+     * anymore, then the blocks will not be reset for them manually
+     * and instead will reset on their own as soon as the player views
+     * them again.
+     */
+    public void reset() {
+
+        if (!this.visualized.isEmpty()) {
+            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
+                    .forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
+        }
     }
 
     /**
@@ -101,5 +166,62 @@ public final class AreaVisual {
 
             chunk.addBlock(block);
         }
+    }
+
+    /**
+     * Shift all of the blocks that are contained in this area visual
+     * to be visualized a single block in a direction.
+     *
+     * @param direction The {@link BlockFace direction} to shift the blocks in.
+     * @return This AreaVisual object after it has been shifted.
+     */
+    public AreaVisual shift(final BlockFace direction) {
+        return this.shift(1, direction);
+    }
+
+    /**
+     * Shift all of the blocks that are contained in this area visual
+     * to be visualized a certain amount of blocks in a direction.
+     * <p>
+     * This method will automatically {@link #reset() reset} all blocks
+     * that have been previously visualized and then re-visualize the
+     * newly shifted blocks.
+     *
+     * @param distance The distance (in blocks) to shift.
+     * @param direction The {@link BlockFace direction} to shift the blocks in.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public AreaVisual shift(final int distance, final BlockFace direction) {
+        return this.shift(distance, direction, true);
+    }
+
+    /**
+     * Shift all of the blocks that are contained in this area visual
+     * to be visualized a certain amount of blocks in a direction.
+     *
+     * @param distance The distance (in blocks) to shift.
+     * @param direction The {@link BlockFace direction} to shift the blocks in.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the shift.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public AreaVisual shift(final int distance, final BlockFace direction, final boolean refresh) {
+
+        if (this.chunks.isEmpty()) {
+            return this;
+        }
+
+        if (refresh) {
+            this.refresh(() -> this.shift(distance, direction, false));
+            return this;
+        }
+
+        final List<VisualBlock> overflow = new LinkedList<>();
+        this.chunks.values().forEach(chunk -> overflow.addAll(chunk.shift(distance, direction)));
+        if (!overflow.isEmpty()) {
+            this.addBlock(overflow);
+        }
+
+        return this;
     }
 }

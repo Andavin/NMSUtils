@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 import java.util.List;
 
@@ -183,6 +184,36 @@ public final class VisualBlock {
     VisualBlock getRealType(final World world) {
         final Block block = world.getBlockAt(this.x, this.y, this.z);
         return new VisualBlock(this.x, this.y, this.z, block.getType(), block.getData());
+    }
+
+    /**
+     * Shift this block a 1 block in a direction. The returned
+     * object will be a new {@link VisualBlock} in the shifted location.
+     *
+     * @param direction The {@link BlockFace direction} to shift the block in.
+     * @return A new block that is shifted relative to this block.
+     */
+    public VisualBlock shift(final BlockFace direction) {
+        return this.shift(1, direction);
+    }
+
+    /**
+     * Shift this block a certain amount in a direction.
+     * The returned object will be a new {@link VisualBlock}
+     * in the shifted location.
+     *
+     * @param distance The distance (in blocks) to shift in the direction.
+     * @param direction The {@link BlockFace direction} to shift the block in.
+     * @return A new block that is shifted relative to this block.
+     */
+    public VisualBlock shift(final int distance, final BlockFace direction) {
+        return new VisualBlock(
+                this.x + distance * direction.getModX(),
+                this.y + distance * direction.getModY(),
+                this.z + distance * direction.getModZ(),
+                this.type,
+                this.data
+        );
     }
 
     @Override

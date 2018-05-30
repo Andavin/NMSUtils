@@ -1,5 +1,6 @@
 name: NMSUtils
 version: ${project.version}
 main: com.andavin.NMSUtils
-authors: [Andavin]
+authors: [ Andavin ]
+softdepend: [ WorldEdit, FastAsyncWorldEdit ]
 description: ${project.description}
