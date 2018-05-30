@@ -1,13 +1,11 @@
 package com.andavin;
 
 import com.andavin.nbt.wrapper.*;
-import com.andavin.visual.AreaVisual;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class NMSUtils extends JavaPlugin {
 
     private static NMSUtils instance;
-    private final AreaVisual visual = new AreaVisual();
 
     @Override
     public void onEnable() {
@@ -30,6 +28,11 @@ public final class NMSUtils extends JavaPlugin {
         );
     }
 
+    /**
+     * The singleton instance of the {@link NMSUtils} plugin.
+     *
+     * @return This plugin instance.
+     */
     public static NMSUtils getInstance() {
         return instance;
     }

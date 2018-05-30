@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -79,6 +80,16 @@ public final class ChunkVisual {
     }
 
     /**
+     * Tell if this chunk has no blocks currently
+     * able to be visualized in it.
+     *
+     * @return If there are no blocks in this chunk.
+     */
+    boolean isEmpty() {
+        return this.blocks.isEmpty();
+    }
+
+    /**
      * Add a new block to this chunk. If the block is already
      * present in this chunk then it will be replaced and sent
      * to the clients on the next update.
@@ -130,16 +141,18 @@ public final class ChunkVisual {
 
         final List<VisualBlock> blocks = new LinkedList<>(this.blocks.values());
         this.blocks.clear();
-        blocks.removeIf(block -> {
+        final ListIterator<VisualBlock> itr = blocks.listIterator();
+        while (itr.hasNext()) {
 
-            final VisualBlock shifted = block.shift(distance, direction);
+            final VisualBlock shifted = itr.next().shift(distance, direction);
             if (shifted.getChunk() == this.chunk) { // Make sure it is still in this chunk
                 this.blocks.put(shifted.getPackedPos(), shifted);
-                return true;
+                itr.remove();
+                continue;
             }
 
-            return false;
-        });
+            itr.set(shifted);
+        }
 
         return blocks;
     }
@@ -171,11 +184,6 @@ public final class ChunkVisual {
      */
     public void visualize(final Player player, final Set<VisualBlock> snapshot) {
 
-        if (this.blocks.isEmpty()) {
-            this.reset(player);
-            return;
-        }
-
         /*
          * Three different kinds of blocks that need updated:
          * 1. Blocks that changed type
@@ -201,7 +209,9 @@ public final class ChunkVisual {
         // Blocks that were added
         this.blocks.values().stream().filter(block -> !snapshot.contains(block)).forEach(needsUpdate::add);
         this.createPackets(needsUpdate, packets);
-        PacketSender.sendPacket(player, packets);
+        if (!packets.isEmpty()) {
+            PacketSender.sendPackets(player, packets);
+        }
     }
 
     /**
@@ -231,6 +241,11 @@ public final class ChunkVisual {
      */
     public void clear() {
         this.blocks.clear();
+    }
+
+    @Override
+    public String toString() {
+        return this.chunkPair.toString();
     }
 
     private void createPackets(final List<VisualBlock> blocks, final List<Object> packets) {

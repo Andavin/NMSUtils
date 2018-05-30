@@ -4,7 +4,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An area of blocks that are simply visual. This is
@@ -26,13 +27,13 @@ import java.util.UUID;
  */
 public final class AreaVisual {
 
-    private final Map<Long, ChunkVisual> chunks = new HashMap<>();
+    private final Map<Long, ChunkVisual> chunks = new ConcurrentHashMap<>();
     private final Map<UUID, WeakReference<Player>> visualized = new HashMap<>();
 
     /**
      * Visualize and send all of the fake blocks to the given
      * {@link Player client}. This is essentially an update method.
-     * Any blocks that are added via {@link #addBlock(VisualBlock...)}
+     * Any blocks that are added via {@link #addBlock(VisualBlock)}
      * or {@link #addBlock(List)} will not be sent to the client
      * until this method is invoked. In addition, any subsequent
      * blocks that are added will not be updated until this method is
@@ -47,10 +48,12 @@ public final class AreaVisual {
      * never be seen.
      *
      * @param player The client to show the fake blocks to.
+     * @return This AreaVisual object.
      */
-    public void visualize(final Player player) {
+    public AreaVisual visualize(final Player player) {
         this.visualized.computeIfAbsent(player.getUniqueId(), uuid -> new WeakReference<>(player));
         this.chunks.values().forEach(chunk -> chunk.visualize(player));
+        return this;
     }
 
     /**
@@ -60,9 +63,11 @@ public final class AreaVisual {
      * <p>
      * In other words, this method will {@link #reset() reset}
      * all blocks and then visualize again for all players.
+     *
+     * @return This AreaVisual object.
      */
-    public void refresh() {
-        this.refresh(null);
+    public AreaVisual refresh() {
+        return this.refresh(null);
     }
 
     /**
@@ -75,27 +80,30 @@ public final class AreaVisual {
      *
      * @param action The action to be run in between reset and re-visualization.
      *               This could be shifting, adding blocks etc.
+     * @return This AreaVisual object.
      */
-    public void refresh(final Runnable action) {
+    public AreaVisual refresh(final Runnable action) {
 
-        // TODO a refresh that optimizing removing and recreating
-        // Take a snapshot of the chunk's blocks
-        // Take action on the chunk
-        // Reset blocks that were removed while adding new blocks
         if (!this.visualized.isEmpty()) {
 
-            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
-                    .forEach(player -> this.chunks.values().forEach(chunk -> {
+            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull).forEach(player -> {
 
-                        if (action != null) {
-                            final Set<VisualBlock> blocks = chunk.snapshot();
-                            action.run();
-                            chunk.visualize(player, blocks);
-                        } else {
-                            chunk.visualize(player, chunk.snapshot());
-                        }
-                    }));
+                final Map<Long, Set<VisualBlock>> snaps = new HashMap<>((int) (chunks.size() / 0.75));
+                if (action != null) {
+                    this.chunks.forEach((hash, chunk) -> snaps.put(hash, chunk.snapshot()));
+                    action.run();
+                    this.chunks.forEach((hash, chunk) -> chunk.visualize(player,
+                            snaps.getOrDefault(hash, Collections.emptySet())));
+                } else {
+                    this.chunks.values().forEach(chunk -> chunk.visualize(player, chunk.snapshot()));
+                }
+
+                // Cleanup chunks if there are no blocks
+                this.chunks.values().removeIf(ChunkVisual::isEmpty);
+            });
         }
+
+        return this;
     }
 
     /**
@@ -106,13 +114,17 @@ public final class AreaVisual {
      * anymore, then the blocks will not be reset for them manually
      * and instead will reset on their own as soon as the player views
      * them again.
+     *
+     * @return This AreaVisual object.
      */
-    public void reset() {
+    public AreaVisual reset() {
 
         if (!this.visualized.isEmpty()) {
             this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
                     .forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
         }
+
+        return this;
     }
 
     /**
@@ -123,8 +135,10 @@ public final class AreaVisual {
      * anymore, then the blocks will not be reset for them manually
      * and instead will reset on their own as soon as the player views
      * them again.
+     *
+     * @return This AreaVisual object.
      */
-    public void clear() {
+    public AreaVisual clear() {
 
         if (!this.visualized.isEmpty()) {
             this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
@@ -133,6 +147,22 @@ public final class AreaVisual {
             this.visualized.clear();
             this.chunks.clear();
         }
+
+        return this;
+    }
+
+    /**
+     * Add a {@link VisualBlock block} to this area to be visualized.
+     * If the block is already added to this area, then it will be replaced
+     * with the new one at the same location.
+     *
+     * @param block The block to add.
+     * @return This AreaVisual object.
+     * @see VisualBlock
+     */
+    public AreaVisual addBlock(final VisualBlock block) {
+        this.chunks.computeIfAbsent(block.getChunk(), ChunkVisual::new).addBlock(block);
+        return this;
     }
 
     /**
@@ -141,21 +171,10 @@ public final class AreaVisual {
      * with the new one at the same location.
      *
      * @param blocks The blocks to add.
+     * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public void addBlock(final VisualBlock... blocks) {
-        this.addBlock(Arrays.asList(blocks));
-    }
-
-    /**
-     * Add {@link VisualBlock blocks} to this area to be visualized.
-     * If a block is already added to this area, then it will be replaced
-     * with the new one at the same location.
-     *
-     * @param blocks The blocks to add.
-     * @see VisualBlock
-     */
-    public void addBlock(final List<VisualBlock> blocks) {
+    public AreaVisual addBlock(final List<VisualBlock> blocks) {
 
         ChunkVisual chunk = null;
         for (final VisualBlock block : blocks) {
@@ -166,6 +185,8 @@ public final class AreaVisual {
 
             chunk.addBlock(block);
         }
+
+        return this;
     }
 
     /**
