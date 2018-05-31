@@ -6,6 +6,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -50,6 +52,7 @@ public final class PluginRegistry {
      * @return The {@link Logger} for the class or {@link Bukkit#getLogger()}
      *         if none was registered to the class name.
      */
+    @Nonnull
     static Logger getLogger() {
 
         final HashSet<String> excluded = new HashSet<>(3);
@@ -57,23 +60,43 @@ public final class PluginRegistry {
         excluded.add(Reflection.class.getName());
         final String className = Reflection.getCallerClass(0, excluded);
 
-        Plugin plugin = getPlugin(className, true);
+        Plugin plugin = getPlugin(className);
         for (int tries = 1; plugin == null && tries <= 10; tries++) {
-            plugin = getPlugin(Reflection.getCallerClass(tries, excluded), true);
+            plugin = getPlugin(Reflection.getCallerClass(tries, excluded));
         }
 
         return plugin == null ? Bukkit.getLogger() : plugin.getLogger();
     }
 
     /**
+     * Get the {@link Plugin} that called the method calling this
+     * method. This will return the default {@link NMSUtils plugin}
+     * if no other plugin can be found within the attempts allotted.
+     *
+     * @param attempts The attempts to (calls to go back) to try to
+     *                 find the plugin within.
+     * @return The plugin that called the method.
+     */
+    @Nonnull
+    public static Plugin getPlugin(final int attempts) {
+
+        final String className = Reflection.getCallerClass(1); // Exclude the class that called this
+        Plugin plugin = getPlugin(className);
+        for (int tries = 2; plugin == null && tries <= attempts; tries++) {
+            plugin = getPlugin(Reflection.getCallerClass(tries));
+        }
+
+        return plugin != null ? plugin : NMSUtils.getInstance();
+    }
+
+    /**
      * Get the {@link Plugin} by a class name that is registered.
      *
      * @param className The name of the class to get the plugin for.
-     * @param nullable Whether this method should return {@code null}
-     *                 if no plugins are found or the default plugin.
      * @return The {@link Plugin} that is registered with the class name.
      */
-    public static Plugin getPlugin(final String className, final boolean nullable) {
+    @Nullable
+    public static Plugin getPlugin(final String className) {
 
         final char[] chars = className.toCharArray();
         for (int i = chars.length - 1; i >= 0; i--) {
@@ -88,7 +111,7 @@ public final class PluginRegistry {
         }
 
         refresh();
-        return nullable ? null : NMSUtils.getInstance();
+        return null;
     }
 
     private static void refresh() {

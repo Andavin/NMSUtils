@@ -1,6 +1,5 @@
 package com.andavin.util;
 
-import com.andavin.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -26,6 +25,7 @@ import java.util.function.Supplier;
 @SuppressWarnings("UnusedReturnValue")
 public final class Scheduler {
 
+    private static final int SEARCH = 10;
     private static final List<Task> TASKS = new LinkedList<>();
     private static final ScheduledExecutorService EXECUTOR_SERVICE = Executors.newScheduledThreadPool(4);
 
@@ -41,8 +41,7 @@ public final class Scheduler {
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
     public static BukkitTask sync(final Runnable run) {
-        return Bukkit.getScheduler().runTask(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class), false), run);
+        return Bukkit.getScheduler().runTask(PluginRegistry.getPlugin(SEARCH), run);
     }
 
     /**
@@ -53,8 +52,7 @@ public final class Scheduler {
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
     public static BukkitTask async(final Runnable run) {
-        return Bukkit.getScheduler().runTaskAsynchronously(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class), false), run);
+        return Bukkit.getScheduler().runTaskAsynchronously(PluginRegistry.getPlugin(SEARCH), run);
     }
 
     /**
@@ -66,8 +64,7 @@ public final class Scheduler {
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
     public static BukkitTask later(final Runnable run, final long delay) {
-        return Bukkit.getScheduler().runTaskLater(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class), false), run, delay);
+        return Bukkit.getScheduler().runTaskLater(PluginRegistry.getPlugin(SEARCH), run, delay);
     }
 
     /**
@@ -79,8 +76,7 @@ public final class Scheduler {
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
     public static BukkitTask laterAsync(final Runnable run, final long delay) {
-        return Bukkit.getScheduler().runTaskLaterAsynchronously(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class), false), run, delay);
+        return Bukkit.getScheduler().runTaskLaterAsynchronously(PluginRegistry.getPlugin(SEARCH), run, delay);
     }
 
     /**
@@ -93,8 +89,7 @@ public final class Scheduler {
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
     public static BukkitTask repeat(final Runnable run, final long delay, final long period) {
-        return Bukkit.getScheduler().runTaskTimer(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class), false), run, delay, period);
+        return Bukkit.getScheduler().runTaskTimer(PluginRegistry.getPlugin(SEARCH), run, delay, period);
     }
 
     /**
@@ -107,8 +102,7 @@ public final class Scheduler {
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
     public static BukkitTask repeatAsync(final Runnable run, final long delay, final long period) {
-        return Bukkit.getScheduler().runTaskTimerAsynchronously(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class), false), run, delay, period);
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(PluginRegistry.getPlugin(SEARCH), run, delay, period);
     }
 
     /**
