@@ -9,9 +9,11 @@ import org.bukkit.plugin.PluginLogger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -80,10 +82,11 @@ public final class PluginRegistry {
     @Nonnull
     public static Plugin getPlugin(final int attempts) {
 
-        final String className = Reflection.getCallerClass(1); // Exclude the class that called this
+        final Set<String> excluded = Collections.singleton(Scheduler.class.getName());
+        final String className = Reflection.getCallerClass(1, excluded); // Exclude the class that called this
         Plugin plugin = getPlugin(className);
         for (int tries = 2; plugin == null && tries <= attempts; tries++) {
-            plugin = getPlugin(Reflection.getCallerClass(tries));
+            plugin = getPlugin(Reflection.getCallerClass(tries, excluded));
         }
 
         return plugin != null ? plugin : NMSUtils.getInstance();
