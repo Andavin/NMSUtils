@@ -1,7 +1,5 @@
 package com.andavin.util;
 
-import com.andavin.reflect.Reflection;
-
 import java.util.logging.Level;
 
 /**
@@ -21,7 +19,7 @@ public final class Logger {
      * @param obj The object to log.
      */
     public static synchronized void info(final Object obj) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class)).log(Level.INFO, obj.toString());
+        PluginRegistry.getLogger().log(Level.INFO, obj.toString());
     }
 
     /**
@@ -30,7 +28,7 @@ public final class Logger {
      * @param msg The message to log.
      */
     public static synchronized void info(final String msg) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class)).log(Level.INFO, msg);
+        PluginRegistry.getLogger().log(Level.INFO, msg);
     }
 
     /**
@@ -41,8 +39,7 @@ public final class Logger {
      * @param args The arguments to replace placeholders with.
      */
     public static synchronized void info(final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.INFO, Logger.format(msg, args));
+        PluginRegistry.getLogger().log(Level.INFO, Logger.format(msg, args));
     }
 
     /**
@@ -54,8 +51,7 @@ public final class Logger {
      * @param args The arguments to place into the message.
      */
     public static synchronized void info(final Throwable throwable, final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.INFO, Logger.format(msg, args), throwable);
+        PluginRegistry.getLogger().log(Level.INFO, Logger.format(msg, args), throwable);
     }
 
     /**
@@ -64,8 +60,7 @@ public final class Logger {
      * @param throwable The throwable to log.
      */
     public static synchronized void info(final Throwable throwable) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.INFO, throwable.getMessage(), throwable);
+        PluginRegistry.getLogger().log(Level.INFO, throwable.getMessage(), throwable);
     }
 
     /**
@@ -74,7 +69,7 @@ public final class Logger {
      * @param obj The object to log.
      */
     public static synchronized void warn(final Object obj) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class)).log(Level.WARNING, obj.toString());
+        PluginRegistry.getLogger().log(Level.WARNING, obj.toString());
     }
 
     /**
@@ -83,7 +78,7 @@ public final class Logger {
      * @param msg The message to log.
      */
     public static synchronized void warn(final String msg) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class)).log(Level.WARNING, msg);
+        PluginRegistry.getLogger().log(Level.WARNING, msg);
     }
 
     /**
@@ -94,8 +89,7 @@ public final class Logger {
      * @param args The arguments to replace placeholders with.
      */
     public static synchronized void warn(final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.WARNING, Logger.format(msg, args));
+        PluginRegistry.getLogger().log(Level.WARNING, Logger.format(msg, args));
     }
 
     /**
@@ -107,8 +101,7 @@ public final class Logger {
      * @param args The arguments to place into the message.
      */
     public static synchronized void warn(final Throwable throwable, final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.WARNING, Logger.format(msg, args), throwable);
+        PluginRegistry.getLogger().log(Level.WARNING, Logger.format(msg, args), throwable);
     }
 
     /**
@@ -117,8 +110,7 @@ public final class Logger {
      * @param throwable The throwable to log.
      */
     public static synchronized void warn(final Throwable throwable) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.WARNING, throwable.getMessage(), throwable);
+        PluginRegistry.getLogger().log(Level.WARNING, throwable.getMessage(), throwable);
     }
 
     /**
@@ -127,8 +119,7 @@ public final class Logger {
      * @param obj The object to log.
      */
     public static synchronized void severe(final Object obj) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.SEVERE, obj.toString());
+        PluginRegistry.getLogger().log(Level.SEVERE, obj.toString());
     }
 
     /**
@@ -139,8 +130,7 @@ public final class Logger {
      * @param args The arguments to replace placeholders with.
      */
     public static synchronized void severe(final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.SEVERE, Logger.format(msg, args));
+        PluginRegistry.getLogger().log(Level.SEVERE, Logger.format(msg, args));
     }
 
     /**
@@ -152,8 +142,7 @@ public final class Logger {
      * @param args The arguments to place into the message.
      */
     public static synchronized void severe(final Throwable throwable, final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.SEVERE, Logger.format(msg, args), throwable);
+        PluginRegistry.getLogger().log(Level.SEVERE, Logger.format(msg, args), throwable);
     }
 
     /**
@@ -162,8 +151,7 @@ public final class Logger {
      * @param throwable The throwable to log.
      */
     public static synchronized void severe(final Throwable throwable) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.SEVERE, throwable.getMessage(), throwable);
+        PluginRegistry.getLogger().log(Level.SEVERE, throwable.getMessage(), throwable);
     }
 
     /**
@@ -172,7 +160,7 @@ public final class Logger {
      * @param obj The object to log.
      */
     public static synchronized void debug(final Object obj) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class)).log(Level.CONFIG, obj.toString());
+        PluginRegistry.getLogger().log(Level.CONFIG, obj.toString());
     }
 
     /**
@@ -181,7 +169,7 @@ public final class Logger {
      * @param msg The message to log.
      */
     public static synchronized void debug(final String msg) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class)).log(Level.CONFIG, msg);
+        PluginRegistry.getLogger().log(Level.CONFIG, msg);
     }
 
     /**
@@ -192,8 +180,7 @@ public final class Logger {
      * @param args The arguments to replace placeholders with.
      */
     public static synchronized void debug(final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.CONFIG, Logger.format(msg, args));
+        PluginRegistry.getLogger().log(Level.CONFIG, Logger.format(msg, args));
     }
 
     /**
@@ -205,8 +192,7 @@ public final class Logger {
      * @param args The arguments to place into the message.
      */
     public static synchronized void debug(final Throwable throwable, final String msg, final Object... args) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.CONFIG, Logger.format(msg, args), throwable);
+        PluginRegistry.getLogger().log(Level.CONFIG, Logger.format(msg, args), throwable);
     }
 
     /**
@@ -215,8 +201,7 @@ public final class Logger {
      * @param throwable The throwable to log.
      */
     public static synchronized void debug(final Throwable throwable) {
-        PluginRegistry.getLogger(Reflection.getCallerClass(0, Logger.class))
-                .log(Level.CONFIG, throwable.getMessage(), throwable);
+        PluginRegistry.getLogger().log(Level.CONFIG, throwable.getMessage(), throwable);
     }
 
     /**

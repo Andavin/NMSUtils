@@ -1,12 +1,14 @@
 package com.andavin.util;
 
 import com.andavin.NMSUtils;
+import com.andavin.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -42,24 +44,36 @@ public final class PluginRegistry {
     }
 
     /**
-     * Get the {@link PluginLogger logger} by a class name.
+     * Get the {@link PluginLogger logger} by a class that called
+     * the class that called this.
      *
-     * @param className The name of the class to get the logger for.
      * @return The {@link Logger} for the class or {@link Bukkit#getLogger()}
      *         if none was registered to the class name.
      */
-    static Logger getLogger(final String className) {
-        final Plugin plugin = getPlugin(className);
-        return plugin.getLogger();
+    static Logger getLogger() {
+
+        final HashSet<String> excluded = new HashSet<>(3);
+        excluded.add(com.andavin.util.Logger.class.getName());
+        excluded.add(Reflection.class.getName());
+        final String className = Reflection.getCallerClass(0, excluded);
+
+        Plugin plugin = getPlugin(className, true);
+        for (int tries = 1; plugin == null && tries <= 10; tries++) {
+            plugin = getPlugin(Reflection.getCallerClass(tries, excluded), true);
+        }
+
+        return plugin == null ? NMSUtils.getInstance().getLogger() : plugin.getLogger();
     }
 
     /**
      * Get the {@link Plugin} by a class name that is registered.
      *
      * @param className The name of the class to get the plugin for.
+     * @param nullable Whether this method should return {@code null}
+     *                 if no plugins are found or the default plugin.
      * @return The {@link Plugin} that is registered with the class name.
      */
-    public static Plugin getPlugin(final String className) {
+    public static Plugin getPlugin(final String className, final boolean nullable) {
 
         final char[] chars = className.toCharArray();
         for (int i = chars.length - 1; i >= 0; i--) {
@@ -74,7 +88,7 @@ public final class PluginRegistry {
         }
 
         refresh();
-        return NMSUtils.getInstance();
+        return nullable ? null : NMSUtils.getInstance();
     }
 
     private static void refresh() {

@@ -441,11 +441,8 @@ public final class Reflection {
      * @param exclude The classes to skip over when finding the calling class.
      * @return The name of the class index away from calling a method.
      */
-    public static String getCallerClass(int index, final Class<?>... exclude) {
+    public static String getCallerClass(final int index, final Class<?>... exclude) {
 
-        // Exclude java.lang.Thread, this class and
-        // first index of the class calling this method
-        index += 3;
         final Set<String> excluded;
         if (exclude.length != 0) {
 
@@ -457,6 +454,28 @@ public final class Reflection {
             excluded = Collections.emptySet();
         }
 
+        return getCallerClass(index, excluded);
+    }
+
+    /**
+     * Get the class that is calling the method that is calling
+     * this method. For example, if method {@code foo()} in class
+     * {@code A} calls method {@code bar()} in class {@code B}
+     * and {@code bar()} calls this method with index of {@code 0}
+     * then this will return the class {@code A}.
+     *
+     * @param index The index (starting at {@code 0}) of the class to
+     *              get from the class calling this method. {@code 0}
+     *              will return the calling class {@code 1} will return
+     *              the class that called that one and so on.
+     * @param excluded The class names to exclude.
+     * @return The name of the class index away from calling a method.
+     */
+    public static String getCallerClass(int index, final Set<String> excluded) {
+
+        // Exclude java.lang.Thread, this class and
+        // first index of the class calling this method
+        index += 3;
         int i = 0;
         for (final StackTraceElement element : Thread.currentThread().getStackTrace()) {
 

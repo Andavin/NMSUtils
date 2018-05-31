@@ -42,7 +42,7 @@ public final class Scheduler {
      */
     public static BukkitTask sync(final Runnable run) {
         return Bukkit.getScheduler().runTask(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class)), run);
+                Reflection.getCallerClass(0, Scheduler.class), false), run);
     }
 
     /**
@@ -54,7 +54,7 @@ public final class Scheduler {
      */
     public static BukkitTask async(final Runnable run) {
         return Bukkit.getScheduler().runTaskAsynchronously(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class)), run);
+                Reflection.getCallerClass(0, Scheduler.class), false), run);
     }
 
     /**
@@ -67,7 +67,7 @@ public final class Scheduler {
      */
     public static BukkitTask later(final Runnable run, final long delay) {
         return Bukkit.getScheduler().runTaskLater(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class)), run, delay);
+                Reflection.getCallerClass(0, Scheduler.class), false), run, delay);
     }
 
     /**
@@ -80,7 +80,7 @@ public final class Scheduler {
      */
     public static BukkitTask laterAsync(final Runnable run, final long delay) {
         return Bukkit.getScheduler().runTaskLaterAsynchronously(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class)), run, delay);
+                Reflection.getCallerClass(0, Scheduler.class), false), run, delay);
     }
 
     /**
@@ -94,7 +94,7 @@ public final class Scheduler {
      */
     public static BukkitTask repeat(final Runnable run, final long delay, final long period) {
         return Bukkit.getScheduler().runTaskTimer(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class)), run, delay, period);
+                Reflection.getCallerClass(0, Scheduler.class), false), run, delay, period);
     }
 
     /**
@@ -108,7 +108,7 @@ public final class Scheduler {
      */
     public static BukkitTask repeatAsync(final Runnable run, final long delay, final long period) {
         return Bukkit.getScheduler().runTaskTimerAsynchronously(PluginRegistry.getPlugin(
-                Reflection.getCallerClass(0, Scheduler.class)), run, delay, period);
+                Reflection.getCallerClass(0, Scheduler.class), false), run, delay, period);
     }
 
     /**
