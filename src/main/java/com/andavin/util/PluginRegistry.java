@@ -62,7 +62,7 @@ public final class PluginRegistry {
             plugin = getPlugin(Reflection.getCallerClass(tries, excluded), true);
         }
 
-        return plugin == null ? NMSUtils.getInstance().getLogger() : plugin.getLogger();
+        return plugin == null ? Bukkit.getLogger() : plugin.getLogger();
     }
 
     /**
