@@ -3,10 +3,20 @@ package com.andavin.nbt.wrapper;
 import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -21,9 +31,17 @@ import static com.google.common.base.Preconditions.checkState;
 @SuppressWarnings("unchecked")
 public final class NBTHelper {
 
+    private static final Method READ, WRITE;
     private static final Map<Byte, Constructor<? extends NBTBase>> TYPE_IDS = new HashMap<>();
     private static final Map<Class<? extends NBTBase>, Constructor<?>> WRAPPED = new HashMap<>();
     private static final Map<Class<?>, Constructor<? extends NBTBase>> WRAPPERS = new HashMap<>();
+
+    static {
+        final Class<?> compoundTag = Reflection.getMcClass("NBTTagCompound");
+        final Class<?> streamTools = Reflection.getMcClass("NBTCompressedStreamTools");
+        READ = Reflection.getMethod(streamTools, "a", InputStream.class);
+        WRITE = Reflection.getMethod(streamTools, "a", compoundTag, OutputStream.class);
+    }
 
     /**
      * Register NBT wrapper classes (extend {@link NBTBase}).
@@ -128,6 +146,36 @@ public final class NBTHelper {
         final Constructor<?> con = WRAPPED.get(clazz);
         supportCheck(con, clazz.getSimpleName());
         return Reflection.getInstance(con, args);
+    }
+
+    /**
+     * Read the given {@link File} into an {@link NBTTagCompound}.
+     * The file must be an NBT file ending in {@code .dat}.
+     *
+     * @param file The file to read the NBT data from.
+     * @return The {@link NBTTagCompound} read from the file.
+     * @throws IOException If something goes wrong while reading the file.
+     * @throws IllegalArgumentException If the file is not an NBT file ending in {@code .dat}.
+     */
+    public static NBTTagCompound read(final File file) throws IOException, IllegalArgumentException {
+        checkArgument(file.getPath().endsWith(".dat"), "can only read NBT files with the extension 'dat'.");
+        final InputStream stream = new BufferedInputStream(new FileInputStream(file));
+        return Reflection.invokeMethod(READ, null, stream);
+    }
+
+    /**
+     * Write the given {@link NBTTagCompound} to the given {@link File}.
+     * The file must be an NBT file ending in {@code .dat}.
+     *
+     * @param file The file to write the NBT data to.
+     * @param tag The {@link NBTTagCompound} to write to the file.
+     * @throws IOException If something goes wrong while writing to the file.
+     * @throws IllegalArgumentException If the file is not an NBT file ending in {@code .dat}.
+     */
+    public static void write(final File file, final NBTTagCompound tag) throws IOException, IllegalArgumentException {
+        checkArgument(file.getPath().endsWith(".dat"), "can only read NBT files with the extension 'dat'.");
+        final OutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
+        Reflection.invokeMethod(WRITE, null, tag.getWrapped(), stream);
     }
 
     private static void supportCheck(final Constructor<?> con, final String support) {
