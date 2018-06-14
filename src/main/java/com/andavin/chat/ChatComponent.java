@@ -1,7 +1,6 @@
 package com.andavin.chat;
 
 import com.andavin.reflect.Reflection;
-import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.minecraft.server.v1_12_R1.ChatClickable.EnumClickAction;
@@ -21,6 +20,8 @@ import java.util.EnumMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * @author Andavin
@@ -286,7 +287,7 @@ public class ChatComponent {
      * @throws IllegalArgumentException If the ChatColor is not a color.
      */
     public ChatComponent color(final ChatColor color) {
-        Preconditions.checkArgument(color.isColor(), "Color must be a color, but got a format %s instead.", color.name());
+        checkArgument(color.isColor(), "Color must be a color, but got a format %s instead.", color.name());
 //        this.getChatModifier().setColor(this.getColor(color));
         return this;
     }

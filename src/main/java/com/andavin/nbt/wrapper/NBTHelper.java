@@ -1,12 +1,14 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.reflect.Reflection;
-import com.google.common.base.Preconditions;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A basic helper class to store wrapped and wrapping class
@@ -39,8 +41,8 @@ public final class NBTHelper {
                 ConfigurationSerialization.registerClass(clazz);
                 final Constructor<?> wrap = Reflection.getConstructor(nmsType, type.params());
                 final Constructor<? extends NBTBase> wrapper = Reflection.getConstructor(clazz, Object.class);
-                Preconditions.checkState(wrapper != null, "%s missing constructor", name);
-                Preconditions.checkState(wrap != null, "%s incorrect annotation types", name);
+                checkState(wrapper != null, "%s missing constructor", name);
+                checkState(wrap != null, "%s incorrect annotation types", name);
                 WRAPPERS.put(nmsType, wrapper);
                 TYPE_IDS.put(type.typeId(), wrapper);
                 WRAPPED.put(clazz, wrap);
@@ -86,7 +88,7 @@ public final class NBTHelper {
      * @throws NullPointerException If the NBT object is {@code null}.
      */
     public static <T extends NBTBase> T wrap(final Object nbt) {
-        Preconditions.checkNotNull(nbt, "NBT object cannot be null");
+        checkNotNull(nbt, "NBT object cannot be null");
         final Constructor<? extends NBTBase> wrapper = WRAPPERS.get(nbt.getClass());
         supportCheck(wrapper, nbt.getClass().getSimpleName());
         return (T) Reflection.getInstance(wrapper, nbt);
@@ -108,7 +110,7 @@ public final class NBTHelper {
      * @see NBTType NBT Type IDs
      */
     public static <T extends NBTBase> T wrap(final byte typeId, final Object nbt) {
-        Preconditions.checkNotNull(nbt, "NBT object cannot be null");
+        checkNotNull(nbt, "NBT object cannot be null");
         final Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
         supportCheck(con, nbt.getClass().getSimpleName());
         return (T) Reflection.getInstance(con, nbt);

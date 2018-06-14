@@ -1,11 +1,12 @@
 package com.andavin.chat;
 
-import com.google.common.base.Preconditions;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import org.bukkit.ChatColor;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * A chat utility used for editing specific words in a sentence.
@@ -37,7 +38,7 @@ public final class Highlighter {
      * @throws IllegalArgumentException If the ChatColor is not a color.
      */
     public Highlighter color(final ChatColor color) {
-        Preconditions.checkArgument(color.isColor(), "Color must be a color, but got %s instead.", color.name());
+        checkArgument(color.isColor(), "Color must be a color, but got %s instead.", color.name());
         this.comps.forEach(comp -> comp.color(color));
         return this;
     }

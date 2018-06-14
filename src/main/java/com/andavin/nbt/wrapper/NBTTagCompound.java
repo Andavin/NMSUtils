@@ -2,7 +2,6 @@ package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
 import com.andavin.reflect.Reflection;
-import com.google.common.base.Preconditions;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -13,6 +12,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * An NBT wrapper for the {@code NBTTagCompound} NMS class.
@@ -116,8 +117,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @throws NullPointerException If key or value are {@code null}.
      */
     public NBTBase set(final String key, final NBTBase value) {
-        Preconditions.checkNotNull(key, "null keys not permitted");
-        Preconditions.checkNotNull(value, "null values not permitted");
+        checkNotNull(key, "null keys not permitted");
+        checkNotNull(value, "null values not permitted");
         final NBTBase old = this.wrapped.put(key, value);
         this.map.put(key, value.wrapped); // Will be the wrapped object of old
         return old;
@@ -296,7 +297,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @throws NullPointerException If key or value are {@code null}.
      */
     public void setUnique(final String key, final UUID uuid) {
-        Preconditions.checkNotNull(key, "null keys not permitted");
+        checkNotNull(key, "null keys not permitted");
         this.setLong(key + "Most", uuid.getMostSignificantBits());
         this.setLong(key + "Least", uuid.getLeastSignificantBits());
     }

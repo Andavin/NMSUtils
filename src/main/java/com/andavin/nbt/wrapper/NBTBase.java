@@ -1,11 +1,12 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
-import com.google.common.base.Preconditions;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.util.Collections;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A basic class that holds a wrapped NBT object
@@ -35,7 +36,7 @@ public abstract class NBTBase implements ConfigurationSerializable {
     NBTBase(final Object wrapped) {
         this.wrapped = wrapped;
         final NBTTag type = this.getClass().getAnnotation(NBTTag.class);
-        Preconditions.checkState(type != null, "{} missing tag annotation", this.getClass());
+        checkState(type != null, "{} missing tag annotation", this.getClass());
         this.typeId = type.typeId();
     }
 

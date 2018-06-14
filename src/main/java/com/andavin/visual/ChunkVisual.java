@@ -6,6 +6,7 @@ import com.andavin.util.PacketSender;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -117,7 +119,7 @@ public final class ChunkVisual {
      * @return The leftover blocks that are no longer in this chunk.
      */
     public List<VisualBlock> shift(final BlockFace direction) {
-        return this.shift(1, direction);
+        return this.transform(block -> block.shift(direction));
     }
 
     /**
@@ -138,20 +140,87 @@ public final class ChunkVisual {
      * @return The leftover blocks that are no longer in this chunk.
      */
     public List<VisualBlock> shift(final int distance, final BlockFace direction) {
+        return this.transform(block -> block.shift(distance, direction));
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this chunk to be
+     * visualized the specified amount of degrees around the X-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the X axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * west toward negative X.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public List<VisualBlock> rotateX(final Vector origin, final float degrees) {
+        return this.transform(block -> block.rotateX(origin, degrees));
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this chunk to be
+     * visualized the specified amount of degrees around the Y-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Y axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * down toward negative Y.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public List<VisualBlock> rotateY(final Vector origin, final float degrees) {
+        return this.transform(block -> block.rotateY(origin, degrees));
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this chunk to be
+     * visualized the specified amount of degrees around the Z-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Z axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * north toward negative Z.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public List<VisualBlock> rotateZ(final Vector origin, final float degrees) {
+        return this.transform(block -> block.rotateZ(origin, degrees));
+    }
+
+    /**
+     * Transform this chunk by using the given {@link Function transformer}
+     * on each {@link VisualBlock} that is contained within this chunk.
+     * <p>
+     * This will execute the transformer using each block in this chunk
+     * and replace the block in the chunk if it is still contained within
+     * or else it will add it to the list of blocks that cannot fit in this
+     * chunk anymore.
+     *
+     * @param transformer The function to use on each block to transform it.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public List<VisualBlock> transform(final Function<VisualBlock, VisualBlock> transformer) {
 
         final List<VisualBlock> blocks = new LinkedList<>(this.blocks.values());
         this.blocks.clear();
         final ListIterator<VisualBlock> itr = blocks.listIterator();
         while (itr.hasNext()) {
 
-            final VisualBlock shifted = itr.next().shift(distance, direction);
-            if (shifted.getChunk() == this.chunk) { // Make sure it is still in this chunk
-                this.blocks.put(shifted.getPackedPos(), shifted);
+            final VisualBlock transformed = transformer.apply(itr.next());
+            if (transformed.getChunk() == this.chunk) { // Make sure it is still in this chunk
+                this.blocks.put(transformed.getPackedPos(), transformed);
                 itr.remove();
                 continue;
             }
 
-            itr.set(shifted);
+            itr.set(transformed);
         }
 
         return blocks;

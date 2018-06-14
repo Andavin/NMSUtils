@@ -1,10 +1,9 @@
 package com.andavin.nbt;
 
-import com.andavin.reflect.Reflection;
 import com.andavin.nbt.wrapper.NBTBase;
 import com.andavin.nbt.wrapper.NBTHelper;
 import com.andavin.nbt.wrapper.NBTTagCompound;
-import com.google.common.base.Preconditions;
+import com.andavin.reflect.Reflection;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -13,6 +12,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
+
+import static com.google.common.base.Preconditions.checkArgument;
 
 /**
  * @author Andavin
@@ -119,7 +120,7 @@ public final class ItemNBT {
      */
     public static NBTTagCompound getAndCreateTag(final ItemStack item) {
 
-        Preconditions.checkArgument(CRAFT_ITEM.isInstance(item), "must be CraftItemStack");
+        checkArgument(CRAFT_ITEM.isInstance(item), "must be CraftItemStack");
         if (isEmpty(item)) {
             return null;
         }

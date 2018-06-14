@@ -2,13 +2,15 @@ package com.andavin.visual;
 
 import com.andavin.reflect.Reflection;
 import com.andavin.util.LongHash;
-import com.google.common.base.Preconditions;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.util.Vector;
 
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A data holder for blocks that simply holds their
@@ -32,7 +34,7 @@ public final class VisualBlock {
             registry = Reflection.getValue(block, null, "d");
         }
 
-        Preconditions.checkState(registry != null, "incompatible with current server version");
+        checkState(registry != null, "incompatible with current server version");
         BLOCK_DATA = Reflection.getValue(registry.getClass(), registry, "b");
     }
 
@@ -81,7 +83,7 @@ public final class VisualBlock {
         // Pack the block type ID into a single number
         // First 12 bits are the type ID then last 4 bits are data 0-15
         final int packedType = (short) ((type.getId() & 0xFFF) << 4 | data & 0xF);
-        Preconditions.checkState(0 <= packedType && packedType < BLOCK_DATA.size(),
+        checkState(0 <= packedType && packedType < BLOCK_DATA.size(),
                 "%s:%s is not a valid block type with this server version", type, data);
         this.blockData = BLOCK_DATA.get(packedType);
     }
@@ -216,6 +218,96 @@ public final class VisualBlock {
         );
     }
 
+    /**
+     * Rotate this block the specified amount of degrees around
+     * the X-axis. The returned object will be a new {@link VisualBlock}
+     * in the new rotated location.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the X axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * west toward negative X.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return A new block that is rotated the specified degrees around
+     *         the X-axis based on the origin.
+     */
+    public VisualBlock rotateX(final Vector origin, float degrees) {
+
+        degrees %= 360;
+        final int originY = origin.getBlockY();
+        final int originZ = origin.getBlockZ();
+        final double cos = dCos(degrees), sin = -dSin(degrees);
+        return new VisualBlock(
+                this.x,
+                (int) (originY + (this.y - originY) * cos - (this.y - originY) * sin),
+                (int) (originZ + (this.z - originZ) * cos + (this.z - originZ) * sin),
+                this.type,
+                this.data
+        );
+    }
+
+    /**
+     * Rotate this block the specified amount of degrees around
+     * the Y-axis. The returned object will be a new {@link VisualBlock}
+     * in the new rotated location.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Y axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * down toward negative Y.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return A new block that is rotated the specified degrees around
+     *         the Y-axis based on the origin.
+     */
+    public VisualBlock rotateY(final Vector origin, float degrees) {
+
+        degrees %= 360;
+        final int originX = origin.getBlockX();
+        final int originZ = origin.getBlockZ();
+        final double cos = dCos(degrees), sin = -dSin(degrees);
+        return new VisualBlock(
+                (int) (originX + (this.x - originX) * cos + (this.x - originX) * sin),
+                this.y,
+                (int) (originZ + (this.z - originZ) * cos - (this.z - originZ) * sin),
+                this.type,
+                this.data
+        );
+    }
+
+    /**
+     * Rotate this block the specified amount of degrees around
+     * the Z-axis. The returned object will be a new {@link VisualBlock}
+     * in the new rotated location.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Z axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * north toward negative Z.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return A new block that is rotated the specified degrees around
+     *         the Z-axis based on the origin.
+     */
+    public VisualBlock rotateZ(final Vector origin, float degrees) {
+
+        degrees %= 360;
+        final int originX = origin.getBlockX();
+        final int originY = origin.getBlockY();
+        final double cos = dCos(degrees), sin = -dSin(degrees);
+        return new VisualBlock(
+                (int) (originX + (this.x - originX) * cos - (this.x - originX) * sin),
+                (int) (originY + (this.y - originY) * cos + (this.y - originY) * sin),
+                this.z,
+                this.type,
+                this.data
+        );
+    }
+
     @Override
     public boolean equals(final Object obj) {
 
@@ -243,5 +335,75 @@ public final class VisualBlock {
     @Override
     public String toString() {
         return "(" + this.x + ", " + this.y + ", " + this.z + ") " + this.type + ':' + this.data;
+    }
+
+    /**
+     * Returns the cosine of an angle given in degrees. This is better than
+     * just {@code Math.cos(Math.toRadians(degrees))} because it provides a
+     * more accurate result for angles divisible by 90 degrees.
+     * <p>
+     * Taken from WorldEdit <a href="https://bit.ly/2y6lF3X">MathUtils class</a>
+     *
+     * @param degrees the angle
+     * @return the cosine of the given angle
+     */
+    private static double dCos(final double degrees) {
+
+        int dInt = (int) degrees;
+        if (degrees == dInt && dInt % 90 == 0) {
+
+            dInt %= 360;
+            if (dInt < 0) {
+                dInt += 360;
+            }
+
+            switch (dInt) {
+                case 0:
+                    return 1.0;
+                case 90:
+                    return 0.0;
+                case 180:
+                    return -1.0;
+                case 270:
+                    return 0.0;
+            }
+        }
+
+        return Math.cos(Math.toRadians(degrees));
+    }
+
+    /**
+     * Returns the sine of an angle given in degrees. This is better than just
+     * {@code Math.sin(Math.toRadians(degrees))} because it provides a more
+     * accurate result for angles divisible by 90 degrees.
+     * <p>
+     * Taken from WorldEdit <a href="https://bit.ly/2y6lF3X">MathUtils class</a>
+     *
+     * @param degrees the angle
+     * @return the sine of the given angle
+     */
+    private static double dSin(final double degrees) {
+
+        int dInt = (int) degrees;
+        if (degrees == dInt && dInt % 90 == 0) {
+
+            dInt %= 360;
+            if (dInt < 0) {
+                dInt += 360;
+            }
+
+            switch (dInt) {
+                case 0:
+                    return 0.0;
+                case 90:
+                    return 1.0;
+                case 180:
+                    return 0.0;
+                case 270:
+                    return -1.0;
+            }
+        }
+
+        return Math.sin(Math.toRadians(degrees));
     }
 }
