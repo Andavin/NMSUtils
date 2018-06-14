@@ -2,6 +2,7 @@ package com.andavin.visual;
 
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 
 import java.lang.ref.WeakReference;
 import java.util.Collections;
@@ -13,6 +14,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
 
 /**
  * An area of blocks that are simply visual. This is
@@ -197,7 +199,7 @@ public final class AreaVisual {
      * @return This AreaVisual object after it has been shifted.
      */
     public AreaVisual shift(final BlockFace direction) {
-        return this.shift(1, direction);
+        return this.transform(chunk -> chunk.shift(direction), true);
     }
 
     /**
@@ -210,10 +212,10 @@ public final class AreaVisual {
      *
      * @param distance The distance (in blocks) to shift.
      * @param direction The {@link BlockFace direction} to shift the blocks in.
-     * @return The leftover blocks that are no longer in this chunk.
+     * @return This AreaVisual object after it has been shifted.
      */
     public AreaVisual shift(final int distance, final BlockFace direction) {
-        return this.shift(distance, direction, true);
+        return this.transform(chunk -> chunk.shift(distance, direction), true);
     }
 
     /**
@@ -224,21 +226,157 @@ public final class AreaVisual {
      * @param direction The {@link BlockFace direction} to shift the blocks in.
      * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
      *                automatically during the shift.
-     * @return The leftover blocks that are no longer in this chunk.
+     * @return This AreaVisual object after it has been shifted.
      */
     public AreaVisual shift(final int distance, final BlockFace direction, final boolean refresh) {
+        return this.transform(chunk -> chunk.shift(distance, direction), refresh);
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this area visual to
+     * be visualized the specified amount of degrees around the X-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the X axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * west toward negative X.
+     * <p>
+     * This method will automatically {@link #reset() reset} all blocks
+     * that have been previously visualized and then re-visualize the
+     * newly shifted blocks.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return This AreaVisual object after it has been rotated.
+     */
+    public AreaVisual rotateX(final Vector origin, final float degrees) {
+        return this.transform(chunk -> chunk.rotateX(origin, degrees), true);
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this area visual to
+     * be visualized the specified amount of degrees around the X-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the X axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * west toward negative X.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the shift.
+     * @return This AreaVisual object after it has been rotated.
+     */
+    public AreaVisual rotateX(final Vector origin, final float degrees, final boolean refresh) {
+        return this.transform(chunk -> chunk.rotateX(origin, degrees), refresh);
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this area visual to
+     * be visualized the specified amount of degrees around the Y-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Y axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * down toward negative Y.
+     * <p>
+     * This method will automatically {@link #reset() reset} all blocks
+     * that have been previously visualized and then re-visualize the
+     * newly shifted blocks.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return This AreaVisual object after it has been rotated.
+     */
+    public AreaVisual rotateY(final Vector origin, final float degrees) {
+        return this.transform(chunk -> chunk.rotateY(origin, degrees), true);
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this area visual to
+     * be visualized the specified amount of degrees around the Y-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Y axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * down toward negative Y.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the shift.
+     * @return This AreaVisual object after it has been rotated.
+     */
+    public AreaVisual rotateY(final Vector origin, final float degrees, final boolean refresh) {
+        return this.transform(chunk -> chunk.rotateY(origin, degrees), refresh);
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this area visual to
+     * be visualized the specified amount of degrees around the Z-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Z axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * north toward negative Z.
+     * <p>
+     * This method will automatically {@link #reset() reset} all blocks
+     * that have been previously visualized and then re-visualize the
+     * newly shifted blocks.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @return This AreaVisual object after it has been rotated.
+     */
+    public AreaVisual rotateZ(final Vector origin, final float degrees) {
+        return this.transform(chunk -> chunk.rotateZ(origin, degrees), true);
+    }
+
+    /**
+     * Rotate all of the blocks that are contained in this area visual to
+     * be visualized the specified amount of degrees around the Z-axis.
+     * <p>
+     * In this case, positive degrees will result in a clockwise
+     * rotation around the Z axis and inversely a negative will
+     * result in a counterclockwise rotation if you are looking
+     * north toward negative Z.
+     *
+     * @param origin The {@link Vector origin} to rotate around.
+     * @param degrees The amount of degrees to rotate around the origin.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the shift.
+     * @return This AreaVisual object after it has been rotated.
+     */
+    public AreaVisual rotateZ(final Vector origin, final float degrees, final boolean refresh) {
+        return this.transform(chunk -> chunk.rotateZ(origin, degrees), refresh);
+    }
+
+    /**
+     * Transform this area visual by using the given {@link Function transformer}
+     * which will execute a transformation.
+     * <p>
+     * The transformer will be called on each {@link ChunkVisual chunk} that is
+     * contained within this area visual in order to transform then entire visual.
+     *
+     * @param transformer The function to use on each block to transform it.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the transformation.
+     * @return This AreaVisual object after it has been transformed.
+     */
+    public AreaVisual transform(final Function<ChunkVisual, List<VisualBlock>> transformer, final boolean refresh) {
 
         if (this.chunks.isEmpty()) {
             return this;
         }
 
         if (refresh) {
-            this.refresh(() -> this.shift(distance, direction, false));
+            this.refresh(() -> this.transform(transformer, false));
             return this;
         }
 
         final List<VisualBlock> overflow = new LinkedList<>();
-        this.chunks.values().forEach(chunk -> overflow.addAll(chunk.shift(distance, direction)));
+        this.chunks.values().forEach(chunk -> overflow.addAll(transformer.apply(chunk)));
         if (!overflow.isEmpty()) {
             this.addBlock(overflow);
         }
