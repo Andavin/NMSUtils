@@ -3,6 +3,7 @@ package com.andavin.visual;
 import com.andavin.reflect.Reflection;
 import com.andavin.util.LongHash;
 import com.andavin.util.PacketSender;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -100,6 +101,79 @@ public final class ChunkVisual {
      */
     public void addBlock(final VisualBlock block) {
         this.blocks.put(block.getPackedPos(), block);
+    }
+
+    /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     */
+    public void setType(final Material fromType, final Material toType) {
+        this.setType(fromType, -1, toType, 0);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     */
+    public void setType(final Material fromType, final Material toType, final int toData) {
+        this.setType(fromType, -1, toType, toData);
+    }
+
+    /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type and data criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     */
+    public void setType(final Material fromType, final int fromData, final Material toType) {
+        this.setType(fromType, fromData, toType, 0);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type and data
+     * criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     */
+    public synchronized void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+
+        this.blocks.entrySet().forEach(entry -> {
+
+            final VisualBlock block = entry.getValue();
+            // If the data is -1 then no need to match data only type
+            if (block.getType() == fromType && (fromData == -1 || block.getData() == fromData)) {
+                entry.setValue(new VisualBlock(block.getX(), block.getY(), block.getZ(), toType, toData));
+            }
+        });
     }
 
     /**

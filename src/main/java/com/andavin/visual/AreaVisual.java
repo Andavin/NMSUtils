@@ -1,5 +1,6 @@
 package com.andavin.visual;
 
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -84,7 +85,7 @@ public final class AreaVisual {
      *               This could be shifting, adding blocks etc.
      * @return This AreaVisual object.
      */
-    public AreaVisual refresh(final Runnable action) {
+    public synchronized AreaVisual refresh(final Runnable action) {
 
         if (!this.visualized.isEmpty()) {
 
@@ -119,7 +120,7 @@ public final class AreaVisual {
      *
      * @return This AreaVisual object.
      */
-    public AreaVisual reset() {
+    public synchronized AreaVisual reset() {
 
         if (!this.visualized.isEmpty()) {
             this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
@@ -140,7 +141,7 @@ public final class AreaVisual {
      *
      * @return This AreaVisual object.
      */
-    public AreaVisual clear() {
+    public synchronized AreaVisual clear() {
 
         if (!this.visualized.isEmpty()) {
             this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
@@ -162,7 +163,7 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public AreaVisual addBlock(final VisualBlock block) {
+    public synchronized AreaVisual addBlock(final VisualBlock block) {
         this.chunks.computeIfAbsent(block.getChunk(), ChunkVisual::new).addBlock(block);
         return this;
     }
@@ -176,7 +177,7 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public AreaVisual addBlock(final List<VisualBlock> blocks) {
+    public synchronized AreaVisual addBlock(final List<VisualBlock> blocks) {
 
         ChunkVisual chunk = null;
         for (final VisualBlock block : blocks) {
@@ -189,6 +190,71 @@ public final class AreaVisual {
         }
 
         return this;
+    }
+
+    /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     */
+    public void setType(final Material fromType, final Material toType) {
+        this.setType(fromType, -1, toType, 0);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     */
+    public void setType(final Material fromType, final Material toType, final int toData) {
+        this.setType(fromType, -1, toType, toData);
+    }
+
+    /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type and data criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     */
+    public void setType(final Material fromType, final int fromData, final Material toType) {
+        this.setType(fromType, fromData, toType, 0);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type and data
+     * criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     */
+    public synchronized void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+        this.chunks.values().forEach(chunk -> chunk.setType(fromType, fromData, toType, toData));
     }
 
     /**
@@ -364,7 +430,7 @@ public final class AreaVisual {
      *                automatically during the transformation.
      * @return This AreaVisual object after it has been transformed.
      */
-    public AreaVisual transform(final Function<ChunkVisual, List<VisualBlock>> transformer, final boolean refresh) {
+    public synchronized AreaVisual transform(final Function<ChunkVisual, List<VisualBlock>> transformer, final boolean refresh) {
 
         if (this.chunks.isEmpty()) {
             return this;
