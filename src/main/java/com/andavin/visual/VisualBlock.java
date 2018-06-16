@@ -241,8 +241,8 @@ public final class VisualBlock {
         final double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
                 this.x,
-                (int) (originY + (this.y - originY) * cos - (this.y - originY) * sin),
-                (int) (originZ + (this.z - originZ) * cos + (this.z - originZ) * sin),
+                (int) (originY + (this.y - originY) * cos - (this.z - originZ) * sin),
+                (int) (originZ + (this.z - originZ) * cos + (this.y - originY) * sin),
                 this.type,
                 this.data
         );
@@ -270,9 +270,9 @@ public final class VisualBlock {
         final int originZ = origin.getBlockZ();
         final double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
-                (int) (originX + (this.x - originX) * cos + (this.x - originX) * sin),
+                (int) (originX + (this.x - originX) * cos + (this.z - originZ) * sin),
                 this.y,
-                (int) (originZ + (this.z - originZ) * cos - (this.z - originZ) * sin),
+                (int) (originZ + (this.z - originZ) * cos - (this.x - originX) * sin),
                 this.type,
                 this.data
         );
@@ -300,8 +300,8 @@ public final class VisualBlock {
         final int originY = origin.getBlockY();
         final double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
-                (int) (originX + (this.x - originX) * cos - (this.x - originX) * sin),
-                (int) (originY + (this.y - originY) * cos + (this.y - originY) * sin),
+                (int) (originX + (this.x - originX) * cos - (this.y - originY) * sin),
+                (int) (originY + (this.y - originY) * cos + (this.x - originX) * sin),
                 this.z,
                 this.type,
                 this.data

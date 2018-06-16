@@ -6,9 +6,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -54,8 +54,12 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      */
     public AreaVisual visualize(final Player player) {
-        this.visualized.computeIfAbsent(player.getUniqueId(), uuid -> new WeakReference<>(player));
-        this.chunks.values().forEach(chunk -> chunk.visualize(player));
+
+        synchronized (this.visualized) {
+            this.visualized.computeIfAbsent(player.getUniqueId(), uuid -> new WeakReference<>(player));
+            this.chunks.values().forEach(chunk -> chunk.visualize(player));
+        }
+
         return this;
     }
 
@@ -85,7 +89,7 @@ public final class AreaVisual {
      *               This could be shifting, adding blocks etc.
      * @return This AreaVisual object.
      */
-    public synchronized AreaVisual refresh(final Runnable action) {
+    public AreaVisual refresh(final Runnable action) {
 
         if (!this.visualized.isEmpty()) {
 
@@ -98,7 +102,7 @@ public final class AreaVisual {
                     this.chunks.forEach((hash, chunk) -> chunk.visualize(player,
                             snaps.getOrDefault(hash, Collections.emptySet())));
                 } else {
-                    this.chunks.values().forEach(chunk -> chunk.visualize(player, chunk.snapshot()));
+                    this.chunks.values().forEach(chunk -> chunk.visualize(player));
                 }
 
                 // Cleanup chunks if there are no blocks
@@ -120,7 +124,7 @@ public final class AreaVisual {
      *
      * @return This AreaVisual object.
      */
-    public synchronized AreaVisual reset() {
+    public AreaVisual reset() {
 
         if (!this.visualized.isEmpty()) {
             this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
@@ -141,14 +145,17 @@ public final class AreaVisual {
      *
      * @return This AreaVisual object.
      */
-    public synchronized AreaVisual clear() {
+    public AreaVisual clear() {
 
         if (!this.visualized.isEmpty()) {
-            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
-                    .forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
-            this.chunks.values().forEach(ChunkVisual::clear);
-            this.visualized.clear();
-            this.chunks.clear();
+
+            synchronized (this.visualized) {
+                this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
+                        .forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
+                this.chunks.values().forEach(ChunkVisual::clear);
+                this.visualized.clear();
+                this.chunks.clear();
+            }
         }
 
         return this;
@@ -163,7 +170,7 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public synchronized AreaVisual addBlock(final VisualBlock block) {
+    public AreaVisual addBlock(final VisualBlock block) {
         this.chunks.computeIfAbsent(block.getChunk(), ChunkVisual::new).addBlock(block);
         return this;
     }
@@ -177,7 +184,7 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public synchronized AreaVisual addBlock(final List<VisualBlock> blocks) {
+    public AreaVisual addBlock(final List<VisualBlock> blocks) {
 
         ChunkVisual chunk = null;
         for (final VisualBlock block : blocks) {
@@ -199,9 +206,25 @@ public final class AreaVisual {
      * @param fromType The {@link VisualBlock#getType() type} of blocks
      *                 to change to the new type.
      * @param toType The type to change the matching blocks to.
+     * @return This AreaVisual object after the types have been changed.
      */
-    public void setType(final Material fromType, final Material toType) {
-        this.setType(fromType, -1, toType, 0);
+    public AreaVisual setType(final Material fromType, final Material toType) {
+        return this.setType(fromType, -1, toType, 0, true);
+    }
+
+    /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the type change.
+     * @return This AreaVisual object after the types have been changed.
+     */
+    public AreaVisual setType(final Material fromType, final Material toType, final boolean refresh) {
+        return this.setType(fromType, -1, toType, 0, refresh);
     }
 
     /**
@@ -212,9 +235,26 @@ public final class AreaVisual {
      *                 to change to the new type.
      * @param toType The type to change the matching blocks to.
      * @param toData The data to change the matching blocks to.
+     * @return This AreaVisual object after the types have been changed.
      */
-    public void setType(final Material fromType, final Material toType, final int toData) {
-        this.setType(fromType, -1, toType, toData);
+    public AreaVisual setType(final Material fromType, final Material toType, final int toData) {
+        return this.setType(fromType, -1, toType, toData, true);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the type change.
+     * @return This AreaVisual object after the types have been changed.
+     */
+    public AreaVisual setType(final Material fromType, final Material toType, final int toData, final boolean refresh) {
+        return this.setType(fromType, -1, toType, toData, refresh);
     }
 
     /**
@@ -231,9 +271,32 @@ public final class AreaVisual {
      * @param fromData The {@link VisualBlock#getData() data} of the
      *                 blocks to change to the new type.
      * @param toType The type to change the matching blocks to.
+     * @return This AreaVisual object after the types have been changed.
      */
-    public void setType(final Material fromType, final int fromData, final Material toType) {
-        this.setType(fromType, fromData, toType, 0);
+    public AreaVisual setType(final Material fromType, final int fromData, final Material toType) {
+        return this.setType(fromType, fromData, toType, 0, true);
+    }
+
+    /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type and data criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the type change.
+     * @return This AreaVisual object after the types have been changed.
+     */
+    public AreaVisual setType(final Material fromType, final int fromData, final Material toType, final boolean refresh) {
+        return this.setType(fromType, fromData, toType, 0, refresh);
     }
 
     /**
@@ -252,9 +315,44 @@ public final class AreaVisual {
      *                 blocks to change to the new type.
      * @param toType The type to change the matching blocks to.
      * @param toData The data to change the matching blocks to.
+     * @return This AreaVisual object after the types have been changed.
      */
-    public synchronized void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+    public AreaVisual setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+        return this.setType(fromType, fromData, toType, toData, true);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type and data
+     * criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *  @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     * @return This AreaVisual object after the types have been changed.
+     */
+    public AreaVisual setType(final Material fromType, final int fromData,
+            final Material toType, final int toData, final boolean refresh) {
+
+        if (this.chunks.isEmpty()) {
+            return this;
+        }
+
+        if (refresh) {
+            this.refresh(() -> this.setType(fromType, fromData, toType, toData, false));
+            return this;
+        }
+
         this.chunks.values().forEach(chunk -> chunk.setType(fromType, fromData, toType, toData));
+        return this;
     }
 
     /**
@@ -285,20 +383,6 @@ public final class AreaVisual {
     }
 
     /**
-     * Shift all of the blocks that are contained in this area visual
-     * to be visualized a certain amount of blocks in a direction.
-     *
-     * @param distance The distance (in blocks) to shift.
-     * @param direction The {@link BlockFace direction} to shift the blocks in.
-     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
-     *                automatically during the shift.
-     * @return This AreaVisual object after it has been shifted.
-     */
-    public AreaVisual shift(final int distance, final BlockFace direction, final boolean refresh) {
-        return this.transform(chunk -> chunk.shift(distance, direction), refresh);
-    }
-
-    /**
      * Rotate all of the blocks that are contained in this area visual to
      * be visualized the specified amount of degrees around the X-axis.
      * <p>
@@ -317,25 +401,6 @@ public final class AreaVisual {
      */
     public AreaVisual rotateX(final Vector origin, final float degrees) {
         return this.transform(chunk -> chunk.rotateX(origin, degrees), true);
-    }
-
-    /**
-     * Rotate all of the blocks that are contained in this area visual to
-     * be visualized the specified amount of degrees around the X-axis.
-     * <p>
-     * In this case, positive degrees will result in a clockwise
-     * rotation around the X axis and inversely a negative will
-     * result in a counterclockwise rotation if you are looking
-     * west toward negative X.
-     *
-     * @param origin The {@link Vector origin} to rotate around.
-     * @param degrees The amount of degrees to rotate around the origin.
-     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
-     *                automatically during the shift.
-     * @return This AreaVisual object after it has been rotated.
-     */
-    public AreaVisual rotateX(final Vector origin, final float degrees, final boolean refresh) {
-        return this.transform(chunk -> chunk.rotateX(origin, degrees), refresh);
     }
 
     /**
@@ -361,25 +426,6 @@ public final class AreaVisual {
 
     /**
      * Rotate all of the blocks that are contained in this area visual to
-     * be visualized the specified amount of degrees around the Y-axis.
-     * <p>
-     * In this case, positive degrees will result in a clockwise
-     * rotation around the Y axis and inversely a negative will
-     * result in a counterclockwise rotation if you are looking
-     * down toward negative Y.
-     *
-     * @param origin The {@link Vector origin} to rotate around.
-     * @param degrees The amount of degrees to rotate around the origin.
-     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
-     *                automatically during the shift.
-     * @return This AreaVisual object after it has been rotated.
-     */
-    public AreaVisual rotateY(final Vector origin, final float degrees, final boolean refresh) {
-        return this.transform(chunk -> chunk.rotateY(origin, degrees), refresh);
-    }
-
-    /**
-     * Rotate all of the blocks that are contained in this area visual to
      * be visualized the specified amount of degrees around the Z-axis.
      * <p>
      * In this case, positive degrees will result in a clockwise
@@ -400,25 +446,6 @@ public final class AreaVisual {
     }
 
     /**
-     * Rotate all of the blocks that are contained in this area visual to
-     * be visualized the specified amount of degrees around the Z-axis.
-     * <p>
-     * In this case, positive degrees will result in a clockwise
-     * rotation around the Z axis and inversely a negative will
-     * result in a counterclockwise rotation if you are looking
-     * north toward negative Z.
-     *
-     * @param origin The {@link Vector origin} to rotate around.
-     * @param degrees The amount of degrees to rotate around the origin.
-     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
-     *                automatically during the shift.
-     * @return This AreaVisual object after it has been rotated.
-     */
-    public AreaVisual rotateZ(final Vector origin, final float degrees, final boolean refresh) {
-        return this.transform(chunk -> chunk.rotateZ(origin, degrees), refresh);
-    }
-
-    /**
      * Transform this area visual by using the given {@link Function transformer}
      * which will execute a transformation.
      * <p>
@@ -430,7 +457,7 @@ public final class AreaVisual {
      *                automatically during the transformation.
      * @return This AreaVisual object after it has been transformed.
      */
-    public synchronized AreaVisual transform(final Function<ChunkVisual, List<VisualBlock>> transformer, final boolean refresh) {
+    public AreaVisual transform(final Function<ChunkVisual, List<VisualBlock>> transformer, final boolean refresh) {
 
         if (this.chunks.isEmpty()) {
             return this;
@@ -441,7 +468,7 @@ public final class AreaVisual {
             return this;
         }
 
-        final List<VisualBlock> overflow = new LinkedList<>();
+        final List<VisualBlock> overflow = new ArrayList<>();
         this.chunks.values().forEach(chunk -> overflow.addAll(transformer.apply(chunk)));
         if (!overflow.isEmpty()) {
             this.addBlock(overflow);
