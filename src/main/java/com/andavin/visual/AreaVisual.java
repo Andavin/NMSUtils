@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * An area of blocks that are simply visual. This is
@@ -93,21 +94,17 @@ public final class AreaVisual {
 
         if (!this.visualized.isEmpty()) {
 
-            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull).forEach(player -> {
-
-                final Map<Long, Set<VisualBlock>> snaps = new HashMap<>((int) (chunks.size() / 0.75));
-                if (action != null) {
-                    this.chunks.forEach((hash, chunk) -> snaps.put(hash, chunk.snapshot()));
-                    action.run();
-                    this.chunks.forEach((hash, chunk) -> chunk.visualize(player,
-                            snaps.getOrDefault(hash, Collections.emptySet())));
-                } else {
-                    this.chunks.values().forEach(chunk -> chunk.visualize(player));
-                }
-
-                // Cleanup chunks if there are no blocks
-                this.chunks.values().removeIf(ChunkVisual::isEmpty);
-            });
+            final Set<Player> players = this.visualized.values().stream().map(WeakReference::get)
+                    .filter(Objects::nonNull).collect(Collectors.toSet());
+            final Map<Long, Set<VisualBlock>> snaps = new HashMap<>((int) (chunks.size() / 0.75));
+            if (action != null) {
+                this.chunks.forEach((hash, chunk) -> snaps.put(hash, chunk.snapshot()));
+                action.run();
+                this.chunks.forEach((hash, chunk) -> players.forEach(player ->
+                        chunk.visualize(player, snaps.getOrDefault(hash, Collections.emptySet()))));
+            } else {
+                this.chunks.values().forEach(chunk -> players.forEach(chunk::visualize));
+            }
         }
 
         return this;
@@ -474,6 +471,8 @@ public final class AreaVisual {
             this.addBlock(overflow);
         }
 
+        // Cleanup chunks if there are no blocks
+        this.chunks.values().removeIf(ChunkVisual::isEmpty);
         return this;
     }
 }
