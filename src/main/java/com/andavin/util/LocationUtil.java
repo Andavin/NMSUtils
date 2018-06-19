@@ -187,6 +187,28 @@ public final class LocationUtil {
     }
 
     /**
+     * Get the difference, in degrees, between the first {@link BlockFace}
+     * given and the second.
+     *
+     * @param from The BlockFace to measure from (0º).
+     * @param to The BlockFace to measure to (degrees from 0º).
+     * @return The amount of degrees that separate the two BlockFaces.
+     */
+    public static float getDifference(BlockFace from, final BlockFace to) {
+
+        if (from == to) {
+            return 0;
+        }
+
+        float degrees = 22.5F;
+        while ((from = rotateRight(from)) != to) {
+            degrees += 22.5F;
+        }
+
+        return degrees;
+    }
+
+    /**
      * Rotate the given {@link BlockFace} by the given degrees to the
      * closest 16th of a circle on the y-axis and to the closest 4th
      * of a circle on the x or z axes.
@@ -204,13 +226,13 @@ public final class LocationUtil {
      * @param zAxis If the rotation is taking place on the z-axis.
      * @return The block face that is rotated.
      */
-    public static BlockFace rotate(final BlockFace face, final double degrees, final boolean xAxis, final boolean zAxis) {
+    public static BlockFace rotate(final BlockFace face, final float degrees, final boolean xAxis, final boolean zAxis) {
 
         if (face == BlockFace.SELF || degrees == 0) {
             return face;
         }
 
-        final double dRotations = degrees / 22.5;
+        final float dRotations = degrees / 22.5F;
         int rotations = (int) dRotations;
         if (dRotations > rotations) { // If the degrees were positive
             rotations++;
