@@ -55,7 +55,7 @@ public final class AreaVisual {
      * Visualize and send all of the fake blocks to the given
      * {@link Player client}. This is essentially an update method.
      * Any blocks that are added via {@link #addBlock(VisualBlock)}
-     * or {@link #addBlock(List)} will not be sent to the client
+     * or {@link #addBlock(Collection)} will not be sent to the client
      * until this method is invoked. In addition, any subsequent
      * blocks that are added will not be updated until this method is
      * called again to update the blocks.
