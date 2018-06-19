@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2018 Andavin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
@@ -419,7 +443,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * If the value is present and is any instance of {@linkplain NBTNumber},
      * then the conformed {@link boolean} will be retrieved from that type.
      * {@code false} will be returned otherwise.
-     * 
+     *
      * @param key The key to retrieve the value mapping from.
      * @return The {@code boolean} value stored or {@code false} if there
      *         was no mapping or if a non-{@linkplain NBTNumber} was stored there.
@@ -430,7 +454,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
 
     /**
      * Get the {@link String} mapped to the given key.
-     * 
+     *
      * @param key The key to retrieve the value mapping from.
      * @return The value stored at the location or an empty String
      *         ({@code ""}) if there was no mapping for the key.
@@ -440,7 +464,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         final NBTTagString tag = this.get(key);
         return tag != null ? tag.toString() : "";
     }
-    
+
     /**
      * Get the {@code byte[]} mapped to the given key.
      *
@@ -502,7 +526,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
 
     /**
      * Get the integer ID type of the value mapped to the given key.
-     * 
+     *
      * @param key The key to retrieve the value type ID from.
      * @return The ID of the value mapped to the given key or
      *         {@link NBTType#END} if there was no mapping.

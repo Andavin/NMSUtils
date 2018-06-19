@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2018 Andavin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.andavin.chat;
 
 import com.andavin.reflect.Reflection;
@@ -34,11 +58,12 @@ public class ChatComponent {
     private static final Method FROM_STRING = Reflection.getMethod(Reflection.getCraftClass(
             "util.CraftChatMessage"), "fromString", String.class);
     private static final Map<ChatColor, Object> NMS_COLORS = new EnumMap<>(ChatColor.class);
+
     static {
 
         final Class<?> format = Reflection.getMcClass("EnumChatFormat");
         for (final ChatColor color : ChatColor.values()) {
-             NMS_COLORS.put(color, Reflection.getValue(format, null, color.name()));
+            NMS_COLORS.put(color, Reflection.getValue(format, null, color.name()));
         }
 
         final Class<?> iBaseClass = Reflection.getMcClass("IChatBaseComponent");
@@ -223,7 +248,6 @@ public class ChatComponent {
      */
     public List<ChatComponent> highlight(final String highlight, final boolean caseSensitive) {
 
-
         final List<ChatComponent> highlights = new LinkedList<>();
         final List<ChatComponent> comps = this.getSiblings();
         this.siblings.clear(); // Clear all the siblings of the base component
@@ -269,7 +293,6 @@ public class ChatComponent {
             end.setChatModifier(comp.getChatModifier());                // Set the modifier to what it was
             comps.add(i, end);                                          // Add it back in after the other two
         }
-
 
         this.setText(comps.get(0).getText());  // Reset this chat component to the first index's text
         comps.remove(0);                 // Remove it from the list

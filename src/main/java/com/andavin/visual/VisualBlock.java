@@ -1,11 +1,38 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2018 Andavin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.andavin.visual;
 
 import com.andavin.reflect.Reflection;
+import com.andavin.util.LocationUtil;
 import com.andavin.util.LongHash;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.material.Directional;
+import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -236,6 +263,18 @@ public final class VisualBlock {
     public VisualBlock rotateX(final Vector origin, float degrees) {
 
         degrees %= 360;
+        final byte data;
+        final Class<? extends MaterialData> dataType = this.type.getData();
+        if (dataType.isAssignableFrom(Directional.class)) {
+            final MaterialData typeData = this.type.getNewData(this.data);
+            final Directional direction = (Directional) this.type.getNewData(this.data);
+            final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
+            direction.setFacingDirection(face);
+            data = typeData.getData();
+        } else {
+            data = this.data;
+        }
+
         final int originY = origin.getBlockY();
         final int originZ = origin.getBlockZ();
         final double cos = dCos(degrees), sin = -dSin(degrees);
@@ -244,7 +283,7 @@ public final class VisualBlock {
                 (int) (originY + (this.y - originY) * cos - (this.z - originZ) * sin),
                 (int) (originZ + (this.z - originZ) * cos + (this.y - originY) * sin),
                 this.type,
-                this.data
+                data
         );
     }
 
@@ -266,6 +305,18 @@ public final class VisualBlock {
     public VisualBlock rotateY(final Vector origin, float degrees) {
 
         degrees %= 360;
+        final byte data;
+        final Class<? extends MaterialData> dataType = this.type.getData();
+        if (dataType.isAssignableFrom(Directional.class)) {
+            final MaterialData typeData = this.type.getNewData(this.data);
+            final Directional direction = (Directional) this.type.getNewData(this.data);
+            final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
+            direction.setFacingDirection(face);
+            data = typeData.getData();
+        } else {
+            data = this.data;
+        }
+
         final int originX = origin.getBlockX();
         final int originZ = origin.getBlockZ();
         final double cos = dCos(degrees), sin = -dSin(degrees);
@@ -296,6 +347,18 @@ public final class VisualBlock {
     public VisualBlock rotateZ(final Vector origin, float degrees) {
 
         degrees %= 360;
+        final byte data;
+        final Class<? extends MaterialData> dataType = this.type.getData();
+        if (dataType.isAssignableFrom(Directional.class)) {
+            final MaterialData typeData = this.type.getNewData(this.data);
+            final Directional direction = (Directional) this.type.getNewData(this.data);
+            final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);
+            direction.setFacingDirection(face);
+            data = typeData.getData();
+        } else {
+            data = this.data;
+        }
+
         final int originX = origin.getBlockX();
         final int originY = origin.getBlockY();
         final double cos = dCos(degrees), sin = -dSin(degrees);

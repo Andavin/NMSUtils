@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2018 Andavin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.andavin.util;
 
 import org.bukkit.Location;
@@ -160,5 +184,183 @@ public final class LocationUtil {
 
         final BlockFace[] directions = diagonal ? DIAGONAL : CARDINAL;
         return directions[((int) loc.getYaw() + 585) % 360 / directions.length];
+    }
+
+    /**
+     * Rotate the given {@link BlockFace} by the given degrees to the
+     * closest 16th of a circle on the y-axis and to the closest 4th
+     * of a circle on the x or z axes.
+     * <p>
+     * If the degrees are positive, the face will be rotated clockwise
+     * and if they are negative it will be rotated counterclockwise.
+     * <p>
+     * Note that the rotation cannot take place on both X and Z axes.
+     * Therefore, both {@code xAxis} and {@code zAxis} cannot both be
+     * {@code true}. If they are, then it will be rotated on the X-axis.
+     *
+     * @param face The BlockFace to rotate.
+     * @param degrees The amount of degrees to rotate.
+     * @param xAxis If the rotation is taking place on the x-axis.
+     * @param zAxis If the rotation is taking place on the z-axis.
+     * @return The block face that is rotated.
+     */
+    public static BlockFace rotate(final BlockFace face, final double degrees, final boolean xAxis, final boolean zAxis) {
+
+        if (face == BlockFace.SELF || degrees == 0) {
+            return face;
+        }
+
+        final double dRotations = degrees / 22.5;
+        int rotations = (int) dRotations;
+        if (dRotations > rotations) { // If the degrees were positive
+            rotations++;
+        } else if (dRotations < rotations) { // If the degrees were negative
+            rotations--;
+        }
+
+        rotations %= 16;
+        if (xAxis || zAxis) {
+
+            rotations /= 4;
+            if (rotations == 2) {
+                return face.getOppositeFace();
+            }
+
+            if (rotations == 3 || rotations == -3) {
+                rotations /= -3;
+            }
+
+            final boolean positive = rotations == 1;
+            switch (face) {
+                case UP:
+                    return xAxis ? positive ? BlockFace.NORTH : BlockFace.SOUTH :
+                            positive ? BlockFace.EAST : BlockFace.WEST;
+                case NORTH:
+                case EAST:
+                    return positive ? BlockFace.DOWN : BlockFace.UP;
+                case DOWN:
+                    return xAxis ? positive ? BlockFace.SOUTH : BlockFace.NORTH :
+                            positive ? BlockFace.WEST : BlockFace.EAST;
+                case SOUTH:
+                case WEST:
+                    return positive ? BlockFace.UP : BlockFace.DOWN;
+            }
+        }
+
+        BlockFace rotated = face;
+        if (rotations == 8) {
+            rotated = face.getOppositeFace();
+        } else if (degrees > 0) {
+
+            for (int i = 0; i < rotations; i++) {
+                rotated = rotateRight(rotated);
+            }
+        } else if (degrees < 0) {
+
+            rotations *= -1;
+            for (int i = 0; i < rotations; i++) {
+                rotated = rotateLeft(rotated);
+            }
+        }
+
+        return rotated;
+    }
+
+    /**
+     * Rotate the given {@link BlockFace} 1/16th of a 360º rotation
+     * clockwise on the y-axis. If the given BlockFace is either
+     * {@link BlockFace#UP} or {@link BlockFace#DOWN}, then itself
+     * will be returned as those faces cannot be rotated on the y-axis.
+     *
+     * @param face The face to rotate on the y-axis.
+     * @return The BlockFace that has been rotated 22.5º on the y-axis.
+     */
+    public static BlockFace rotateRight(final BlockFace face) {
+
+        switch (face) {
+            case NORTH:
+                return BlockFace.NORTH_NORTH_EAST;
+            case NORTH_NORTH_EAST:
+                return BlockFace.NORTH_EAST;
+            case NORTH_EAST:
+                return BlockFace.EAST_NORTH_EAST;
+            case EAST_NORTH_EAST:
+                return BlockFace.EAST;
+            case EAST:
+                return BlockFace.EAST_SOUTH_EAST;
+            case EAST_SOUTH_EAST:
+                return BlockFace.SOUTH_EAST;
+            case SOUTH_EAST:
+                return BlockFace.SOUTH_SOUTH_EAST;
+            case SOUTH_SOUTH_EAST:
+                return BlockFace.SOUTH;
+            case SOUTH:
+                return BlockFace.SOUTH_SOUTH_WEST;
+            case SOUTH_SOUTH_WEST:
+                return BlockFace.SOUTH_WEST;
+            case SOUTH_WEST:
+                return BlockFace.WEST_SOUTH_WEST;
+            case WEST_SOUTH_WEST:
+                return BlockFace.WEST;
+            case WEST:
+                return BlockFace.WEST_NORTH_WEST;
+            case WEST_NORTH_WEST:
+                return BlockFace.NORTH_WEST;
+            case NORTH_WEST:
+                return BlockFace.NORTH_NORTH_WEST;
+            case NORTH_NORTH_WEST:
+                return BlockFace.NORTH;
+            default:
+                return face;
+        }
+    }
+
+    /**
+     * Rotate the given {@link BlockFace} 1/16th of a 360º rotation
+     * counterclockwise on the y-axis. If the given BlockFace is either
+     * {@link BlockFace#UP} or {@link BlockFace#DOWN}, then itself will
+     * be returned as those faces cannot be rotated on the y-axis.
+     *
+     * @param face The face to rotate on the y-axis.
+     * @return The BlockFace that has been rotated 22.5º on the y-axis.
+     */
+    public static BlockFace rotateLeft(final BlockFace face) {
+
+        switch (face) {
+            case NORTH:
+                return BlockFace.NORTH_NORTH_WEST;
+            case NORTH_NORTH_WEST:
+                return BlockFace.NORTH_WEST;
+            case NORTH_WEST:
+                return BlockFace.WEST_NORTH_WEST;
+            case WEST_NORTH_WEST:
+                return BlockFace.WEST;
+            case WEST:
+                return BlockFace.WEST_SOUTH_WEST;
+            case WEST_SOUTH_WEST:
+                return BlockFace.SOUTH_WEST;
+            case SOUTH_WEST:
+                return BlockFace.SOUTH_SOUTH_WEST;
+            case SOUTH_SOUTH_WEST:
+                return BlockFace.SOUTH;
+            case SOUTH:
+                return BlockFace.SOUTH_SOUTH_EAST;
+            case SOUTH_SOUTH_EAST:
+                return BlockFace.SOUTH_EAST;
+            case SOUTH_EAST:
+                return BlockFace.EAST_SOUTH_EAST;
+            case EAST_SOUTH_EAST:
+                return BlockFace.EAST;
+            case EAST:
+                return BlockFace.EAST_NORTH_EAST;
+            case EAST_NORTH_EAST:
+                return BlockFace.NORTH_EAST;
+            case NORTH_EAST:
+                return BlockFace.NORTH_NORTH_EAST;
+            case NORTH_NORTH_EAST:
+                return BlockFace.NORTH;
+            default:
+                return face;
+        }
     }
 }
