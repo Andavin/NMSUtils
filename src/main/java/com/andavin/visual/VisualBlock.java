@@ -246,6 +246,27 @@ public final class VisualBlock {
     }
 
     /**
+     * Shift the block a certain amount along the given axes.
+     * This works the same as an {@code add(int, int, int)}
+     * method. The returned object will be a new {@link VisualBlock}
+     * in the shifted location.
+     *
+     * @param x The amount of blocks to shift along the x-axis.
+     * @param y The amount of blocks to shift along the y-axis.
+     * @param z The amount of blocks to shift along the z-axis.
+     * @return A new block that is shifted relative to this block.
+     */
+    public VisualBlock shift(final int x, final int y, final int z) {
+        return new VisualBlock(
+                this.x + x,
+                this.y + y,
+                this.z + z,
+                this.type,
+                this.data
+        );
+    }
+
+    /**
      * Rotate this block the specified amount of degrees around
      * the X-axis. The returned object will be a new {@link VisualBlock}
      * in the new rotated location.

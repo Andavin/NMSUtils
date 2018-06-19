@@ -242,6 +242,29 @@ public final class ChunkVisual {
     }
 
     /**
+     * Shift all of the blocks that are contained in this chunk
+     * to be visualized a certain amount of blocks along each of
+     * the x, y and z axes.
+     * <p>
+     * If all of the blocks, once shifted, do not fit within this
+     * chunk anymore, then all of the blocks that are not in this
+     * chunk will be returned as an overflow list.
+     * <p>
+     * Note that it is suggested to invoke {@link #reset(Player)}
+     * on this chunk before calling this method in order to remove
+     * all blocks that are previously visualized as this method will
+     * replace all old blocks with the new shifted ones.
+     *
+     * @param x The amount of blocks to shift along the x-axis.
+     * @param y The amount of blocks to shift along the y-axis.
+     * @param z The amount of blocks to shift along the z-axis.
+     * @return The leftover blocks that are no longer in this chunk.
+     */
+    public List<VisualBlock> shift(final int x, final int y, final int z) {
+        return this.transform(block -> block.shift(x, y, z));
+    }
+
+    /**
      * Rotate all of the blocks that are contained in this chunk to be
      * visualized the specified amount of degrees around the X-axis.
      * <p>

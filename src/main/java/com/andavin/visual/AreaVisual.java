@@ -404,6 +404,24 @@ public final class AreaVisual {
     }
 
     /**
+     * Shift all of the blocks that are contained in this area visual
+     * to be visualized a certain amount of blocks along each of the
+     * x, y and z axes.
+     * <p>
+     * This method will automatically {@link #reset() reset} all blocks
+     * that have been previously visualized and then re-visualize the
+     * newly shifted blocks.
+     *
+     * @param x The amount of blocks to shift along the x-axis.
+     * @param y The amount of blocks to shift along the y-axis.
+     * @param z The amount of blocks to shift along the z-axis.
+     * @return This AreaVisual object after it has been shifted.
+     */
+    public AreaVisual shift(final int x, final int y, final int z) {
+        return this.transform(chunk -> chunk.shift(x, y, z), true);
+    }
+
+    /**
      * Rotate all of the blocks that are contained in this area visual to
      * be visualized the specified amount of degrees around the X-axis.
      * <p>
