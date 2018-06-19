@@ -30,14 +30,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -205,7 +198,7 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public AreaVisual addBlock(final List<VisualBlock> blocks) {
+    public AreaVisual addBlock(final Collection<VisualBlock> blocks) {
 
         ChunkVisual chunk = null;
         for (final VisualBlock block : blocks) {
@@ -218,6 +211,18 @@ public final class AreaVisual {
         }
 
         return this;
+    }
+
+    /**
+     * Get all of the blocks that are currently contained
+     * within this area visual.
+     *
+     * @return A unique {@link Set} of blocks within this area.
+     */
+    public Set<VisualBlock> getBlocks() {
+        final Set<VisualBlock> blocks = new HashSet<>();
+        this.chunks.values().forEach(chunk -> blocks.addAll(chunk.snapshot()));
+        return blocks;
     }
 
     /**

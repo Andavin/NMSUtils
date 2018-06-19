@@ -193,8 +193,8 @@ public final class ChunkVisual {
         this.blocks.entrySet().forEach(entry -> {
 
             final VisualBlock block = entry.getValue();
-            // If the data is -1 then no need to match data only type
-            if (block.getType() == fromType && (fromData == -1 || block.getData() == fromData)) {
+            // If type is null only match data if data is not -1
+            if ((fromType == null || block.getType() == fromType) && (fromData == -1 || block.getData() == fromData)) {
                 entry.setValue(new VisualBlock(block.getX(), block.getY(), block.getZ(), toType, toData));
             }
         });
