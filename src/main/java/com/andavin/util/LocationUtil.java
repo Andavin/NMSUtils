@@ -30,14 +30,14 @@ import org.bukkit.block.BlockFace;
 public final class LocationUtil {
 
     private static final BlockFace[] CARDINAL = {
-            BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST
+            BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST
     };
 
     private static final BlockFace[] DIAGONAL = {
-            BlockFace.NORTH, BlockFace.NORTH_EAST,
-            BlockFace.EAST, BlockFace.SOUTH_EAST,
             BlockFace.SOUTH, BlockFace.SOUTH_WEST,
-            BlockFace.WEST, BlockFace.NORTH_WEST
+            BlockFace.WEST, BlockFace.NORTH_WEST,
+            BlockFace.NORTH, BlockFace.NORTH_EAST,
+            BlockFace.EAST, BlockFace.SOUTH_EAST
     };
 
     /**
@@ -183,7 +183,7 @@ public final class LocationUtil {
         }
 
         final BlockFace[] directions = diagonal ? DIAGONAL : CARDINAL;
-        return directions[((int) loc.getYaw() + 585) % 360 / directions.length];
+        return directions[Math.round(loc.getYaw() / (360 / directions.length)) & directions.length - 1];
     }
 
     /**
