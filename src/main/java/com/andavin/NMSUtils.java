@@ -25,28 +25,11 @@
 package com.andavin;
 
 import com.andavin.nbt.wrapper.*;
-import com.andavin.util.LocationUtil;
-import com.andavin.visual.AreaVisual;
-import com.andavin.visual.VisualBlock;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public final class NMSUtils extends JavaPlugin implements Listener {
+public final class NMSUtils extends JavaPlugin {
 
     private static NMSUtils instance;
-    private Material last = Material.MELON_BLOCK;
-    private final AreaVisual visual = new AreaVisual();
 
     @Override
     public void onEnable() {
@@ -67,63 +50,6 @@ public final class NMSUtils extends JavaPlugin implements Listener {
                 NBTTagList.class,
                 NBTTagString.class
         );
-        Bukkit.getPluginManager().registerEvents(this, this);
-    }
-
-    @EventHandler
-    public void onMove(final PlayerMoveEvent event) {
-
-        final Location from = event.getFrom(), to = event.getTo();
-        if (!LocationUtil.isSameBlock(from, to)) {
-            this.visual.shift(to.getBlockX() - from.getBlockX(),
-                    to.getBlockY() - from.getBlockY(),
-                    to.getBlockZ() - from.getBlockZ());
-        }
-
-        final BlockFace fromDir = LocationUtil.getCardinalDirection(from);
-        final BlockFace toDir = LocationUtil.getCardinalDirection(to);
-        if (fromDir != toDir) {
-            this.visual.rotateY(to.toVector(), LocationUtil.getDifference(fromDir, toDir));
-        }
-    }
-
-    @EventHandler
-    public void onInteract(final PlayerInteractEvent event) {
-
-        if (event.getAction() == Action.RIGHT_CLICK_AIR) {
-
-            final Location loc = event.getPlayer().getLocation().add(5, 0, 0);
-            final List<VisualBlock> blocks = new ArrayList<>(4096);
-            for (int x = 0; x < 16; x++) {
-
-                for (int y = 0; y < 16; y++) {
-
-                    for (int z = 0; z < 16; z++) {
-                        blocks.add(new VisualBlock(x + loc.getBlockX(), y + loc.getBlockY(),
-                                z + loc.getBlockZ(), Material.MELON_BLOCK));
-                    }
-                }
-            }
-
-            this.visual.addBlock(blocks).visualize(event.getPlayer());
-            return;
-        }
-
-//        final Material[] types = Material.values();
-//        final Random random = ThreadLocalRandom.current();
-//        Material type = types[random.nextInt(types.length)];
-//        while (!type.isBlock()) {
-//            type = types[random.nextInt(types.length)];
-//        }
-
-        final Material type;
-        if (this.last == Material.MELON_BLOCK) {
-            this.last = type = Material.WOOD;
-        } else {
-            this.last = type = Material.MELON_BLOCK;
-        }
-
-        this.visual.setType(null, type);
     }
 
     /**
