@@ -27,6 +27,7 @@ package com.andavin.visual;
 import com.andavin.reflect.Reflection;
 import com.andavin.util.LongHash;
 import com.andavin.util.PacketSender;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -74,14 +75,41 @@ public final class ChunkVisual {
         S_BLOCK_DATA = Reflection.getField(singlePacket, "block");
     }
 
+    private final int x, z;
     private final long chunk;
     private final Object chunkPair;
     private final Map<Short, VisualBlock> blocks = new ConcurrentHashMap<>();
 
     ChunkVisual(final long chunk) {
         this.chunk = chunk;
+        this.x = LongHash.msw(chunk);
+        this.z = LongHash.lsw(chunk);
         //noinspection ConstantConditions
-        this.chunkPair = Reflection.getInstance(CHUNK_PAIR, LongHash.msw(chunk), LongHash.lsw(chunk));
+        this.chunkPair = Reflection.getInstance(CHUNK_PAIR, this.x, this.z);
+    }
+
+    /**
+     * Get the X coordinate of this chunk. This is a chunk
+     * coordinate, so 1/16th of the coordinates of the blocks
+     * contained within the chunk.
+     *
+     * @return This chunk's X coordinate.
+     * @see LongHash
+     */
+    public int getX() {
+        return x;
+    }
+
+    /**
+     * Get the Z coordinate of this chunk. This is a chunk
+     * coordinate, so 1/16th of the coordinates of the blocks
+     * contained within the chunk.
+     *
+     * @return This chunk's Z coordinate.
+     * @see LongHash
+     */
+    public int getZ() {
+        return z;
     }
 
     /**
@@ -89,6 +117,7 @@ public final class ChunkVisual {
      * visualized chunk.
      *
      * @return The {@code long} hash for this chunk.
+     * @see LongHash
      */
     long getChunk() {
         return chunk;
@@ -354,7 +383,7 @@ public final class ChunkVisual {
      */
     public void visualize(final Player player) {
 
-        if (!this.blocks.isEmpty()) {
+        if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
             final List<Object> packets = new LinkedList<>();
             final List<VisualBlock> blocks = new ArrayList<>(this.blocks.values());
             this.createPackets(blocks, packets);
@@ -382,6 +411,12 @@ public final class ChunkVisual {
          */
 
         final World world = player.getWorld();
+        if (!this.isLoaded(world)) {
+            // No need to update if this chunk isn't loaded
+            return;
+        }
+
+        final Chunk chunk = world.getChunkAt(this.x, this.z);
         final List<Object> packets = new LinkedList<>();
         final List<VisualBlock> needsUpdate = new LinkedList<>();
         snapshot.forEach(block -> {
@@ -389,7 +424,7 @@ public final class ChunkVisual {
             final VisualBlock current = this.blocks.get(block.getPackedPos());
             if (current == null) {
                 // The block was removed
-                needsUpdate.add(block.getRealType(world));
+                needsUpdate.add(block.getRealType(chunk));
             } else if (current.getType() != block.getType() || current.getData() != block.getData()) {
                 // The block type was changed
                 needsUpdate.add(current);
@@ -412,11 +447,11 @@ public final class ChunkVisual {
      */
     public void reset(final Player player) {
 
-        if (!this.blocks.isEmpty()) {
-            final World world = player.getWorld();
+        if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
+            final Chunk chunk = player.getWorld().getChunkAt(this.x, this.z);
             final List<Object> packets = new LinkedList<>();
             final List<VisualBlock> blocks = this.blocks.values().stream()
-                    .map(block -> block.getRealType(world)).collect(Collectors.toList());
+                    .map(block -> block.getRealType(chunk)).collect(Collectors.toList());
             this.createPackets(blocks, packets);
             PacketSender.sendPackets(player, packets);
         }
@@ -480,5 +515,9 @@ public final class ChunkVisual {
 
         // Add the packet to the packets to send
         packets.add(packet);
+    }
+
+    private boolean isLoaded(final World world) {
+        return world.isChunkLoaded(this.x, this.z);
     }
 }

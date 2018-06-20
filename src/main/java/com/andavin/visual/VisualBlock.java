@@ -27,8 +27,8 @@ package com.andavin.visual;
 import com.andavin.reflect.Reflection;
 import com.andavin.util.LocationUtil;
 import com.andavin.util.LongHash;
+import org.bukkit.Chunk;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.material.Directional;
@@ -205,13 +205,13 @@ public final class VisualBlock {
 
     /**
      * Get a VisualBlock for the block that is actually
-     * in the world at the location of this block.
+     * in the {@link Chunk} at the location of this block.
      *
-     * @param world The world to get the type of the block from.
+     * @param chunk The chunk to get the block from within.
      * @return A new block of the type of the actual block at this block's location.
      */
-    VisualBlock getRealType(final World world) {
-        final Block block = world.getBlockAt(this.x, this.y, this.z);
+    VisualBlock getRealType(final Chunk chunk) {
+        final Block block = chunk.getBlock(this.x & 0xF, this.y & 0xFF, this.z & 0xF);
         return new VisualBlock(this.x, this.y, this.z, block.getType(), block.getData());
     }
 
