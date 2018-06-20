@@ -37,7 +37,6 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -45,6 +44,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -76,7 +76,7 @@ public final class ChunkVisual {
 
     private final long chunk;
     private final Object chunkPair;
-    private final Map<Short, VisualBlock> blocks = new HashMap<>();
+    private final Map<Short, VisualBlock> blocks = new ConcurrentHashMap<>();
 
     ChunkVisual(final long chunk) {
         this.chunk = chunk;
