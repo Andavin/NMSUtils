@@ -40,7 +40,6 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
@@ -56,7 +55,7 @@ import java.util.stream.Collectors;
  */
 public final class ChunkVisual {
 
-    private static final int MAX_BLOCKS = 64, MAX_SNAPSHOTS = 10;
+    private static final int MAX_SNAPSHOTS = 10;
     private static final Field CHUNK, M_BLOCK_DATA, POSITION, S_BLOCK_DATA;
     private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR =
             Reflection.getConstructor(Reflection.getMcClass("ChunkCoordIntPair"), int.class, int.class);
@@ -468,10 +467,8 @@ public final class ChunkVisual {
     public void visualize(final Player player) {
 
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
-            final List<Object> packets = new LinkedList<>();
             final List<VisualBlock> blocks = new ArrayList<>(this.blocks.values());
-            this.createPackets(blocks, packets);
-            PacketSender.sendPackets(player, packets);
+            PacketSender.sendPacket(player, this.createPacket(blocks));
         }
     }
 
@@ -501,7 +498,6 @@ public final class ChunkVisual {
         }
 
         final Chunk chunk = world.getChunkAt(this.x, this.z);
-        final List<Object> packets = new LinkedList<>();
         final List<VisualBlock> needsUpdate = new LinkedList<>();
         snapshot.forEach(block -> {
 
@@ -517,9 +513,9 @@ public final class ChunkVisual {
 
         // Blocks that were added
         this.blocks.values().stream().filter(block -> !snapshot.contains(block)).forEach(needsUpdate::add);
-        this.createPackets(needsUpdate, packets);
-        if (!packets.isEmpty()) {
-            PacketSender.sendPackets(player, packets);
+        final Object packet = this.createPacket(needsUpdate);
+        if (packet != null) {
+            PacketSender.sendPacket(player, packet);
         }
     }
 
@@ -533,11 +529,9 @@ public final class ChunkVisual {
 
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
             final Chunk chunk = player.getWorld().getChunkAt(this.x, this.z);
-            final List<Object> packets = new LinkedList<>();
             final List<VisualBlock> blocks = this.blocks.values().stream()
                     .map(block -> block.getRealType(chunk)).collect(Collectors.toList());
-            this.createPackets(blocks, packets);
-            PacketSender.sendPackets(player, packets);
+            PacketSender.sendPacket(player, this.createPacket(blocks));
         }
     }
 
@@ -568,10 +562,10 @@ public final class ChunkVisual {
         return this.chunkPair.toString();
     }
 
-    private void createPackets(final List<VisualBlock> blocks, final List<Object> packets) {
+    private Object createPacket(final List<VisualBlock> blocks) {
 
         if (blocks.isEmpty()) {
-            return;
+            return null;
         }
 
         // If there is only a single block to send then add
@@ -582,34 +576,23 @@ public final class ChunkVisual {
             Reflection.setValue(POSITION, packet, Reflection.getInstance(BLOCK_POS,
                     block.getX(), block.getY(), block.getZ())); // Set the position
             Reflection.setValue(S_BLOCK_DATA, packet, block.getBlockData()); // And the data
-            packets.add(packet); // add the packet
-            return;
+            return packet;
         }
 
         // There are multiple here so add a PacketPlayOutMultiBlockChange packet
         final Object packet = Reflection.getInstance(M_PACKET);
-        final Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(),
-                Math.min(MAX_BLOCKS, blocks.size())); // Up to MAX_BLOCKS blocks at a time
+        final Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(), blocks.size());
         Reflection.setValue(CHUNK, packet, this.chunkPair); // Set the chunk that it is in
         Reflection.setValue(M_BLOCK_DATA, packet, blockData); // Place the array into the packet
 
         // Then update the array with all of the data and positions
         int i = 0;
-        final Iterator<VisualBlock> itr = blocks.iterator();
-        while (itr.hasNext()) {
-
-            final VisualBlock block = itr.next();
+        for (final VisualBlock block : blocks) {
             blockData[i++] = Reflection.getInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
-            itr.remove(); // Remove every one we add
-            if (i >= MAX_BLOCKS) {
-                // If we've added MAX_BLOCKS then start a new packet for the rest
-                this.createPackets(blocks, packets);
-                break;
-            }
         }
 
         // Add the packet to the packets to send
-        packets.add(packet);
+        return packet;
     }
 
     private boolean isLoaded(final World world) {

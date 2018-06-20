@@ -76,7 +76,7 @@ public final class AreaVisual {
     public AreaVisual visualize(final Player player) {
 
         synchronized (this.visualized) {
-            this.visualized.computeIfAbsent(player.getUniqueId(), uuid -> new WeakReference<>(player));
+            this.visualized.put(player.getUniqueId(), new WeakReference<>(player));
             this.chunks.values().forEach(chunk -> chunk.visualize(player));
         }
 
