@@ -38,6 +38,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -55,7 +56,7 @@ import java.util.stream.Collectors;
  */
 public final class ChunkVisual {
 
-    private static final int MAX_BLOCKS = 64;
+    private static final int MAX_BLOCKS = 64, MAX_SNAPSHOTS = 10;
     private static final Field CHUNK, M_BLOCK_DATA, POSITION, S_BLOCK_DATA;
     private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR =
             Reflection.getConstructor(Reflection.getMcClass("ChunkCoordIntPair"), int.class, int.class);
@@ -79,6 +80,7 @@ public final class ChunkVisual {
     private final long chunk;
     private final Object chunkPair;
     private final Map<Short, VisualBlock> blocks = new ConcurrentHashMap<>();
+    private final LinkedList<Map<Short, VisualBlock>> snapshots = new LinkedList<>();
 
     ChunkVisual(final long chunk) {
         this.chunk = chunk;
@@ -157,6 +159,83 @@ public final class ChunkVisual {
     }
 
     /**
+     * Revert a change to this chunk that took place via one of the
+     * {@code setType()} methods. This will completely destroy the
+     * current block state of this chunk and replace it with the
+     * last snapshot taken.
+     * <p>
+     * If there are no snapshots to revert to, then this method will
+     * do nothing.
+     * <p>
+     * Currently, only the {@code setType()} methods support reverting
+     * to snapshots. Transformations may be implemented in a future version.
+     * <p>
+     * Note that this method will still require a visualization refresh
+     * of some kind in order to show the blocks to players. It will not
+     * execute a refresh automatically.
+     *
+     * @see #setType(Material, Material)
+     * @see #setType(Material, Material, int)
+     * @see #setType(Material, int, Material)
+     * @see #setType(Material, int, Material, int)
+     */
+    public void revert() {
+        this.revert(1);
+    }
+
+    /**
+     * Revert a change to this chunk that took place via one of the
+     * {@code setType()} methods. This will completely destroy the
+     * current block state of this chunk and replace it with the
+     * last snapshot taken.
+     * <p>
+     * If the amount of snapshots to revert back is higher than the
+     * amount of snapshots available, then the oldest snapshot will
+     * be chosen to revert to. On the other hand, if there are no snapshots
+     * or the amount given is less than {@code 1}, then the revert will
+     * do nothing.
+     * <p>
+     * Currently, only the {@code setType()} methods support reverting
+     * to snapshots. Transformations may be implemented in a future version.
+     * <p>
+     * Note that this method will still require a visualization refresh
+     * of some kind in order to show the blocks to players. It will not
+     * execute a refresh automatically.
+     *
+     * @param amount The amount of snapshots to revert back to. For example,
+     *               if there have been {@code 4} snapshots taken and {@code 3}
+     *               is given, then the 3rd snapshot will be the one reverted to.
+     * @see #setType(Material, Material)
+     * @see #setType(Material, Material, int)
+     * @see #setType(Material, int, Material)
+     * @see #setType(Material, int, Material, int)
+     */
+    public void revert(final int amount) {
+
+        if (this.snapshots.isEmpty() || amount < 1) {
+            return;
+        }
+
+        Map<Short, VisualBlock> blocks = null;
+        if (this.snapshots.size() < amount) {
+            blocks = this.snapshots.removeLast();
+            this.snapshots.clear();
+        } else if (amount == 1) {
+            this.snapshots.removeFirst();
+        } else {
+            // Two or more reverts
+            for (int i = 0; i < amount; i++) {
+                blocks = this.snapshots.removeFirst();
+            }
+        }
+
+        if (blocks != null) {
+            this.blocks.clear();
+            this.blocks.putAll(blocks);
+        }
+    }
+
+    /**
      * Change the {@link Material type} of all of the {@link VisualBlock blocks}
      * that match the type criteria set.
      *
@@ -218,6 +297,11 @@ public final class ChunkVisual {
      * @param toData The data to change the matching blocks to.
      */
     public synchronized void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+
+        this.snapshots.addFirst(new HashMap<>(this.blocks));
+        if (this.snapshots.size() > MAX_SNAPSHOTS) {
+            this.snapshots.removeLast();
+        }
 
         this.blocks.entrySet().forEach(entry -> {
 
@@ -466,6 +550,17 @@ public final class ChunkVisual {
      */
     public void clear() {
         this.blocks.clear();
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        return this == obj || obj != null && obj.getClass() == ChunkVisual.class
+                              && ((ChunkVisual) obj).chunk == chunk;
+    }
+
+    @Override
+    public int hashCode() {
+        return chunkPair.hashCode();
     }
 
     @Override

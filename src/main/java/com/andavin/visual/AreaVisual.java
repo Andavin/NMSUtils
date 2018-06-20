@@ -24,6 +24,7 @@
 
 package com.andavin.visual;
 
+import com.andavin.util.LongHash;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -32,6 +33,7 @@ import org.bukkit.util.Vector;
 import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -226,6 +228,136 @@ public final class AreaVisual {
     }
 
     /**
+     * Get all of the current {@link ChunkVisual chunks}
+     * that are currently contained within this area visual.
+     *
+     * @return The chunks that belong to this area visual.
+     */
+    public Set<ChunkVisual> getChunks() {
+        return new HashSet<>(this.chunks.values());
+    }
+
+    /**
+     * Get the {@link ChunkVisual} that is for the chunk with
+     * the given coordinates. If there is not a ChunkVisual for
+     * the chunk with the coordinates contained in this area visual,
+     * then {@code null} will be returned.
+     *
+     * @param x The X coordinate of the chunk to retrieve.
+     * @param z The Z coordinate of the chunk to retrieve.
+     * @return The ChunkVisual with the given coordinates that is
+     *         contained in this area visual or {@code null} if there
+     *         is no chunk with the coordinates.
+     */
+    public ChunkVisual getChunk(final int x, final int z) {
+        return this.chunks.get(LongHash.toLong(x, z));
+    }
+
+    /**
+     * Revert a change to this area visual that took place via one
+     * of the {@code setType()} methods. This will completely destroy
+     * the current block state of this area visual and replace it with
+     * the last snapshot taken.
+     * <p>
+     * If there are no snapshots to revert to, then this method will
+     * do nothing.
+     * <p>
+     * Currently, only the {@code setType()} methods support reverting
+     * to snapshots. Transformations may be implemented in a future version.
+     *
+     * @return This AreaVisual object after the revert.
+     * @see #setType(Material, Material)
+     * @see #setType(Material, Material, int)
+     * @see #setType(Material, int, Material)
+     * @see #setType(Material, int, Material, int)
+     */
+    public AreaVisual revert() {
+        return this.revert(true);
+    }
+
+    /**
+     * Revert a change to this area visual that took place via one
+     * of the {@code setType()} methods. This will completely destroy
+     * the current block state of this area visual and replace it with
+     * the last snapshot taken.
+     * <p>
+     * If there are no snapshots to revert to, then this method will
+     * do nothing.
+     * <p>
+     * Currently, only the {@code setType()} methods support reverting
+     * to snapshots. Transformations may be implemented in a future version.
+     *
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the revert.
+     * @return This AreaVisual object after the revert.
+     * @see #setType(Material, Material)
+     * @see #setType(Material, Material, int)
+     * @see #setType(Material, int, Material)
+     * @see #setType(Material, int, Material, int)
+     */
+    public AreaVisual revert(final boolean refresh) {
+        return this.revert(1, refresh);
+    }
+
+    /**
+     * Revert a change to this area visual that took place via one of
+     * the {@code setType()} methods. This will completely destroy the
+     * current block state of this area visual and replace it with the
+     * last snapshot taken.
+     * <p>
+     * If the amount of snapshots to revert back is higher than the
+     * amount of snapshots available, then the oldest snapshot will
+     * be chosen to revert to. On the other hand, if there are no snapshots
+     * or the amount given is less than {@code 1}, then the revert will
+     * do nothing.
+     * <p>
+     * Currently, only the {@code setType()} methods support reverting
+     * to snapshots. Transformations may be implemented in a future version.
+     *
+     * @param amount The amount of snapshots to revert back to. For example,
+     *               if there have been {@code 4} snapshots taken and {@code 3}
+     *               is given, then the 3rd snapshot will be the one reverted to.
+     * @return This AreaVisual object after the revert.
+     * @see #setType(Material, Material)
+     * @see #setType(Material, Material, int)
+     * @see #setType(Material, int, Material)
+     * @see #setType(Material, int, Material, int)
+     */
+    public AreaVisual revert(final int amount) {
+        return this.revert(amount, true);
+    }
+
+    /**
+     * Revert a change to this area visual that took place via one of
+     * the {@code setType()} methods. This will completely destroy the
+     * current block state of this area visual and replace it with the
+     * last snapshot taken.
+     * <p>
+     * If the amount of snapshots to revert back is higher than the
+     * amount of snapshots available, then the oldest snapshot will
+     * be chosen to revert to. On the other hand, if there are no snapshots
+     * or the amount given is less than {@code 1}, then the revert will
+     * do nothing.
+     * <p>
+     * Currently, only the {@code setType()} methods support reverting
+     * to snapshots. Transformations may be implemented in a future version.
+     *
+     * @param amount The amount of snapshots to revert back to. For example,
+     *               if there have been {@code 4} snapshots taken and {@code 3}
+     *               is given, then the 3rd snapshot will be the one reverted to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the revert.
+     * @return This AreaVisual object after the revert.
+     * @see #setType(Material, Material)
+     * @see #setType(Material, Material, int)
+     * @see #setType(Material, int, Material)
+     * @see #setType(Material, int, Material, int)
+     */
+    public AreaVisual revert(final int amount, final boolean refresh) {
+        return this.alter(chunk -> chunk.revert(amount), refresh);
+    }
+
+    /**
      * Change the {@link Material type} of all of the {@link VisualBlock blocks}
      * that match the type criteria set.
      *
@@ -367,18 +499,7 @@ public final class AreaVisual {
      */
     public AreaVisual setType(final Material fromType, final int fromData,
             final Material toType, final int toData, final boolean refresh) {
-
-        if (this.chunks.isEmpty()) {
-            return this;
-        }
-
-        if (refresh) {
-            this.refresh(() -> this.setType(fromType, fromData, toType, toData, false));
-            return this;
-        }
-
-        this.chunks.values().forEach(chunk -> chunk.setType(fromType, fromData, toType, toData));
-        return this;
+        return this.alter(chunk -> chunk.setType(fromType, fromData, toType, toData), refresh);
     }
 
     /**
@@ -496,7 +617,7 @@ public final class AreaVisual {
      * The transformer will be called on each {@link ChunkVisual chunk} that is
      * contained within this area visual in order to transform then entire visual.
      *
-     * @param transformer The function to use on each block to transform it.
+     * @param transformer The function to use on each chunk to transform it.
      * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
      *                automatically during the transformation.
      * @return This AreaVisual object after it has been transformed.
@@ -508,8 +629,7 @@ public final class AreaVisual {
         }
 
         if (refresh) {
-            this.refresh(() -> this.transform(transformer, false));
-            return this;
+            return this.refresh(() -> this.transform(transformer, false));
         }
 
         final List<VisualBlock> overflow = new ArrayList<>();
@@ -520,6 +640,35 @@ public final class AreaVisual {
 
         // Cleanup chunks if there are no blocks
         this.chunks.values().removeIf(ChunkVisual::isEmpty);
+        return this;
+    }
+
+    /**
+     * Alter this area visual by using the {@link Consumer transformer}
+     * which will execute a change on each of the chunks that does not
+     * change their positions in any way; this is what separates this method
+     * from {@link #transform(Function, boolean)}.
+     * <p>
+     * The transformer will be called on each {@link ChunkVisual chunk} that is
+     * contained within this area visual in order to transform then entire visual.
+     *
+     * @param transformer The function to use on each chunk to transform it.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the transformation.
+     * @return This AreaVisual object after it has been transformed.
+     */
+    // Named to alter to avoid lambda confusion
+    private AreaVisual alter(final Consumer<ChunkVisual> transformer, final boolean refresh) {
+
+        if (this.chunks.isEmpty()) {
+            return this;
+        }
+
+        if (refresh) {
+            return this.refresh(() -> this.alter(transformer, false));
+        }
+
+        this.chunks.values().forEach(transformer);
         return this;
     }
 }
