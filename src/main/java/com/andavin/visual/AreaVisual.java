@@ -126,6 +126,8 @@ public final class AreaVisual {
             }
         }
 
+        // Cleanup chunks if there are no blocks
+        this.chunks.values().removeIf(ChunkVisual::isEmpty);
         return this;
     }
 
@@ -638,8 +640,6 @@ public final class AreaVisual {
             this.addBlock(overflow);
         }
 
-        // Cleanup chunks if there are no blocks
-        this.chunks.values().removeIf(ChunkVisual::isEmpty);
         return this;
     }
 

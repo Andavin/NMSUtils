@@ -467,8 +467,7 @@ public final class ChunkVisual {
     public void visualize(final Player player) {
 
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
-            final List<VisualBlock> blocks = new ArrayList<>(this.blocks.values());
-            PacketSender.sendPacket(player, this.createPacket(blocks));
+            this.sendPacket(player, new ArrayList<>(this.blocks.values()));
         }
     }
 
@@ -513,9 +512,8 @@ public final class ChunkVisual {
 
         // Blocks that were added
         this.blocks.values().stream().filter(block -> !snapshot.contains(block)).forEach(needsUpdate::add);
-        final Object packet = this.createPacket(needsUpdate);
-        if (packet != null) {
-            PacketSender.sendPacket(player, packet);
+        if (!needsUpdate.isEmpty()) {
+            this.sendPacket(player, needsUpdate);
         }
     }
 
@@ -531,7 +529,7 @@ public final class ChunkVisual {
             final Chunk chunk = player.getWorld().getChunkAt(this.x, this.z);
             final List<VisualBlock> blocks = this.blocks.values().stream()
                     .map(block -> block.getRealType(chunk)).collect(Collectors.toList());
-            PacketSender.sendPacket(player, this.createPacket(blocks));
+            this.sendPacket(player, blocks);
         }
     }
 
@@ -562,11 +560,7 @@ public final class ChunkVisual {
         return this.chunkPair.toString();
     }
 
-    private Object createPacket(final List<VisualBlock> blocks) {
-
-        if (blocks.isEmpty()) {
-            return null;
-        }
+    private void sendPacket(final Player player, final List<VisualBlock> blocks) {
 
         // If there is only a single block to send then add
         // a single PacketPlayOutBlockChange packet
@@ -576,7 +570,8 @@ public final class ChunkVisual {
             Reflection.setValue(POSITION, packet, Reflection.getInstance(BLOCK_POS,
                     block.getX(), block.getY(), block.getZ())); // Set the position
             Reflection.setValue(S_BLOCK_DATA, packet, block.getBlockData()); // And the data
-            return packet;
+            PacketSender.sendPacket(player, packet);
+            return;
         }
 
         // There are multiple here so add a PacketPlayOutMultiBlockChange packet
@@ -591,8 +586,8 @@ public final class ChunkVisual {
             blockData[i++] = Reflection.getInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
         }
 
-        // Add the packet to the packets to send
-        return packet;
+        // Send the packet to the player
+        PacketSender.sendPacket(player, packet);
     }
 
     private boolean isLoaded(final World world) {
