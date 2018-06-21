@@ -27,7 +27,7 @@ package com.andavin.visual;
 import com.andavin.reflect.Reflection;
 import com.andavin.util.LongHash;
 import com.andavin.util.PacketSender;
-import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -38,6 +38,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -486,8 +487,8 @@ public final class ChunkVisual {
         /*
          * Three different kinds of blocks that need updated:
          * 1. Blocks that changed type
-         * 3. Blocks added
          * 2. Blocks removed
+         * 3. Blocks added
          */
 
         final World world = player.getWorld();
@@ -496,7 +497,7 @@ public final class ChunkVisual {
             return;
         }
 
-        final Chunk chunk = world.getChunkAt(this.x, this.z);
+        final ChunkSnapshot chunk = world.getChunkAt(this.x, this.z).getChunkSnapshot();
         final List<VisualBlock> needsUpdate = new LinkedList<>();
         snapshot.forEach(block -> {
 
@@ -511,7 +512,10 @@ public final class ChunkVisual {
         });
 
         // Blocks that were added
-        this.blocks.values().stream().filter(block -> !snapshot.contains(block)).forEach(needsUpdate::add);
+        if (!this.blocks.isEmpty()) {
+            this.blocks.values().stream().filter(block -> !snapshot.contains(block)).forEach(needsUpdate::add);
+        }
+
         if (!needsUpdate.isEmpty()) {
             this.sendPacket(player, needsUpdate);
         }
@@ -526,7 +530,14 @@ public final class ChunkVisual {
     public void reset(final Player player) {
 
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
-            final Chunk chunk = player.getWorld().getChunkAt(this.x, this.z);
+
+            if (this.blocks.size() == 1) {
+                this.sendPacket(player, Collections.singletonList(this.blocks.values()
+                        .iterator().next().getRealType(player.getWorld())));
+                return;
+            }
+
+            final ChunkSnapshot chunk = player.getWorld().getChunkAt(this.x, this.z).getChunkSnapshot();
             final List<VisualBlock> blocks = this.blocks.values().stream()
                     .map(block -> block.getRealType(chunk)).collect(Collectors.toList());
             this.sendPacket(player, blocks);
@@ -552,7 +563,7 @@ public final class ChunkVisual {
 
     @Override
     public int hashCode() {
-        return chunkPair.hashCode();
+        return this.chunkPair.hashCode();
     }
 
     @Override
@@ -562,7 +573,7 @@ public final class ChunkVisual {
 
     private void sendPacket(final Player player, final List<VisualBlock> blocks) {
 
-        // If there is only a single block to send then add
+        // If there is only a single block to send then send
         // a single PacketPlayOutBlockChange packet
         if (blocks.size() == 1) {
             final VisualBlock block = blocks.get(0);
@@ -574,7 +585,7 @@ public final class ChunkVisual {
             return;
         }
 
-        // There are multiple here so add a PacketPlayOutMultiBlockChange packet
+        // There are multiple here so send a PacketPlayOutMultiBlockChange packet
         final Object packet = Reflection.getInstance(M_PACKET);
         final Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(), blocks.size());
         Reflection.setValue(CHUNK, packet, this.chunkPair); // Set the chunk that it is in

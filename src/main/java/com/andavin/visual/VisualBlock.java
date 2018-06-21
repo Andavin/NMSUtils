@@ -28,7 +28,9 @@ import com.andavin.reflect.Reflection;
 import com.andavin.util.LocationUtil;
 import com.andavin.util.LongHash;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.material.Directional;
@@ -205,14 +207,45 @@ public final class VisualBlock {
 
     /**
      * Get a VisualBlock for the block that is actually
+     * in the {@link World} at the location of this block.
+     * <p>
+     * Note that if the chunk that contains this block is
+     * not loaded at the time of this method call, then this
+     * method will force it to load synchronously.
+     *
+     * @param world The world to get the type of the block from.
+     * @return A new block of the type of the actual block at this block's location.
+     */
+    public VisualBlock getRealType(final World world) {
+        return this.getRealType(world.getChunkAt(this.x >> 4, this.z >> 4));
+    }
+
+    /**
+     * Get a VisualBlock for the block that is actually
      * in the {@link Chunk} at the location of this block.
+     * <p>
+     * Note that if the given chunk is not loaded, then this
+     * method will force it to load synchronously.
      *
      * @param chunk The chunk to get the block from within.
      * @return A new block of the type of the actual block at this block's location.
      */
-    VisualBlock getRealType(final Chunk chunk) {
+    public VisualBlock getRealType(final Chunk chunk) {
         final Block block = chunk.getBlock(this.x & 0xF, this.y & 0xFF, this.z & 0xF);
         return new VisualBlock(this.x, this.y, this.z, block.getType(), block.getData());
+    }
+
+    /**
+     * Get a VisualBlock for the block that is actually in the
+     * {@link ChunkSnapshot} at the location of this block.
+     *
+     * @param snapshot A snapshot of the chunk that this block is contained within.
+     * @return A new block of the type of the actual block at this block's location.
+     */
+    public VisualBlock getRealType(final ChunkSnapshot snapshot) {
+        final int x = this.x & 0xF, y = this.y & 0xFF, z = this.z & 0xF;
+        final Material type = Material.getMaterial(snapshot.getBlockTypeId(x, y, z));
+        return new VisualBlock(this.x, this.y, this.z, type, snapshot.getBlockData(x, y, z));
     }
 
     /**
