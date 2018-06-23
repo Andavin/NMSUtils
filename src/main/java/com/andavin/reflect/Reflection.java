@@ -104,6 +104,17 @@ public final class Reflection {
      * @return A new instance of the given class or null if it is not possible.
      */
     public static <T> T getInstance(final Class<T> clazz, final Object... params) {
+
+        if (params.length == 0) {
+
+            try {
+                return clazz.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                Logger.severe(e);
+                return null;
+            }
+        }
+
         final Constructor<T> con = Reflection.getConstructor(clazz, Reflection.getClassesForObjects(params));
         return con == null ? null : Reflection.getInstance(con, params);
     }
