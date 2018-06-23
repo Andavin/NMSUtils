@@ -25,7 +25,6 @@
 package com.andavin.visual;
 
 import com.andavin.reflect.Reflection;
-import com.andavin.util.Logger;
 import com.andavin.util.LongHash;
 import com.andavin.util.PacketSender;
 import org.bukkit.ChunkSnapshot;
@@ -246,7 +245,6 @@ public final class ChunkVisual {
                 // Now we just need to find where each snapshot block is located
                 final VisualBlock toRevert = allBlocks.get(block.getId()); // The block that needs to be reverted
                 if (toRevert == null) {
-                    Logger.info("Couldn't find block {}. Skipping...", block);
                     // Couldn't find the block anywhere so it was removed (no reverting)
                     continue;
                 }
@@ -267,8 +265,6 @@ public final class ChunkVisual {
                     currentChunk = visual.getChunk(LongHash.msw(toRevert.getChunk()),
                             LongHash.lsw(toRevert.getChunk()));
                     if (currentChunk == null || currentChunk.isEmpty()) {
-                        Logger.info("Couldn't find chunk ({}, {}). Skipping block {}...",
-                                toRevert.getX() >> 4, toRevert.getZ() >> 4, toRevert);
                         continue;
                     }
                 }
