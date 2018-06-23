@@ -38,6 +38,7 @@ import org.bukkit.material.MaterialData;
 import org.bukkit.util.Vector;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -54,6 +55,7 @@ import static com.google.common.base.Preconditions.checkState;
 public final class VisualBlock {
 
     private static final List<Object> BLOCK_DATA;
+    private static final AtomicLong ID = new AtomicLong();
 
     static {
 
@@ -67,6 +69,7 @@ public final class VisualBlock {
         BLOCK_DATA = Reflection.getValue(registry.getClass(), registry, "b");
     }
 
+    private final long id;
     private final long chunk;
     private final int x, y, z;
     private final short packedPos;
@@ -100,6 +103,27 @@ public final class VisualBlock {
      *             this is usually for color.
      */
     public VisualBlock(final int x, final int y, final int z, final Material type, final int data) {
+        this(ID.getAndIncrement(), x, y, z, type, data);
+    }
+
+    /**
+     * Create a new visual block at the given position and of the
+     * {@link Material type} with data and also giving a snapshot
+     * of the previous state of this block.
+     * <p>
+     * This constructor is only used by internal transformation methods
+     * and reversion methods; therefore access is restricted.
+     *
+     * @param id The unique ID of this block.
+     * @param x The X position of the block in the world.
+     * @param y The Y position of the block in the world (0-255).
+     * @param z The Z position of the block in the world.
+     * @param type The {@link Material type} of the block that should be visualized.
+     * @param data The data (0-15) that sets the block apart from others of its type;
+     *             this is usually for color.
+     */
+    VisualBlock(final long id, final int x, final int y, final int z, final Material type, final int data) {
+        this.id = id;
         this.x = x;
         this.y = y;
         this.z = z;
@@ -115,6 +139,26 @@ public final class VisualBlock {
         checkState(0 <= packedType && packedType < BLOCK_DATA.size(),
                 "%s:%s is not a valid block type with this server version", type, data);
         this.blockData = BLOCK_DATA.get(packedType);
+    }
+
+    /**
+     * Get the ID of this block. This is a unique ID for
+     * this block and any blocks that are transformed from
+     * this block. Only transformation methods will maintain
+     * this ID on the new block:
+     * <ul>
+     *     <li>{@link #shift(BlockFace)}</li>
+     *     <li>{@link #shift(int, int, int)}</li>
+     *     <li>{@link #shift(int, BlockFace)}</li>
+     *     <li>{@link #rotateX(Vector, float)}</li>
+     *     <li>{@link #rotateY(Vector, float)}</li>
+     *     <li>{@link #rotateZ(Vector, float)}</li>
+     * </ul>
+     *
+     * @return The unique ID of this block and its transformations.
+     */
+    long getId() {
+        return id;
     }
 
     /**
@@ -270,6 +314,7 @@ public final class VisualBlock {
      */
     public VisualBlock shift(final int distance, final BlockFace direction) {
         return new VisualBlock(
+                this.id,
                 this.x + distance * direction.getModX(),
                 this.y + distance * direction.getModY(),
                 this.z + distance * direction.getModZ(),
@@ -291,6 +336,7 @@ public final class VisualBlock {
      */
     public VisualBlock shift(final int x, final int y, final int z) {
         return new VisualBlock(
+                this.id,
                 this.x + x,
                 this.y + y,
                 this.z + z,
@@ -333,6 +379,7 @@ public final class VisualBlock {
         final int originZ = origin.getBlockZ();
         final double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
+                this.id,
                 this.x,
                 (int) (originY + (this.y - originY) * cos - (this.z - originZ) * sin),
                 (int) (originZ + (this.z - originZ) * cos + (this.y - originY) * sin),
@@ -375,11 +422,12 @@ public final class VisualBlock {
         final int originZ = origin.getBlockZ();
         final double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
+                this.id,
                 (int) (originX + (this.x - originX) * cos + (this.z - originZ) * sin),
                 this.y,
                 (int) (originZ + (this.z - originZ) * cos - (this.x - originX) * sin),
                 this.type,
-                this.data
+                data
         );
     }
 
@@ -417,11 +465,12 @@ public final class VisualBlock {
         final int originY = origin.getBlockY();
         final double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
+                this.id,
                 (int) (originX + (this.x - originX) * cos - (this.y - originY) * sin),
                 (int) (originY + (this.y - originY) * cos + (this.x - originX) * sin),
                 this.z,
                 this.type,
-                this.data
+                data
         );
     }
 

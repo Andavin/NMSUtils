@@ -356,7 +356,7 @@ public final class AreaVisual {
      * @see #setType(Material, int, Material, int)
      */
     public AreaVisual revert(final int amount, final boolean refresh) {
-        return this.alter(chunk -> chunk.revert(amount), refresh);
+        return this.alter(chunk -> chunk.revert(amount, this), refresh);
     }
 
     /**

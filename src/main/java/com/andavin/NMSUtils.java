@@ -25,11 +25,31 @@
 package com.andavin;
 
 import com.andavin.nbt.wrapper.*;
+import com.andavin.util.LocationUtil;
+import com.andavin.visual.AreaVisual;
+import com.andavin.visual.VisualBlock;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class NMSUtils extends JavaPlugin {
+import java.util.ArrayList;
+import java.util.List;
+
+public final class NMSUtils extends JavaPlugin implements Listener {
 
     private static NMSUtils instance;
+
+    private boolean added;
+    private int typeIndex;
+    private final AreaVisual visual = new AreaVisual();
+    private static final Material[] TYPES = {
+            Material.WOOD, Material.WOOL, Material.WATER
+    };
 
     @Override
     public void onEnable() {
@@ -50,6 +70,46 @@ public final class NMSUtils extends JavaPlugin {
                 NBTTagList.class,
                 NBTTagString.class
         );
+        Bukkit.getPluginManager().registerEvents(this, this);
+    }
+
+    @EventHandler
+    public void onInteract(final PlayerInteractEvent event) {
+
+        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
+            this.visual.shift(LocationUtil.getCardinalDirection(event.getPlayer().getLocation()));
+            return;
+        }
+
+        if (event.getAction() == Action.RIGHT_CLICK_AIR) {
+
+            if (this.added && this.typeIndex > 0) {
+                this.visual.revert();
+                this.typeIndex--;
+                return;
+            }
+
+            final Location loc = event.getPlayer().getLocation().add(5, 0, 0);
+            final List<VisualBlock> blocks = new ArrayList<>(4096);
+            for (int x = 0; x < 16; x++) {
+
+                for (int y = 0; y < 16; y++) {
+
+                    for (int z = 0; z < 16; z++) {
+                        blocks.add(new VisualBlock(x + loc.getBlockX(), y + loc.getBlockY(),
+                                z + loc.getBlockZ(), Material.MELON_BLOCK));
+                    }
+                }
+            }
+
+            this.visual.addBlock(blocks).visualize(event.getPlayer());
+            this.added = true;
+            return;
+        }
+
+        if (this.typeIndex < TYPES.length) {
+            this.visual.setType(null, TYPES[this.typeIndex++]);
+        }
     }
 
     /**

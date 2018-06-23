@@ -25,6 +25,7 @@
 package com.andavin.visual;
 
 import com.andavin.reflect.Reflection;
+import com.andavin.util.Logger;
 import com.andavin.util.LongHash;
 import com.andavin.util.PacketSender;
 import org.bukkit.ChunkSnapshot;
@@ -58,8 +59,7 @@ public final class ChunkVisual {
 
     private static final int MAX_SNAPSHOTS = 10;
     private static final Field CHUNK, M_BLOCK_DATA, POSITION, S_BLOCK_DATA;
-    private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR =
-            Reflection.getConstructor(Reflection.getMcClass("ChunkCoordIntPair"), int.class, int.class);
+    private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR;
 
     static {
         final Class<?> blockData = Reflection.getMcClass("IBlockData");
@@ -67,6 +67,7 @@ public final class ChunkVisual {
         final Class<?> multiPacket = Reflection.getMcClass("PacketPlayOutMultiBlockChange");
         final Class<?> multiBlock = Reflection.getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
         BLOCK_POS = Reflection.getConstructor(Reflection.getMcClass("BlockPosition"), int.class, int.class, int.class);
+        CHUNK_PAIR = Reflection.getConstructor(Reflection.getMcClass("ChunkCoordIntPair"), int.class, int.class);
         M_PACKET = Reflection.getConstructor(multiPacket);
         MULTI_BLOCK = Reflection.getConstructor(multiBlock, multiPacket, short.class, blockData);
         S_PACKET = Reflection.getConstructor(singlePacket);
@@ -80,7 +81,7 @@ public final class ChunkVisual {
     private final long chunk;
     private final Object chunkPair;
     private final Map<Short, VisualBlock> blocks = new ConcurrentHashMap<>();
-    private final LinkedList<Map<Short, VisualBlock>> snapshots = new LinkedList<>();
+    private final LinkedList<List<VisualBlock>> snapshots = new LinkedList<>();
 
     ChunkVisual(final long chunk) {
         this.chunk = chunk;
@@ -144,7 +145,7 @@ public final class ChunkVisual {
      * @return If there are no blocks in this chunk.
      */
     boolean isEmpty() {
-        return this.blocks.isEmpty();
+        return this.blocks.isEmpty() && this.snapshots.isEmpty();
     }
 
     /**
@@ -174,13 +175,14 @@ public final class ChunkVisual {
      * of some kind in order to show the blocks to players. It will not
      * execute a refresh automatically.
      *
+     * @param visual The {@link AreaVisual} that this chunk is part of.
      * @see #setType(Material, Material)
      * @see #setType(Material, Material, int)
      * @see #setType(Material, int, Material)
      * @see #setType(Material, int, Material, int)
      */
-    public void revert() {
-        this.revert(1);
+    public void revert(final AreaVisual visual) {
+        this.revert(1, visual);
     }
 
     /**
@@ -205,33 +207,75 @@ public final class ChunkVisual {
      * @param amount The amount of snapshots to revert back to. For example,
      *               if there have been {@code 4} snapshots taken and {@code 3}
      *               is given, then the 3rd snapshot will be the one reverted to.
+     * @param visual The {@link AreaVisual} that this chunk is part of.
      * @see #setType(Material, Material)
      * @see #setType(Material, Material, int)
      * @see #setType(Material, int, Material)
      * @see #setType(Material, int, Material, int)
      */
-    public void revert(final int amount) {
+    public void revert(final int amount, final AreaVisual visual) {
 
         if (this.snapshots.isEmpty() || amount < 1) {
             return;
         }
 
-        Map<Short, VisualBlock> blocks = null;
+        List<VisualBlock> snapshot = null;
         if (this.snapshots.size() < amount) {
-            blocks = this.snapshots.removeLast();
+            snapshot = this.snapshots.removeLast();
             this.snapshots.clear();
         } else if (amount == 1) {
-            this.snapshots.removeFirst();
+            snapshot = this.snapshots.removeFirst();
         } else {
             // Two or more reverts
             for (int i = 0; i < amount; i++) {
-                blocks = this.snapshots.removeFirst();
+                snapshot = this.snapshots.removeFirst();
             }
         }
 
-        if (blocks != null) {
-            this.blocks.clear();
-            this.blocks.putAll(blocks);
+        if (snapshot != null) {
+
+            // Load up all of the blocks in other chunks and this chunk
+            // These will all have unique IDs that can be referenced
+            ChunkVisual currentChunk = null;
+            final Map<Long, VisualBlock> allBlocks = new HashMap<>();
+            visual.getChunks().forEach(chunk -> chunk.blocks.values()
+                    .forEach(block -> allBlocks.put(block.getId(), block)));
+
+            for (final VisualBlock block : snapshot) { // Iterate the snapshot
+
+                // Now we just need to find where each snapshot block is located
+                final VisualBlock toRevert = allBlocks.get(block.getId()); // The block that needs to be reverted
+                if (toRevert == null) {
+                    Logger.info("Couldn't find block {}. Skipping...", block);
+                    // Couldn't find the block anywhere so it was removed (no reverting)
+                    continue;
+                }
+
+                final VisualBlock reverted = new VisualBlock(toRevert.getId(),
+                        toRevert.getX(), toRevert.getY(), toRevert.getZ(), block.getType(), block.getData());
+                if (toRevert.getChunk() == this.chunk) {
+                    // Found the block in this chunk so revert it and move on
+                    this.blocks.put(toRevert.getPackedPos(), reverted);
+                    continue;
+                }
+
+                // Must revert the block in an alternate chunk because
+                // it must have been transformed to another chunk
+                // Get the chunk that the block is in so we can revert the block there
+                if (currentChunk == null || currentChunk.chunk != toRevert.getChunk()) {
+
+                    currentChunk = visual.getChunk(LongHash.msw(toRevert.getChunk()),
+                            LongHash.lsw(toRevert.getChunk()));
+                    if (currentChunk == null || currentChunk.isEmpty()) {
+                        Logger.info("Couldn't find chunk ({}, {}). Skipping block {}...",
+                                toRevert.getX() >> 4, toRevert.getZ() >> 4, toRevert);
+                        continue;
+                    }
+                }
+
+                // Revert the block in the alternate chunk
+                currentChunk.blocks.put(toRevert.getPackedPos(), reverted);
+            }
         }
     }
 
@@ -298,7 +342,7 @@ public final class ChunkVisual {
      */
     public synchronized void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
 
-        this.snapshots.addFirst(new HashMap<>(this.blocks));
+        this.snapshots.addFirst(new ArrayList<>(this.blocks.values()));
         if (this.snapshots.size() > MAX_SNAPSHOTS) {
             this.snapshots.removeLast();
         }
@@ -308,7 +352,7 @@ public final class ChunkVisual {
             final VisualBlock block = entry.getValue();
             // If type is null only match data if data is not -1
             if ((fromType == null || block.getType() == fromType) && (fromData == -1 || block.getData() == fromData)) {
-                entry.setValue(new VisualBlock(block.getX(), block.getY(), block.getZ(), toType, toData));
+                entry.setValue(new VisualBlock(block.getId(), block.getX(), block.getY(), block.getZ(), toType, toData));
             }
         });
     }
