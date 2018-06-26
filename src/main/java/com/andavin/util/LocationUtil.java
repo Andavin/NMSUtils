@@ -27,8 +27,11 @@ package com.andavin.util;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 public final class LocationUtil {
 
+    private static final BlockFace[] LEFT_ROTATION, RIGHT_ROTATION;
     private static final BlockFace[] CARDINAL = {
             BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST
     };
@@ -39,6 +42,52 @@ public final class LocationUtil {
             BlockFace.NORTH, BlockFace.NORTH_EAST,
             BlockFace.EAST, BlockFace.SOUTH_EAST
     };
+
+    static {
+
+        final BlockFace[] values = BlockFace.values();
+        LEFT_ROTATION = new BlockFace[values.length];
+        LEFT_ROTATION[BlockFace.SELF.ordinal()] = BlockFace.SELF;
+        LEFT_ROTATION[BlockFace.UP.ordinal()] = BlockFace.UP;
+        LEFT_ROTATION[BlockFace.DOWN.ordinal()] = BlockFace.DOWN;
+        LEFT_ROTATION[BlockFace.NORTH.ordinal()] = BlockFace.NORTH_NORTH_WEST;
+        LEFT_ROTATION[BlockFace.NORTH_NORTH_WEST.ordinal()] = BlockFace.NORTH_WEST;
+        LEFT_ROTATION[BlockFace.NORTH_WEST.ordinal()] = BlockFace.WEST_NORTH_WEST;
+        LEFT_ROTATION[BlockFace.WEST_NORTH_WEST.ordinal()] = BlockFace.WEST;
+        LEFT_ROTATION[BlockFace.WEST.ordinal()] = BlockFace.WEST_SOUTH_WEST;
+        LEFT_ROTATION[BlockFace.WEST_SOUTH_WEST.ordinal()] = BlockFace.SOUTH_WEST;
+        LEFT_ROTATION[BlockFace.SOUTH_WEST.ordinal()] = BlockFace.SOUTH_SOUTH_WEST;
+        LEFT_ROTATION[BlockFace.SOUTH_SOUTH_WEST.ordinal()] = BlockFace.SOUTH;
+        LEFT_ROTATION[BlockFace.SOUTH.ordinal()] = BlockFace.SOUTH_SOUTH_EAST;
+        LEFT_ROTATION[BlockFace.SOUTH_SOUTH_EAST.ordinal()] = BlockFace.SOUTH_EAST;
+        LEFT_ROTATION[BlockFace.SOUTH_EAST.ordinal()] = BlockFace.EAST_SOUTH_EAST;
+        LEFT_ROTATION[BlockFace.EAST_SOUTH_EAST.ordinal()] = BlockFace.EAST;
+        LEFT_ROTATION[BlockFace.EAST.ordinal()] = BlockFace.EAST_NORTH_EAST;
+        LEFT_ROTATION[BlockFace.EAST_NORTH_EAST.ordinal()] = BlockFace.NORTH_EAST;
+        LEFT_ROTATION[BlockFace.NORTH_EAST.ordinal()] = BlockFace.NORTH_NORTH_EAST;
+        LEFT_ROTATION[BlockFace.NORTH_NORTH_EAST.ordinal()] = BlockFace.NORTH;
+
+        RIGHT_ROTATION = new BlockFace[values.length];
+        RIGHT_ROTATION[BlockFace.SELF.ordinal()] = BlockFace.SELF;
+        RIGHT_ROTATION[BlockFace.UP.ordinal()] = BlockFace.UP;
+        RIGHT_ROTATION[BlockFace.DOWN.ordinal()] = BlockFace.DOWN;
+        RIGHT_ROTATION[BlockFace.NORTH.ordinal()] = BlockFace.NORTH_NORTH_EAST;
+        RIGHT_ROTATION[BlockFace.NORTH_NORTH_EAST.ordinal()] = BlockFace.NORTH_EAST;
+        RIGHT_ROTATION[BlockFace.NORTH_EAST.ordinal()] = BlockFace.EAST_NORTH_EAST;
+        RIGHT_ROTATION[BlockFace.EAST_NORTH_EAST.ordinal()] = BlockFace.EAST;
+        RIGHT_ROTATION[BlockFace.EAST.ordinal()] = BlockFace.EAST_SOUTH_EAST;
+        RIGHT_ROTATION[BlockFace.EAST_SOUTH_EAST.ordinal()] = BlockFace.SOUTH_EAST;
+        RIGHT_ROTATION[BlockFace.SOUTH_EAST.ordinal()] = BlockFace.SOUTH_SOUTH_EAST;
+        RIGHT_ROTATION[BlockFace.SOUTH_SOUTH_EAST.ordinal()] = BlockFace.SOUTH;
+        RIGHT_ROTATION[BlockFace.SOUTH.ordinal()] = BlockFace.SOUTH_SOUTH_WEST;
+        RIGHT_ROTATION[BlockFace.SOUTH_SOUTH_WEST.ordinal()] = BlockFace.SOUTH_WEST;
+        RIGHT_ROTATION[BlockFace.SOUTH_WEST.ordinal()] = BlockFace.WEST_SOUTH_WEST;
+        RIGHT_ROTATION[BlockFace.WEST_SOUTH_WEST.ordinal()] = BlockFace.WEST;
+        RIGHT_ROTATION[BlockFace.WEST.ordinal()] = BlockFace.WEST_NORTH_WEST;
+        RIGHT_ROTATION[BlockFace.WEST_NORTH_WEST.ordinal()] = BlockFace.NORTH_WEST;
+        RIGHT_ROTATION[BlockFace.NORTH_WEST.ordinal()] = BlockFace.NORTH_NORTH_WEST;
+        RIGHT_ROTATION[BlockFace.NORTH_NORTH_WEST.ordinal()] = BlockFace.NORTH;
+    }
 
     /**
      * Get a copy of the given location that is at the center
@@ -197,7 +246,11 @@ public final class LocationUtil {
     public static float getDifference(BlockFace from, final BlockFace to) {
 
         if (from == to) {
-            return 0;
+            return 0F;
+        }
+
+        if (from.getOppositeFace() == to) {
+            return 180F;
         }
 
         float degrees = 22.5F;
@@ -269,23 +322,13 @@ public final class LocationUtil {
             }
         }
 
-        BlockFace rotated = face;
-        if (rotations == 8) {
-            rotated = face.getOppositeFace();
-        } else if (degrees > 0) {
-
-            for (int i = 0; i < rotations; i++) {
-                rotated = rotateRight(rotated);
-            }
+        if (degrees > 0) {
+            return rotateRight(face, rotations);
         } else if (degrees < 0) {
-
-            rotations *= -1;
-            for (int i = 0; i < rotations; i++) {
-                rotated = rotateLeft(rotated);
-            }
+            return rotateLeft(face, rotations * -1);
         }
 
-        return rotated;
+        return face;
     }
 
     /**
@@ -298,43 +341,42 @@ public final class LocationUtil {
      * @return The BlockFace that has been rotated 22.5º on the y-axis.
      */
     public static BlockFace rotateRight(final BlockFace face) {
+        return RIGHT_ROTATION[face.ordinal()];
+    }
 
-        switch (face) {
-            case NORTH:
-                return BlockFace.NORTH_NORTH_EAST;
-            case NORTH_NORTH_EAST:
-                return BlockFace.NORTH_EAST;
-            case NORTH_EAST:
-                return BlockFace.EAST_NORTH_EAST;
-            case EAST_NORTH_EAST:
-                return BlockFace.EAST;
-            case EAST:
-                return BlockFace.EAST_SOUTH_EAST;
-            case EAST_SOUTH_EAST:
-                return BlockFace.SOUTH_EAST;
-            case SOUTH_EAST:
-                return BlockFace.SOUTH_SOUTH_EAST;
-            case SOUTH_SOUTH_EAST:
-                return BlockFace.SOUTH;
-            case SOUTH:
-                return BlockFace.SOUTH_SOUTH_WEST;
-            case SOUTH_SOUTH_WEST:
-                return BlockFace.SOUTH_WEST;
-            case SOUTH_WEST:
-                return BlockFace.WEST_SOUTH_WEST;
-            case WEST_SOUTH_WEST:
-                return BlockFace.WEST;
-            case WEST:
-                return BlockFace.WEST_NORTH_WEST;
-            case WEST_NORTH_WEST:
-                return BlockFace.NORTH_WEST;
-            case NORTH_WEST:
-                return BlockFace.NORTH_NORTH_WEST;
-            case NORTH_NORTH_WEST:
-                return BlockFace.NORTH;
-            default:
-                return face;
+    /**
+     * Rotate the given {@link BlockFace} 1/16th of a 360º rotation
+     * clockwise on the y-axis. If the given BlockFace is either
+     * {@link BlockFace#UP} or {@link BlockFace#DOWN}, then itself
+     * will be returned as those faces cannot be rotated on the y-axis.
+     *
+     * @param face The face to rotate on the y-axis.
+     * @param amount The amount of 22.5º rotations to rotate the face.
+     *               So {@code 4} would result in a 90º rotation.
+     * @return The BlockFace that has been rotated 22.5º on the y-axis.
+     */
+    public static BlockFace rotateRight(final BlockFace face, int amount) {
+
+        amount %= 16; // Anything over 16 is over a full rotation
+        if (amount == 0 || face == BlockFace.SELF || face == BlockFace.UP || face == BlockFace.DOWN) { // No rotation
+            return face;
         }
+
+        if (amount == 1) { // Single rotation
+            return rotateRight(face);
+        }
+
+        if (amount == 8) { // Faster than iterating
+            return face.getOppositeFace();
+        }
+
+        checkArgument(amount > 1, "cannot have negative rotation: " + amount);
+        BlockFace rotated = face;
+        for (int i = 0; i < amount; i++) {
+            rotated = RIGHT_ROTATION[rotated.ordinal()];
+        }
+
+        return rotated;
     }
 
     /**
@@ -347,42 +389,41 @@ public final class LocationUtil {
      * @return The BlockFace that has been rotated 22.5º on the y-axis.
      */
     public static BlockFace rotateLeft(final BlockFace face) {
+        return LEFT_ROTATION[face.ordinal()];
+    }
 
-        switch (face) {
-            case NORTH:
-                return BlockFace.NORTH_NORTH_WEST;
-            case NORTH_NORTH_WEST:
-                return BlockFace.NORTH_WEST;
-            case NORTH_WEST:
-                return BlockFace.WEST_NORTH_WEST;
-            case WEST_NORTH_WEST:
-                return BlockFace.WEST;
-            case WEST:
-                return BlockFace.WEST_SOUTH_WEST;
-            case WEST_SOUTH_WEST:
-                return BlockFace.SOUTH_WEST;
-            case SOUTH_WEST:
-                return BlockFace.SOUTH_SOUTH_WEST;
-            case SOUTH_SOUTH_WEST:
-                return BlockFace.SOUTH;
-            case SOUTH:
-                return BlockFace.SOUTH_SOUTH_EAST;
-            case SOUTH_SOUTH_EAST:
-                return BlockFace.SOUTH_EAST;
-            case SOUTH_EAST:
-                return BlockFace.EAST_SOUTH_EAST;
-            case EAST_SOUTH_EAST:
-                return BlockFace.EAST;
-            case EAST:
-                return BlockFace.EAST_NORTH_EAST;
-            case EAST_NORTH_EAST:
-                return BlockFace.NORTH_EAST;
-            case NORTH_EAST:
-                return BlockFace.NORTH_NORTH_EAST;
-            case NORTH_NORTH_EAST:
-                return BlockFace.NORTH;
-            default:
-                return face;
+    /**
+     * Rotate the given {@link BlockFace} 1/16th of a 360º rotation
+     * counterclockwise on the y-axis. If the given BlockFace is either
+     * {@link BlockFace#UP} or {@link BlockFace#DOWN}, then itself will
+     * be returned as those faces cannot be rotated on the y-axis.
+     *
+     * @param face The face to rotate on the y-axis.
+     * @param amount The amount of 22.5º rotations to rotate the face.
+     *               So {@code 4} would result in a 90º rotation.
+     * @return The BlockFace that has been rotated 22.5º on the y-axis.
+     */
+    public static BlockFace rotateLeft(final BlockFace face, int amount) {
+
+        amount %= 16; // Anything over 16 is over a full rotation
+        if (amount == 0 || face == BlockFace.SELF || face == BlockFace.UP || face == BlockFace.DOWN) { // No rotation
+            return face;
         }
+
+        if (amount == 1) { // Single rotation
+            return rotateLeft(face);
+        }
+
+        if (amount == 8) { // Faster than iterating
+            return face.getOppositeFace();
+        }
+
+        checkArgument(amount > 1, "cannot have negative rotation: " + amount);
+        BlockFace rotated = face;
+        for (int i = 0; i < amount; i++) {
+            rotated = LEFT_ROTATION[rotated.ordinal()];
+        }
+
+        return rotated;
     }
 }

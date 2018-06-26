@@ -34,7 +34,10 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.material.Directional;
+import org.bukkit.material.ExtendedRails;
 import org.bukkit.material.MaterialData;
+import org.bukkit.material.Rails;
+import org.bukkit.material.Tree;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -371,6 +374,11 @@ public final class VisualBlock {
             final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
             direction.setFacingDirection(face);
             data = typeData.getData();
+        } else if (Tree.class.isAssignableFrom(dataType)) {
+            final Tree tree = (Tree) this.type.getNewData(this.data);
+            final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, true, false);
+            tree.setDirection(face);
+            data = tree.getData();
         } else {
             data = this.data;
         }
@@ -414,6 +422,17 @@ public final class VisualBlock {
             final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
             direction.setFacingDirection(face);
             data = typeData.getData();
+        } else if (Tree.class.isAssignableFrom(dataType)) {
+            final Tree tree = (Tree) this.type.getNewData(this.data);
+            final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, false);
+            tree.setDirection(face);
+            data = tree.getData();
+        } else if (Rails.class.isAssignableFrom(dataType) &&
+                   (degrees % 90 == 0 || !ExtendedRails.class.isAssignableFrom(dataType))) {
+            final Rails rails = (Rails) this.type.getNewData(this.data);
+            final BlockFace face = LocationUtil.rotate(rails.getDirection(), degrees, false, false);
+            rails.setDirection(face, rails.isOnSlope());
+            data = rails.getData();
         } else {
             data = this.data;
         }
@@ -457,6 +476,11 @@ public final class VisualBlock {
             final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);
             direction.setFacingDirection(face);
             data = typeData.getData();
+        } else if (Tree.class.isAssignableFrom(dataType)) {
+            final Tree tree = (Tree) this.type.getNewData(this.data);
+            final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, true);
+            tree.setDirection(face);
+            data = tree.getData();
         } else {
             data = this.data;
         }
