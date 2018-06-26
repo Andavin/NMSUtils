@@ -48,8 +48,7 @@ import static com.google.common.base.Preconditions.checkState;
 /**
  * A data holder for blocks that simply holds their position
  * and the type of block. This will not hold world as it is
- * relative to the player and everything else can be calculated
- * by the position and type.
+ * relative to the player.
  * <p>
  * This object is immutable. Any methods that alter this object
  * will simple return a new object:
@@ -64,6 +63,9 @@ import static com.google.common.base.Preconditions.checkState;
  * The above methods give the impression of altering this object,
  * however, they will instead return a new object with new values,
  * but will carry the {@link #getId() ID} of the original object over.
+ * <p>
+ * Therefore, this object is fully thread-safe and can be passed
+ * around over threads or anywhere without fear of alteration.
  *
  * @since May 28, 2018
  * @author Andavin
@@ -522,6 +524,43 @@ public final class VisualBlock {
         );
     }
 
+    /**
+     * Check whether this and another VisualBlock are equal
+     * to each other in position, {@link #getType() type}
+     * and {@link #getData() data}. That is:
+     * <pre>    this.x == other.x && this.y == other.y && this.z == other.z
+     *  && this.type == other.type && this.data == other.data</pre>
+     * If anything less than this needs to be checked it can be
+     * checked individually using the provided getter method:
+     * <ul>
+     *     <li>{@link #getX()}</li>
+     *     <li>{@link #getY()}</li>
+     *     <li>{@link #getZ()}</li>
+     *     <li>{@link #getType()}</li>
+     *     <li>{@link #getData()}</li>
+     * </ul>
+     * Note that this method does not include an {@link #getId() ID}
+     * check as the ID is a carry for transformation and is not
+     * involved in position and type checks.
+     *
+     * @param other The other VisualBlock to check against this one.
+     * @return If the two blocks are equivalent in position, type and data.
+     */
+    public boolean equals(final VisualBlock other) {
+        return this.chunk == other.chunk && this.packedPos == other.packedPos
+               && this.type == other.type && this.data == other.data;
+    }
+
+    /**
+     * Check whether this and another VisualBlock are at the
+     * same position by coordinates. That is:
+     * <pre>    this.x == obj.x && this.y == obj.y && this.z == obj.z</pre>
+     * This method will <i>not</i> check whether the {@link #getType() type}
+     * or {@link #getData() data} of this block is the same as another.
+     * <p>
+     * In order to check type the {@link #equals(VisualBlock)} can be
+     * used which will check position and type.
+     */
     @Override
     public boolean equals(final Object obj) {
 
