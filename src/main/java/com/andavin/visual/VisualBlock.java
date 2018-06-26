@@ -365,9 +365,9 @@ public final class VisualBlock {
         degrees %= 360;
         final byte data;
         final Class<? extends MaterialData> dataType = this.type.getData();
-        if (dataType.isAssignableFrom(Directional.class)) {
+        if (Directional.class.isAssignableFrom(dataType)) {
             final MaterialData typeData = this.type.getNewData(this.data);
-            final Directional direction = (Directional) this.type.getNewData(this.data);
+            final Directional direction = (Directional) typeData;
             final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
             direction.setFacingDirection(face);
             data = typeData.getData();
@@ -408,9 +408,9 @@ public final class VisualBlock {
         degrees %= 360;
         final byte data;
         final Class<? extends MaterialData> dataType = this.type.getData();
-        if (dataType.isAssignableFrom(Directional.class)) {
+        if (Directional.class.isAssignableFrom(dataType)) {
             final MaterialData typeData = this.type.getNewData(this.data);
-            final Directional direction = (Directional) this.type.getNewData(this.data);
+            final Directional direction = (Directional) typeData;
             final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
             direction.setFacingDirection(face);
             data = typeData.getData();
@@ -451,9 +451,9 @@ public final class VisualBlock {
         degrees %= 360;
         final byte data;
         final Class<? extends MaterialData> dataType = this.type.getData();
-        if (dataType.isAssignableFrom(Directional.class)) {
+        if (Directional.class.isAssignableFrom(dataType)) {
             final MaterialData typeData = this.type.getNewData(this.data);
-            final Directional direction = (Directional) this.type.getNewData(this.data);
+            final Directional direction = (Directional) typeData;
             final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);
             direction.setFacingDirection(face);
             data = typeData.getData();

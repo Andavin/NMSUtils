@@ -25,11 +25,26 @@
 package com.andavin;
 
 import com.andavin.nbt.wrapper.*;
+import com.andavin.util.LocationUtil;
+import com.andavin.visual.AreaVisual;
+import com.andavin.visual.VisualBlock;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class NMSUtils extends JavaPlugin {
+public final class NMSUtils extends JavaPlugin implements Listener {
 
     private static NMSUtils instance;
+
+    private boolean added, locked;
+    private final AreaVisual visual = new AreaVisual();
 
     @Override
     public void onEnable() {
@@ -50,6 +65,70 @@ public final class NMSUtils extends JavaPlugin {
                 NBTTagList.class,
                 NBTTagString.class
         );
+        Bukkit.getPluginManager().registerEvents(this, this);
+    }
+
+    @EventHandler
+    public void onInteract(final PlayerInteractEvent event) {
+        this.locked = event.getAction() == Action.LEFT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_AIR;
+    }
+
+    @EventHandler
+    public void onMove(final PlayerMoveEvent event) {
+
+        final Location from, to = event.getTo();
+        final BlockFace fromFace, toFace = LocationUtil.getCardinalDirection(to);
+        if (!this.added) {
+
+            this.added = true;
+            final byte data;
+            switch (toFace.getOppositeFace()) {
+                case DOWN:
+                    data = 0x0;
+                    break;
+
+                case UP:
+                    data = 0x1;
+                    break;
+
+                case NORTH:
+                    data = 0x2;
+                    break;
+
+                case SOUTH:
+                    data = 0x3;
+                    break;
+
+                case WEST:
+                    data = 0x4;
+                    break;
+
+                case EAST:
+                default:
+                    data = 0x5;
+            }
+
+            final VisualBlock block = new VisualBlock(to.getBlockX(), to.getBlockY(), to.getBlockZ(),
+                    Material.DISPENSER, data).shift(5, toFace);
+            this.visual.addBlock(block).visualize(event.getPlayer());
+            return;
+        }
+
+        if (!this.locked) {
+
+            from = event.getFrom();
+            final int x = to.getBlockX() - from.getBlockX();
+            final int y = to.getBlockY() - from.getBlockY();
+            final int z = to.getBlockZ() - from.getBlockZ();
+            if (x != 0 || y != 0 || z != 0) {
+                this.visual.shift(x, y, z);
+            }
+
+            fromFace = LocationUtil.getCardinalDirection(from);
+            if (fromFace != toFace) {
+                this.visual.rotateY(to.toVector(), LocationUtil.getDifference(fromFace, toFace));
+            }
+        }
     }
 
     /**
