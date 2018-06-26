@@ -46,10 +46,24 @@ import java.util.concurrent.atomic.AtomicLong;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * A data holder for blocks that simply holds their
- * position and the type of block. This will not hold
- * world as it is relative to the player and everything
- * else can be calculated by the position and type.
+ * A data holder for blocks that simply holds their position
+ * and the type of block. This will not hold world as it is
+ * relative to the player and everything else can be calculated
+ * by the position and type.
+ * <p>
+ * This object is immutable. Any methods that alter this object
+ * will simple return a new object:
+ * <ul>
+ *     <li>{@link #shift(BlockFace)}</li>
+ *     <li>{@link #shift(int, int, int)}</li>
+ *     <li>{@link #shift(int, BlockFace)}</li>
+ *     <li>{@link #rotateX(Vector, float)}</li>
+ *     <li>{@link #rotateY(Vector, float)}</li>
+ *     <li>{@link #rotateZ(Vector, float)}</li>
+ * </ul>
+ * The above methods give the impression of altering this object,
+ * however, they will instead return a new object with new values,
+ * but will carry the {@link #getId() ID} of the original object over.
  *
  * @since May 28, 2018
  * @author Andavin
@@ -145,10 +159,9 @@ public final class VisualBlock {
     }
 
     /**
-     * Get the ID of this block. This is a unique ID for
-     * this block and any blocks that are transformed from
-     * this block. Only transformation methods will maintain
-     * this ID on the new block:
+     * Get the ID of this block. This is a unique ID for this block
+     * and any blocks that are transformed from this block. Only
+     * transformation methods will maintain this ID on the new block:
      * <ul>
      *     <li>{@link #shift(BlockFace)}</li>
      *     <li>{@link #shift(int, int, int)}</li>
@@ -157,10 +170,21 @@ public final class VisualBlock {
      *     <li>{@link #rotateY(Vector, float)}</li>
      *     <li>{@link #rotateZ(Vector, float)}</li>
      * </ul>
+     * Note that this ID is only unique for each session of the JVM.
+     * Each time the static initializer of this class is executed
+     * the IDs still reset to {@code 0}.
+     * <p>
+     * The value returned by this method is not meant to be a unique
+     * ID in any kind of database as it will <i>not</i> maintain its
+     * uniqueness.
+     * <p>
+     * This is mostly meant for internal use by {@link ChunkVisual},
+     * but is made {@code public} for any case where an ID is needed
+     * to be maintained over transformations.
      *
      * @return The unique ID of this block and its transformations.
      */
-    long getId() {
+    public long getId() {
         return id;
     }
 

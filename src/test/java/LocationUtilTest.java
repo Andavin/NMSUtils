@@ -41,13 +41,30 @@ public class LocationUtilTest {
         while (true) {
 
             assertEquals(0, LocationUtil.getDifference(rotating, rotating), 0);
+            assertEquals(22.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 1)), 0);
             assertEquals(45, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 2)), 0);
+            assertEquals(67.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 3)), 0);
             assertEquals(90, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 4)), 0);
+            assertEquals(112.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 5)), 0);
             assertEquals(135, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 6)), 0);
+            assertEquals(157.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 7)), 0);
             assertEquals(180, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 8)), 0);
+            assertEquals(202.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 9)), 0);
             assertEquals(225, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 10)), 0);
+            assertEquals(247.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 11)), 0);
             assertEquals(270, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 12)), 0);
+            assertEquals(292.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 13)), 0);
             assertEquals(315, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 14)), 0);
+            assertEquals(337.5, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 15)), 0);
+            assertEquals(0, LocationUtil.getDifference(rotating, LocationUtil.rotateRight(rotating, 16)), 0);
+
+            assertEquals(45, LocationUtil.getDifference(rotating, LocationUtil.rotateLeft(rotating, 14)), 0);
+            assertEquals(90, LocationUtil.getDifference(rotating, LocationUtil.rotateLeft(rotating, 12)), 0);
+            assertEquals(135, LocationUtil.getDifference(rotating, LocationUtil.rotateLeft(rotating, 10)), 0);
+            assertEquals(180, LocationUtil.getDifference(rotating, LocationUtil.rotateLeft(rotating, 8)), 0);
+            assertEquals(225, LocationUtil.getDifference(rotating, LocationUtil.rotateLeft(rotating, 6)), 0);
+            assertEquals(270, LocationUtil.getDifference(rotating, LocationUtil.rotateLeft(rotating, 4)), 0);
+            assertEquals(315, LocationUtil.getDifference(rotating, LocationUtil.rotateLeft(rotating, 2)), 0);
 
             assertEquals(45, LocationUtil.getDifference(rotating, LocationUtil.rotate(rotating, 45, false, false)), 0);
             assertEquals(90, LocationUtil.getDifference(rotating, LocationUtil.rotate(rotating, 90, false, false)), 0);
