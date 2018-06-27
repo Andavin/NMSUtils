@@ -38,6 +38,7 @@ import org.bukkit.material.ExtendedRails;
 import org.bukkit.material.MaterialData;
 import org.bukkit.material.Rails;
 import org.bukkit.material.Tree;
+import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -525,6 +526,17 @@ public final class VisualBlock {
     }
 
     /**
+     * Create a {@link BlockVector Vector} using this block's
+     * location coordinates {@link #getX() X}, {@link #getY() Y}
+     * and {@link #getZ() Z}.
+     *
+     * @return This block's location as a Vector.
+     */
+    public BlockVector toVector() {
+        return new BlockVector(this.x, this.y, this.z);
+    }
+
+    /**
      * Check whether this and another VisualBlock are equal
      * to each other in position, {@link #getType() type}
      * and {@link #getData() data}. That is:
@@ -578,11 +590,7 @@ public final class VisualBlock {
 
     @Override
     public int hashCode() {
-        int hash = 3;
-        hash = 19 * hash + (int) (Double.doubleToLongBits(this.x) ^ Double.doubleToLongBits(this.x) >>> 32);
-        hash = 19 * hash + (int) (Double.doubleToLongBits(this.y) ^ Double.doubleToLongBits(this.y) >>> 32);
-        hash = 19 * hash + (int) (Double.doubleToLongBits(this.z) ^ Double.doubleToLongBits(this.z) >>> 32);
-        return hash;
+        return this.x >> 13 ^ this.y >> 7 ^ this.z;
     }
 
     @Override
