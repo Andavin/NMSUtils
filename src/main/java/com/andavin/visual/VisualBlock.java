@@ -540,8 +540,8 @@ public final class VisualBlock {
      * Check whether this and another VisualBlock are equal
      * to each other in position, {@link #getType() type}
      * and {@link #getData() data}. That is:
-     * <pre>    this.x == other.x && this.y == other.y && this.z == other.z
-     *  && this.type == other.type && this.data == other.data</pre>
+     * <pre>    this.x == other.x &amp;&amp; this.y == other.y &amp;&amp; this.z == other.z
+     *  &amp;&amp; this.type == other.type &amp;&amp; this.data == other.data</pre>
      * If anything less than this needs to be checked it can be
      * checked individually using the provided getter method:
      * <ul>
@@ -566,7 +566,7 @@ public final class VisualBlock {
     /**
      * Check whether this and another VisualBlock are at the
      * same position by coordinates. That is:
-     * <pre>    this.x == obj.x && this.y == obj.y && this.z == obj.z</pre>
+     * <pre>    this.x == obj.x &amp;&amp; this.y == obj.y &amp;&amp; this.z == obj.z</pre>
      * This method will <i>not</i> check whether the {@link #getType() type}
      * or {@link #getData() data} of this block is the same as another.
      * <p>
