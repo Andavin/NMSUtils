@@ -35,7 +35,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-@SuppressWarnings({ "unused", "unchecked" })
 public final class Reflection {
 
     /**

@@ -25,16 +25,16 @@
 package com.andavin;
 
 import com.andavin.nbt.wrapper.*;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class NMSUtils extends JavaPlugin {
 
     private static NMSUtils instance;
+    private static boolean fastAsyncSupport;
 
-    @Override
-    public void onEnable() {
+    public NMSUtils() {
         instance = this;
-        //noinspection unchecked
         NBTHelper.register(
                 NBTTagEnd.class,
                 NBTTagByte.class,
@@ -52,6 +52,11 @@ public final class NMSUtils extends JavaPlugin {
         );
     }
 
+    @Override
+    public void onEnable() {
+        fastAsyncSupport = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit") != null;
+    }
+
     /**
      * The singleton instance of the {@link NMSUtils} plugin.
      *
@@ -59,5 +64,14 @@ public final class NMSUtils extends JavaPlugin {
      */
     public static NMSUtils getInstance() {
         return instance;
+    }
+
+    /**
+     * Tell if FastAsyncWorldEdit is available for use.
+     *
+     * @return If FastAsyncWorldEdit is supported.
+     */
+    public static boolean fastAsyncSupport() {
+        return fastAsyncSupport;
     }
 }

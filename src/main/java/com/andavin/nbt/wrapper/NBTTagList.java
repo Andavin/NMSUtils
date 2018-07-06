@@ -226,7 +226,6 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @return The newly created, deserialized object.
      */
     public static NBTTagList deserialize(final Map<String, Object> map) {
-        //noinspection unchecked
         return new NBTTagList((List<NBTBase>) map.get("data"));
     }
 

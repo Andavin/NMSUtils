@@ -56,7 +56,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @author Andavin
  * @since May 12, 2018
  */
-@SuppressWarnings("unchecked")
 @NBTTag(typeId = NBTType.COMPOUND)
 public final class NBTTagCompound extends NBTBase implements DataHolder<Map<String, NBTBase>> {
 
@@ -320,7 +319,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @param uuid The {@link UUID value} to store under the key.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public void setUnique(final String key, final UUID uuid) {
+    public void setUniqueId(final String key, final UUID uuid) {
         checkNotNull(key, "null keys not permitted");
         this.setLong(key + "Most", uuid.getMostSignificantBits());
         this.setLong(key + "Least", uuid.getLeastSignificantBits());

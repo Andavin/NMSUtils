@@ -52,7 +52,6 @@ import static com.google.common.base.Preconditions.checkState;
  * @author Andavin
  * @since May 12, 2018
  */
-@SuppressWarnings("unchecked")
 public final class NBTHelper {
 
     private static final Method READ, WRITE;
@@ -72,6 +71,7 @@ public final class NBTHelper {
      *
      * @param classes The classes to register.
      */
+    @SafeVarargs
     public static void register(final Class<? extends NBTBase>... classes) {
 
         for (final Class<? extends NBTBase> clazz : classes) {
@@ -108,7 +108,7 @@ public final class NBTHelper {
     public static <T extends NBTBase> T cast(final byte typeId, final NBTBase tag) {
 
         final Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
-        supportCheck(con, String.valueOf(typeId));
+        supportCheck(con, typeId);
         final Class<? extends NBTBase> clazz = con.getDeclaringClass();
         if (!clazz.isInstance(tag)) {
             throw new ClassCastException("Cannot cast " + tag.getClass().getSimpleName() + " (" + tag.getTypeId() +
@@ -202,7 +202,7 @@ public final class NBTHelper {
         Reflection.invokeMethod(WRITE, null, tag.getWrapped(), stream);
     }
 
-    private static void supportCheck(final Constructor<?> con, final String support) {
+    private static void supportCheck(final Constructor<?> con, final Object support) {
 
         if (con == null) {
             throw new UnsupportedOperationException(support + " is not supported on this server version.");
