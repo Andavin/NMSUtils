@@ -153,6 +153,23 @@ public final class AreaVisual {
     }
 
     /**
+     * Reset all of the blocks that have been visualized within
+     * this area for the given {@link Player} if they have been
+     * {@link #visualize(Player) visualized} to previously.
+     *
+     * @param player The player to reset the visualized blocks for.
+     * @return This AreaVisual object.
+     */
+    public AreaVisual reset(final Player player) {
+
+        if (this.visualized.remove(player.getUniqueId()) != null) {
+            this.chunks.values().forEach(chunk -> chunk.reset(player));
+        }
+
+        return this;
+    }
+
+    /**
      * Clear and reset all blocks that have been visualized within
      * this area.
      * <p>

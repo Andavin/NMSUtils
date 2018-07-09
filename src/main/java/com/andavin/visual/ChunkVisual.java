@@ -613,6 +613,7 @@ public final class ChunkVisual {
 
     private void sendPacket(final Player player, final List<VisualBlock> blocks) {
 
+        // TODO add a fail safe to check if the chunk is in view distance of the player and/or is loaded
         // If there is only a single block to send then send
         // a single PacketPlayOutBlockChange packet
         if (blocks.size() == 1) {
