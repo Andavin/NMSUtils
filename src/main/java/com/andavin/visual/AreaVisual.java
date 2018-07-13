@@ -54,6 +54,35 @@ public final class AreaVisual {
     private final Map<UUID, WeakReference<Player>> visualized = new HashMap<>();
 
     /**
+     * Get all of the players that have been visualized to using
+     * this area visual. If any of the players have gone offline,
+     * then they will not be included in the returned set.
+     *
+     * @return A set of all players that have been visualized to.
+     */
+    public Set<Player> getPlayers() {
+        return this.visualized.isEmpty() ? Collections.emptySet() : this.visualized.values().stream()
+                .map(WeakReference::get).filter(Objects::nonNull).collect(Collectors.toSet());
+    }
+
+    /**
+     * Run an action for each of the players that have been visualized
+     * to using this area visual. If any of the players have gone offline,
+     * then they will not be included in the execution.
+     *
+     * @param action The action to execute for each player.
+     * @return This AreaVisual object.
+     */
+    public AreaVisual forEach(final Consumer<Player> action) {
+
+        if (!this.visualized.isEmpty()) {
+            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull).forEach(action);
+        }
+
+        return this;
+    }
+
+    /**
      * Visualize and send all of the fake blocks to the given
      * {@link Player client}. This is essentially an update method.
      * Any blocks that are added via {@link #addBlock(VisualBlock)}
@@ -113,8 +142,7 @@ public final class AreaVisual {
 
         if (!this.visualized.isEmpty()) {
 
-            final Set<Player> players = this.visualized.values().stream().map(WeakReference::get)
-                    .filter(Objects::nonNull).collect(Collectors.toSet());
+            final Set<Player> players = this.getPlayers();
             final Map<Long, Set<VisualBlock>> snaps = new HashMap<>((int) (chunks.size() / 0.75));
             if (action != null) {
                 this.chunks.forEach((hash, chunk) -> snaps.put(hash, chunk.snapshot()));
@@ -132,6 +160,21 @@ public final class AreaVisual {
     }
 
     /**
+     * Refresh a single {@link VisualBlock block} coordinate
+     * for all of the visualized players. If the block is not
+     * contained within this area visual, then this method will
+     * do nothing.
+     *
+     * @param x The X coordinate of the block to refresh.
+     * @param y The Y coordinate of the block to refresh.
+     * @param z The Z coordinate of the block to refresh.
+     */
+    public AreaVisual refresh(final int x, final int y, final int z) {
+        final ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
+        return chunk != null ? this.forEach(player -> chunk.refresh(player, x, y, z)) : this;
+    }
+
+    /**
      * Reset all of the blocks that have been visualized within
      * this area.
      * <p>
@@ -143,13 +186,7 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      */
     public AreaVisual reset() {
-
-        if (!this.visualized.isEmpty()) {
-            this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
-                    .forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
-        }
-
-        return this;
+        return this.forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
     }
 
     /**
@@ -185,8 +222,7 @@ public final class AreaVisual {
         if (!this.visualized.isEmpty()) {
 
             synchronized (this.visualized) {
-                this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull)
-                        .forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
+                this.forEach(player -> this.chunks.values().forEach(chunk -> chunk.reset(player)));
                 this.chunks.values().forEach(ChunkVisual::clear);
                 this.visualized.clear();
                 this.chunks.clear();
@@ -235,6 +271,34 @@ public final class AreaVisual {
     }
 
     /**
+     * Remove the {@link VisualBlock block} at the given coordinates.
+     * If the block coordinates are not contained within this area visual
+     * or there is no block at the coordinates, then this method will
+     * do nothing.
+     *
+     * @param x The X coordinate of the block to remove.
+     * @param y The Y coordinate of the block to remove.
+     * @param z The Z coordinate of the block to remove.
+     * @return The VisualBlock previously at the given coordinates or
+     *         {@code null} if there is no block at the coordinates.
+     */
+    public VisualBlock removeBlock(final int x, final int y, final int z) {
+
+        final ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
+        if (chunk == null) {
+            return null;
+        }
+
+        final VisualBlock block = chunk.removeBlock(x, y, z);
+        if (block != null) {
+            this.forEach(player -> chunk.sendBlocks(player,
+                    Collections.singletonList(block.getRealType(player.getWorld()))));
+        }
+
+        return block;
+    }
+
+    /**
      * Get all of the blocks that are currently contained
      * within this area visual.
      *
@@ -244,6 +308,23 @@ public final class AreaVisual {
         final Set<VisualBlock> blocks = new HashSet<>();
         this.chunks.values().forEach(chunk -> blocks.addAll(chunk.snapshot()));
         return blocks;
+    }
+
+    /**
+     * Get the {@link VisualBlock block} at the given coordinates.
+     * If the block coordinates are not contained within this area
+     * visual or there is no block at the coordinates, then {@code null}
+     * will be returned.
+     *
+     * @param x The X coordinate of the block to retrieve.
+     * @param y The Y coordinate of the block to retrieve.
+     * @param z The Z coordinate of the block to retrieve.
+     * @return The VisualBlock at the given coordinates or {@code null}
+     *         if there is no block at the coordinates.
+     */
+    public VisualBlock getBlock(final int x, final int y, final int z) {
+        final ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
+        return chunk != null ? chunk.getBlock(x, y, z) : null;
     }
 
     /**

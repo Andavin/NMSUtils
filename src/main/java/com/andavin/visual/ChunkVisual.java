@@ -34,6 +34,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -156,6 +157,49 @@ public final class ChunkVisual {
      */
     public void addBlock(final VisualBlock block) {
         this.blocks.put(block.getPackedPos(), block);
+    }
+
+    /**
+     * Remove the {@link VisualBlock block} at the given coordinates.
+     * If the block coordinates are not contained within this chunk
+     * or there is no block at the coordinates, then this method will
+     * do nothing.
+     *
+     * @param x The X coordinate of the block to remove.
+     * @param y The Y coordinate of the block to remove.
+     * @param z The Z coordinate of the block to remove.
+     * @return The VisualBlock previously at the given coordinates or
+     *         {@code null} if there is no block at the coordinates.
+     */
+    public VisualBlock removeBlock(final int x, final int y, final int z) {
+
+        if (x >> 4 != this.x || z >> 4 != this.z) {
+            return null;
+        }
+
+        return this.blocks.remove((short) ((x & 0xF) << 12 | (z & 0xF) << 8 | y & 0xFF));
+    }
+
+    /**
+     * Get the {@link VisualBlock block} at the given coordinates.
+     * If the block coordinates are not contained within this chunk
+     * or there is no block at the coordinates, then {@code null}
+     * will be returned.
+     *
+     * @param x The X coordinate of the block to retrieve.
+     * @param y The Y coordinate of the block to retrieve.
+     * @param z The Z coordinate of the block to retrieve.
+     * @return The VisualBlock at the given coordinates or {@code null}
+     *         if there is no block at the coordinates.
+     */
+    @Nullable
+    public VisualBlock getBlock(final int x, final int y, final int z) {
+
+        if (x >> 4 != this.x || z >> 4 != this.z) {
+            return null;
+        }
+
+        return this.blocks.get((short) ((x & 0xF) << 12 | (z & 0xF) << 8 | y & 0xFF));
     }
 
     /**
@@ -508,7 +552,7 @@ public final class ChunkVisual {
     public void visualize(final Player player) {
 
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
-            this.sendPacket(player, new ArrayList<>(this.blocks.values()));
+            this.sendBlocks(player, new ArrayList<>(this.blocks.values()));
         }
     }
 
@@ -557,7 +601,25 @@ public final class ChunkVisual {
         }
 
         if (!needsUpdate.isEmpty()) {
-            this.sendPacket(player, needsUpdate);
+            this.sendBlocks(player, needsUpdate);
+        }
+    }
+
+    /**
+     * Refresh a single {@link VisualBlock block} coordinate
+     * for the given player. If the block is not contained within
+     * this chunk, then this method will do nothing.
+     *
+     * @param player The player to refresh the block for.
+     * @param x The X coordinate of the block to refresh.
+     * @param y The Y coordinate of the block to refresh.
+     * @param z The Z coordinate of the block to refresh.
+     */
+    public void refresh(final Player player, final int x, final int y, final int z) {
+
+        final VisualBlock block = this.getBlock(x, y, z);
+        if (block != null) {
+            this.sendBlocks(player, Collections.singletonList(block));
         }
     }
 
@@ -572,7 +634,7 @@ public final class ChunkVisual {
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
 
             if (this.blocks.size() == 1) {
-                this.sendPacket(player, Collections.singletonList(this.blocks.values()
+                this.sendBlocks(player, Collections.singletonList(this.blocks.values()
                         .iterator().next().getRealType(player.getWorld())));
                 return;
             }
@@ -580,7 +642,7 @@ public final class ChunkVisual {
             final ChunkSnapshot chunk = player.getWorld().getChunkAt(this.x, this.z).getChunkSnapshot();
             final List<VisualBlock> blocks = this.blocks.values().stream()
                     .map(block -> block.getRealType(chunk)).collect(Collectors.toList());
-            this.sendPacket(player, blocks);
+            this.sendBlocks(player, blocks);
         }
     }
 
@@ -611,7 +673,17 @@ public final class ChunkVisual {
         return this.chunkPair.toString();
     }
 
-    private void sendPacket(final Player player, final List<VisualBlock> blocks) {
+    /**
+     * Send a block change packet to the given player for all of
+     * the blocks contained within the list.
+     * <p>
+     * Note that all blocks contained within the list must be inside
+     * of this chunk or else unexpected behavior may occur.
+     *
+     * @param player The player to send the packet to.
+     * @param blocks The block changes to send to the player.
+     */
+    public void sendBlocks(final Player player, final List<VisualBlock> blocks) {
 
         // TODO add a fail safe to check if the chunk is in view distance of the player and/or is loaded
         // If there is only a single block to send then send
