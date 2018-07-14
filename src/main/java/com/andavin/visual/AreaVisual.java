@@ -168,6 +168,7 @@ public final class AreaVisual {
      * @param x The X coordinate of the block to refresh.
      * @param y The Y coordinate of the block to refresh.
      * @param z The Z coordinate of the block to refresh.
+     * @return This AreaVisual object.
      */
     public AreaVisual refresh(final int x, final int y, final int z) {
         final ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
