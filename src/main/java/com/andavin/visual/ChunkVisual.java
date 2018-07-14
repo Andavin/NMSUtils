@@ -217,6 +217,30 @@ public final class ChunkVisual {
      * Note that this method will still require a visualization refresh
      * of some kind in order to show the blocks to players. It will not
      * execute a refresh automatically.
+     * <p>
+     * Note that there is an inherent flaw with this method when combined
+     * with any rotation methods:
+     * <ul>
+     *     <li>{@link #rotateX(Vector, float)}</li>
+     *     <li>{@link #rotateY(Vector, float)}</li>
+     *     <li>{@link #rotateZ(Vector, float)}</li>
+     * </ul>
+     * If an area is {@link #setType(Material, int, Material, int) changed type},
+     * rotated (using the aforementioned methods) and then reverted (using
+     * any revert method), then any directional types that were changed type
+     * must revert to their previous rotation before the type change occurred.
+     * <p>
+     * There are a couple ways of going around this flaw:
+     * <ol>
+     *     <li>Simply ignore all directional blocks during the type change via
+     *     the {@code ignoreDirectional} parameter.</li>
+     *     <li>Keep a snapshot of the area before the type change and after reverting
+     *     rotate all of the directional blocks the combined rotation of any rotations
+     *     that have occurred, if any.</li>
+     * </ol>
+     * Out of the two options the first is the easiest while the second is the
+     * best outcome. This cannot happen internally, as of now, due to there being
+     * no reference from which to gain access to the new rotation of the block after revert.
      *
      * @param visual The {@link AreaVisual} that this chunk is part of.
      * @see #setType(Material, Material)
@@ -246,6 +270,30 @@ public final class ChunkVisual {
      * Note that this method will still require a visualization refresh
      * of some kind in order to show the blocks to players. It will not
      * execute a refresh automatically.
+     * <p>
+     * Note that there is an inherent flaw with this method when combined
+     * with any rotation methods:
+     * <ul>
+     *     <li>{@link #rotateX(Vector, float)}</li>
+     *     <li>{@link #rotateY(Vector, float)}</li>
+     *     <li>{@link #rotateZ(Vector, float)}</li>
+     * </ul>
+     * If an area is {@link #setType(Material, int, Material, int) changed type},
+     * rotated (using the aforementioned methods) and then reverted (using
+     * any revert method), then any directional types that were changed type
+     * must revert to their previous rotation before the type change occurred.
+     * <p>
+     * There are a couple ways of going around this flaw:
+     * <ol>
+     *     <li>Simply ignore all directional blocks during the type change via
+     *     the {@code ignoreDirectional} parameter.</li>
+     *     <li>Keep a snapshot of the area before the type change and after reverting
+     *     rotate all of the directional blocks the combined rotation of any rotations
+     *     that have occurred, if any.</li>
+     * </ol>
+     * Out of the two options the first is the easiest while the second is the
+     * best outcome. This cannot happen internally, as of now, due to there being
+     * no reference from which to gain access to the new rotation of the block after revert.
      *
      * @param amount The amount of snapshots to revert back to. For example,
      *               if there have been {@code 4} snapshots taken and {@code 3}
@@ -332,6 +380,21 @@ public final class ChunkVisual {
     }
 
     /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @see #revert(AreaVisual) revert
+     */
+    public void setType(final Material fromType, final Material toType, final boolean ignoreDirectional) {
+        this.setType(fromType, -1, toType, 0, ignoreDirectional);
+    }
+
+    /**
      * Change the {@link Material type} and data of all of the
      * {@link VisualBlock blocks} that match the type criteria set.
      *
@@ -342,6 +405,22 @@ public final class ChunkVisual {
      */
     public void setType(final Material fromType, final Material toType, final int toData) {
         this.setType(fromType, -1, toType, toData);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @see #revert(AreaVisual) revert
+     */
+    public void setType(final Material fromType, final Material toType, final int toData, final boolean ignoreDirectional) {
+        this.setType(fromType, -1, toType, toData, ignoreDirectional);
     }
 
     /**
@@ -364,6 +443,28 @@ public final class ChunkVisual {
     }
 
     /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type and data criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @see #revert(AreaVisual) revert
+     */
+    public void setType(final Material fromType, final int fromData, final Material toType, final boolean ignoreDirectional) {
+        this.setType(fromType, fromData, toType, 0, ignoreDirectional);
+    }
+
+    /**
      * Change the {@link Material type} and data of all of the
      * {@link VisualBlock blocks} that match the type and data
      * criteria set.
@@ -380,9 +481,35 @@ public final class ChunkVisual {
      * @param toType The type to change the matching blocks to.
      * @param toData The data to change the matching blocks to.
      */
-    public synchronized void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+    public void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+        this.setType(fromType, fromData, toType, toData, false);
+    }
 
-        this.snapshots.addFirst(new ArrayList<>(this.blocks.values()));
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type and data
+     * criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @see #revert(AreaVisual) revert
+     */
+    public synchronized void setType(final Material fromType, final int fromData,
+            final Material toType, final int toData, final boolean ignoreDirectional) {
+
+        final List<VisualBlock> changed = new LinkedList<>();
+        this.snapshots.addFirst(changed);
         if (this.snapshots.size() > MAX_SNAPSHOTS) {
             this.snapshots.removeLast();
         }
@@ -390,9 +517,14 @@ public final class ChunkVisual {
         this.blocks.entrySet().forEach(entry -> {
 
             final VisualBlock block = entry.getValue();
+            if (ignoreDirectional && block.isDirectional()) {
+                return;
+            }
+
             // If type is null only match data if data is not -1
             if ((fromType == null || block.getType() == fromType) && (fromData == -1 || block.getData() == fromData)) {
                 entry.setValue(new VisualBlock(block.getId(), block.getX(), block.getY(), block.getZ(), toType, toData));
+                changed.add(block);
             }
         });
     }

@@ -52,7 +52,7 @@ import static com.google.common.base.Preconditions.checkState;
  * relative to the player.
  * <p>
  * This object is immutable. Any methods that alter this object
- * will simple return a new object:
+ * will simply return a new object:
  * <ul>
  *     <li>{@link #shift(BlockFace)}</li>
  *     <li>{@link #shift(int, int, int)}</li>
@@ -97,6 +97,7 @@ public final class VisualBlock {
     private final byte data;
     private final Material type;
     private final Object blockData;
+    private final boolean directional;
 
     /**
      * Create a new visual block at the given position and of the basic
@@ -159,6 +160,7 @@ public final class VisualBlock {
         checkState(0 <= packedType && packedType < BLOCK_DATA.size(),
                 "%s:%s is not a valid block type with this server version", type, data);
         this.blockData = BLOCK_DATA.get(packedType);
+        this.directional = isDirectional(type.getData());
     }
 
     /**
@@ -244,6 +246,31 @@ public final class VisualBlock {
      */
     public byte getData() {
         return data;
+    }
+
+    /**
+     * Tell if this VisualBlock {@link #getType() type} is
+     * a directional block type. More specifically if the
+     * {@link Material#getData() type data} extends any of
+     * the following directional classes:
+     * <ul>
+     *     <li>{@link Directional}</li>
+     *     <li>{@link Tree}</li>
+     *     <li>{@link Rails}</li>
+     *     <li>{@link ExtendedRails}</li>
+     * </ul>
+     * The Rails and ExtendedRails classes will only be rotated
+     * from within this object (using the rotation methods) under
+     * specific circumstances:
+     * <ol>
+     *     <li>Only ever from {@link #rotateY(Vector, float)}</li>
+     *     <li>ExtendedRails must be rotated in increments of 90º</li>
+     * </ol>
+     *
+     * @return If this block is a directional {@link Material type}.
+     */
+    public boolean isDirectional() {
+        return directional;
     }
 
     /**
@@ -394,18 +421,23 @@ public final class VisualBlock {
 
         degrees %= 360;
         final byte data;
-        final Class<? extends MaterialData> dataType = this.type.getData();
-        if (Directional.class.isAssignableFrom(dataType)) {
-            final MaterialData typeData = this.type.getNewData(this.data);
-            final Directional direction = (Directional) typeData;
-            final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
-            direction.setFacingDirection(face);
-            data = typeData.getData();
-        } else if (Tree.class.isAssignableFrom(dataType)) {
-            final Tree tree = (Tree) this.type.getNewData(this.data);
-            final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, true, false);
-            tree.setDirection(face);
-            data = tree.getData();
+        if (this.directional) {
+
+            final Class<? extends MaterialData> dataType = this.type.getData();
+            if (Directional.class.isAssignableFrom(dataType)) {
+                final MaterialData typeData = this.type.getNewData(this.data);
+                final Directional direction = (Directional) typeData;
+                final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
+                direction.setFacingDirection(face);
+                data = typeData.getData();
+            } else if (Tree.class.isAssignableFrom(dataType)) {
+                final Tree tree = (Tree) this.type.getNewData(this.data);
+                final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, true, false);
+                tree.setDirection(face);
+                data = tree.getData();
+            } else {
+                data = this.data;
+            }
         } else {
             data = this.data;
         }
@@ -442,24 +474,29 @@ public final class VisualBlock {
 
         degrees %= 360;
         final byte data;
-        final Class<? extends MaterialData> dataType = this.type.getData();
-        if (Directional.class.isAssignableFrom(dataType)) {
-            final MaterialData typeData = this.type.getNewData(this.data);
-            final Directional direction = (Directional) typeData;
-            final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
-            direction.setFacingDirection(face);
-            data = typeData.getData();
-        } else if (Tree.class.isAssignableFrom(dataType)) {
-            final Tree tree = (Tree) this.type.getNewData(this.data);
-            final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, false);
-            tree.setDirection(face);
-            data = tree.getData();
-        } else if (Rails.class.isAssignableFrom(dataType) &&
-                   (degrees % 90 == 0 || !ExtendedRails.class.isAssignableFrom(dataType))) {
-            final Rails rails = (Rails) this.type.getNewData(this.data);
-            final BlockFace face = LocationUtil.rotate(rails.getDirection(), degrees, false, false);
-            rails.setDirection(face, rails.isOnSlope());
-            data = rails.getData();
+        if (this.directional) {
+
+            final Class<? extends MaterialData> dataType = this.type.getData();
+            if (Directional.class.isAssignableFrom(dataType)) {
+                final MaterialData typeData = this.type.getNewData(this.data);
+                final Directional direction = (Directional) typeData;
+                final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
+                direction.setFacingDirection(face);
+                data = typeData.getData();
+            } else if (Tree.class.isAssignableFrom(dataType)) {
+                final Tree tree = (Tree) this.type.getNewData(this.data);
+                final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, false);
+                tree.setDirection(face);
+                data = tree.getData();
+            } else if (Rails.class.isAssignableFrom(dataType) &&
+                       (degrees % 90 == 0 || !ExtendedRails.class.isAssignableFrom(dataType))) {
+                final Rails rails = (Rails) this.type.getNewData(this.data);
+                final BlockFace face = LocationUtil.rotate(rails.getDirection(), degrees, false, false);
+                rails.setDirection(face, rails.isOnSlope());
+                data = rails.getData();
+            } else {
+                data = this.data;
+            }
         } else {
             data = this.data;
         }
@@ -496,18 +533,23 @@ public final class VisualBlock {
 
         degrees %= 360;
         final byte data;
-        final Class<? extends MaterialData> dataType = this.type.getData();
-        if (Directional.class.isAssignableFrom(dataType)) {
-            final MaterialData typeData = this.type.getNewData(this.data);
-            final Directional direction = (Directional) typeData;
-            final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);
-            direction.setFacingDirection(face);
-            data = typeData.getData();
-        } else if (Tree.class.isAssignableFrom(dataType)) {
-            final Tree tree = (Tree) this.type.getNewData(this.data);
-            final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, true);
-            tree.setDirection(face);
-            data = tree.getData();
+        if (this.directional) {
+
+            final Class<? extends MaterialData> dataType = this.type.getData();
+            if (Directional.class.isAssignableFrom(dataType)) {
+                final MaterialData typeData = this.type.getNewData(this.data);
+                final Directional direction = (Directional) typeData;
+                final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);
+                direction.setFacingDirection(face);
+                data = typeData.getData();
+            } else if (Tree.class.isAssignableFrom(dataType)) {
+                final Tree tree = (Tree) this.type.getNewData(this.data);
+                final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, true);
+                tree.setDirection(face);
+                data = tree.getData();
+            } else {
+                data = this.data;
+            }
         } else {
             data = this.data;
         }
@@ -666,5 +708,12 @@ public final class VisualBlock {
         }
 
         return Math.sin(Math.toRadians(degrees));
+    }
+
+    private static boolean isDirectional(final Class<? extends MaterialData> clazz) {
+        return Directional.class.isAssignableFrom(clazz) ||
+               Tree.class.isAssignableFrom(clazz) ||
+               Rails.class.isAssignableFrom(clazz) ||
+               ExtendedRails.class.isAssignableFrom(clazz);
     }
 }

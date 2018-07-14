@@ -365,6 +365,30 @@ public final class AreaVisual {
      * <p>
      * Currently, only the {@code setType()} methods support reverting
      * to snapshots. Transformations may be implemented in a future version.
+     * <p>
+     * Note that there is an inherent flaw with this method when combined
+     * with any rotation methods:
+     * <ul>
+     *     <li>{@link #rotateX(Vector, float)}</li>
+     *     <li>{@link #rotateY(Vector, float)}</li>
+     *     <li>{@link #rotateZ(Vector, float)}</li>
+     * </ul>
+     * If an area is {@link #setType(Material, int, Material, int) changed type},
+     * rotated (using the aforementioned methods) and then reverted (using
+     * any revert method), then any directional types that were changed type
+     * must revert to their previous rotation before the type change occurred.
+     * <p>
+     * There are a couple ways of going around this flaw:
+     * <ol>
+     *     <li>Simply ignore all directional blocks during the type change via
+     *     the {@code ignoreDirectional} parameter.</li>
+     *     <li>Keep a snapshot of the area before the type change and after reverting
+     *     rotate all of the directional blocks the combined rotation of any rotations
+     *     that have occurred, if any.</li>
+     * </ol>
+     * Out of the two options the first is the easiest while the second is the
+     * best outcome. This cannot happen internally, as of now, due to there being
+     * no reference from which to gain access to the new rotation of the block after revert.
      *
      * @return This AreaVisual object after the revert.
      * @see #setType(Material, Material)
@@ -387,6 +411,30 @@ public final class AreaVisual {
      * <p>
      * Currently, only the {@code setType()} methods support reverting
      * to snapshots. Transformations may be implemented in a future version.
+     * <p>
+     * Note that there is an inherent flaw with this method when combined
+     * with any rotation methods:
+     * <ul>
+     *     <li>{@link #rotateX(Vector, float)}</li>
+     *     <li>{@link #rotateY(Vector, float)}</li>
+     *     <li>{@link #rotateZ(Vector, float)}</li>
+     * </ul>
+     * If an area is {@link #setType(Material, int, Material, int) changed type},
+     * rotated (using the aforementioned methods) and then reverted (using
+     * any revert method), then any directional types that were changed type
+     * must revert to their previous rotation before the type change occurred.
+     * <p>
+     * There are a couple ways of going around this flaw:
+     * <ol>
+     *     <li>Simply ignore all directional blocks during the type change via
+     *     the {@code ignoreDirectional} parameter.</li>
+     *     <li>Keep a snapshot of the area before the type change and after reverting
+     *     rotate all of the directional blocks the combined rotation of any rotations
+     *     that have occurred, if any.</li>
+     * </ol>
+     * Out of the two options the first is the easiest while the second is the
+     * best outcome. This cannot happen internally, as of now, due to there being
+     * no reference from which to gain access to the new rotation of the block after revert.
      *
      * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
      *                automatically during the revert.
@@ -414,6 +462,30 @@ public final class AreaVisual {
      * <p>
      * Currently, only the {@code setType()} methods support reverting
      * to snapshots. Transformations may be implemented in a future version.
+     * <p>
+     * Note that there is an inherent flaw with this method when combined
+     * with any rotation methods:
+     * <ul>
+     *     <li>{@link #rotateX(Vector, float)}</li>
+     *     <li>{@link #rotateY(Vector, float)}</li>
+     *     <li>{@link #rotateZ(Vector, float)}</li>
+     * </ul>
+     * If an area is {@link #setType(Material, int, Material, int) changed type},
+     * rotated (using the aforementioned methods) and then reverted (using
+     * any revert method), then any directional types that were changed type
+     * must revert to their previous rotation before the type change occurred.
+     * <p>
+     * There are a couple ways of going around this flaw:
+     * <ol>
+     *     <li>Simply ignore all directional blocks during the type change via
+     *     the {@code ignoreDirectional} parameter.</li>
+     *     <li>Keep a snapshot of the area before the type change and after reverting
+     *     rotate all of the directional blocks the combined rotation of any rotations
+     *     that have occurred, if any.</li>
+     * </ol>
+     * Out of the two options the first is the easiest while the second is the
+     * best outcome. This cannot happen internally, as of now, due to there being
+     * no reference from which to gain access to the new rotation of the block after revert.
      *
      * @param amount The amount of snapshots to revert back to. For example,
      *               if there have been {@code 4} snapshots taken and {@code 3}
@@ -442,6 +514,30 @@ public final class AreaVisual {
      * <p>
      * Currently, only the {@code setType()} methods support reverting
      * to snapshots. Transformations may be implemented in a future version.
+     * <p>
+     * Note that there is an inherent flaw with this method when combined
+     * with any rotation methods:
+     * <ul>
+     *     <li>{@link #rotateX(Vector, float)}</li>
+     *     <li>{@link #rotateY(Vector, float)}</li>
+     *     <li>{@link #rotateZ(Vector, float)}</li>
+     * </ul>
+     * If an area is {@link #setType(Material, int, Material, int) changed type},
+     * rotated (using the aforementioned methods) and then reverted (using
+     * any revert method), then any directional types that were changed type
+     * must revert to their previous rotation before the type change occurred.
+     * <p>
+     * There are a couple ways of going around this flaw:
+     * <ol>
+     *     <li>Simply ignore all directional blocks during the type change via
+     *     the {@code ignoreDirectional} parameter.</li>
+     *     <li>Keep a snapshot of the area before the type change and after reverting
+     *     rotate all of the directional blocks the combined rotation of any rotations
+     *     that have occurred, if any.</li>
+     * </ol>
+     * Out of the two options the first is the easiest while the second is the
+     * best outcome. This cannot happen internally, as of now, due to there being
+     * no reference from which to gain access to the new rotation of the block after revert.
      *
      * @param amount The amount of snapshots to revert back to. For example,
      *               if there have been {@code 4} snapshots taken and {@code 3}
@@ -487,6 +583,25 @@ public final class AreaVisual {
     }
 
     /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the type change.
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @return This AreaVisual object after the types have been changed.
+     * @see #revert()
+     */
+    public AreaVisual setType(final Material fromType, final Material toType,
+            final boolean refresh, final boolean ignoreDirectional) {
+        return this.setType(fromType, -1, toType, 0, refresh, ignoreDirectional);
+    }
+
+    /**
      * Change the {@link Material type} and data of all of the
      * {@link VisualBlock blocks} that match the type criteria set.
      *
@@ -514,6 +629,26 @@ public final class AreaVisual {
      */
     public AreaVisual setType(final Material fromType, final Material toType, final int toData, final boolean refresh) {
         return this.setType(fromType, -1, toType, toData, refresh);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type criteria set.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the type change.
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @return This AreaVisual object after the types have been changed.
+     * @see #revert()
+     */
+    public AreaVisual setType(final Material fromType, final Material toType, final int toData,
+            final boolean refresh, final boolean ignoreDirectional) {
+        return this.setType(fromType, -1, toType, toData, refresh, ignoreDirectional);
     }
 
     /**
@@ -559,6 +694,32 @@ public final class AreaVisual {
     }
 
     /**
+     * Change the {@link Material type} of all of the {@link VisualBlock blocks}
+     * that match the type and data criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *
+     * @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     *                automatically during the type change.
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @return This AreaVisual object after the types have been changed.
+     * @see #revert()
+     */
+    public AreaVisual setType(final Material fromType, final int fromData,
+            final Material toType, final boolean refresh, final boolean ignoreDirectional) {
+        return this.setType(fromType, fromData, toType, 0, refresh, ignoreDirectional);
+    }
+
+    /**
      * Change the {@link Material type} and data of all of the
      * {@link VisualBlock blocks} that match the type and data
      * criteria set.
@@ -601,6 +762,32 @@ public final class AreaVisual {
     public AreaVisual setType(final Material fromType, final int fromData,
             final Material toType, final int toData, final boolean refresh) {
         return this.alter(chunk -> chunk.setType(fromType, fromData, toType, toData), refresh);
+    }
+
+    /**
+     * Change the {@link Material type} and data of all of the
+     * {@link VisualBlock blocks} that match the type and data
+     * criteria set.
+     * <p>
+     * The data criteria ({@code fromData}) can be set to {@code -1}
+     * in order to disable it and change any block as long as the
+     * type matches; the {@link #setType(Material, Material)} or
+     * {@link #setType(Material, Material, int)} can also be used.
+     *  @param fromType The {@link VisualBlock#getType() type} of blocks
+     *                 to change to the new type.
+     * @param fromData The {@link VisualBlock#getData() data} of the
+     *                 blocks to change to the new type.
+     * @param toType The type to change the matching blocks to.
+     * @param toData The data to change the matching blocks to.
+     * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
+     * @param ignoreDirectional If {@link VisualBlock#isDirectional() directional}
+     *                          blocks should be ignored and not change type.
+     * @return This AreaVisual object after the types have been changed.
+     * @see #revert()
+     */
+    public AreaVisual setType(final Material fromType, final int fromData,
+            final Material toType, final int toData, final boolean refresh, final boolean ignoreDirectional) {
+        return this.alter(chunk -> chunk.setType(fromType, fromData, toType, toData, ignoreDirectional), refresh);
     }
 
     /**
