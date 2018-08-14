@@ -495,7 +495,14 @@ public final class VisualBlock {
                 rails.setDirection(face, rails.isOnSlope());
                 data = rails.getData();
             } else {
-                data = this.data;
+
+                if (this.type == Material.ANVIL) {
+                    final BlockFace direction = this.getAnvilDirection();
+                    final BlockFace face = LocationUtil.rotate(direction, degrees, false, false);
+                    data = this.getDataForDirection(direction);
+                } else {
+                    data = this.data;
+                }
             }
         } else {
             data = this.data;
@@ -638,6 +645,79 @@ public final class VisualBlock {
     @Override
     public String toString() {
         return "(" + this.x + ", " + this.y + ", " + this.z + ") " + this.type + ':' + this.data;
+    }
+
+    private BlockFace getAnvilDirection() {
+
+        switch (this.data) {
+            case 0:
+            case 4:
+            case 8:
+                return BlockFace.NORTH;
+            case 1:
+            case 5:
+            case 9:
+                return BlockFace.EAST;
+            case 2:
+            case 6:
+            case 10:
+                return BlockFace.SOUTH;
+            case 3:
+            case 7:
+            case 11:
+                return BlockFace.WEST;
+            default:
+                return BlockFace.SELF;
+        }
+    }
+
+    private byte getDataForDirection(final BlockFace face) {
+
+        switch (face) {
+
+            case NORTH:
+
+                if (this.data < 4) {
+                    return 0;
+                } else if (this.data < 8) {
+                    return 4;
+                } else {
+                    return 8;
+                }
+
+            case EAST:
+
+                if (this.data < 4) {
+                    return 1;
+                } else if (this.data < 8) {
+                    return 5;
+                } else {
+                    return 9;
+                }
+
+            case SOUTH:
+
+                if (this.data < 4) {
+                    return 2;
+                } else if (this.data < 8) {
+                    return 6;
+                } else {
+                    return 10;
+                }
+
+            case WEST:
+
+                if (this.data < 4) {
+                    return 3;
+                } else if (this.data < 8) {
+                    return 7;
+                } else {
+                    return 11;
+                }
+
+            default:
+                return this.data;
+        }
     }
 
     /**

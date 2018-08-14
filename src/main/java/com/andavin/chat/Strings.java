@@ -221,9 +221,9 @@ public final class Strings {
         }
 
         final int length = Strings.getWidth(msg);
+        final int neededSpace = CENTER_CHAT - length / 2;
         final StringBuilder spaces = new StringBuilder();
-        final int neededSpaced = CENTER_CHAT - length / 2;
-        for (int spaced = 0; spaced < neededSpaced; spaced += FontCharacter.SPACE.getLength()) {
+        for (int spaced = 0; spaced < neededSpace; spaced += FontCharacter.SPACE.getLength()) {
             spaces.append(' ');
         }
 
@@ -249,8 +249,8 @@ public final class Strings {
 
         final int length = Strings.getWidth(title);
         final StringBuilder spaces = new StringBuilder();
-        final int neededSpaced = INVENTORY_LENGTH - length / 2;
-        for (int spaced = 0; spaced < neededSpaced; spaced += FontCharacter.SPACE.getLength()) {
+        final int neededSpace = INVENTORY_LENGTH - length / 2;
+        for (int spaced = 0; spaced < neededSpace; spaced += FontCharacter.SPACE.getLength()) {
             spaces.append(' ');
         }
 
@@ -275,8 +275,8 @@ public final class Strings {
         }
 
         final StringBuilder spaces = new StringBuilder();
-        final int neededSpaced = BOOK_LENGTH / 2 - length / 2;
-        for (int spaced = 0; spaced < neededSpaced; spaced += FontCharacter.SPACE.getLength()) {
+        final int neededSpace = BOOK_LENGTH / 2 - length / 2;
+        for (int spaced = 0; spaced < neededSpace; spaced += FontCharacter.SPACE.getLength()) {
             spaces.append(' ');
         }
 
@@ -325,9 +325,9 @@ public final class Strings {
         lines.forEach(line -> {
 
             final int length = Strings.getWidth(line);
+            final int neededSpace = (fullSize - length) / 2;
             final StringBuilder spaces = new StringBuilder();
-            final int neededSpaces = (fullSize - length) / 2;
-            for (int spaced = 0; spaced < neededSpaces; spaced += FontCharacter.SPACE.getLength()) {
+            for (int spaced = 0; spaced < neededSpace; spaced += FontCharacter.SPACE.getLength()) {
                 spaces.append(' ');
             }
 
