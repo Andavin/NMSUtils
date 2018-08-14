@@ -160,7 +160,7 @@ public final class VisualBlock {
         checkState(0 <= packedType && packedType < BLOCK_DATA.size(),
                 "%s:%s is not a valid block type with this server version", type, data);
         this.blockData = BLOCK_DATA.get(packedType);
-        this.directional = isDirectional(type.getData());
+        this.directional = isDirectional(type.getData()) || type == Material.ANVIL;
     }
 
     /**
