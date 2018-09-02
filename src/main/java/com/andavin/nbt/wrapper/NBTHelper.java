@@ -78,7 +78,7 @@ public final class NBTHelper {
 
             final String name = clazz.getSimpleName();
             final Class<?> nmsType = Reflection.getMcClass(name);
-            final NBTTag type = clazz.getAnnotation(NBTTag.class);
+            final NBTTag type = clazz.getDeclaredAnnotation(NBTTag.class);
             if (type != null && nmsType != null) {
                 ConfigurationSerialization.registerClass(clazz);
                 final Constructor<?> wrap = Reflection.getConstructor(nmsType, type.params());
@@ -197,7 +197,7 @@ public final class NBTHelper {
      * @throws IllegalArgumentException If the file is not an NBT file ending in {@code .dat}.
      */
     public static void write(final File file, final NBTTagCompound tag) throws IOException, IllegalArgumentException {
-        checkArgument(file.getPath().endsWith(".dat"), "can only read NBT files with the extension 'dat'.");
+        checkArgument(file.getPath().endsWith(".dat"), "can only write to NBT files with the extension 'dat'.");
         final OutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
         Reflection.invokeMethod(WRITE, null, tag.getWrapped(), stream);
     }

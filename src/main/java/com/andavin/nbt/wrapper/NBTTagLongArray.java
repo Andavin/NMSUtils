@@ -88,10 +88,10 @@ public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]>
 
     private static long[] convert(final List<Long> data) {
 
+        int i = 0;
         final long[] array = new long[data.size()];
-        for (int i = 0; i < array.length; i++) {
-            final Long num = data.get(i);
-            array[i] = num == null ? 0 : num;
+        for (final Long num : data) { // Optimized iterations vs get(i) for some List impl
+            array[i++] = num != null ? num : 0;
         }
 
         return array;

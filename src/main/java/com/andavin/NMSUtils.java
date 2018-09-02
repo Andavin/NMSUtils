@@ -24,23 +24,11 @@
 
 package com.andavin;
 
-import com.andavin.chat.Strings;
 import com.andavin.nbt.wrapper.*;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-public final class NMSUtils extends JavaPlugin implements Listener {
+public final class NMSUtils extends JavaPlugin {
 
     private static NMSUtils instance;
     private static boolean fastAsyncSupport;
@@ -64,36 +52,9 @@ public final class NMSUtils extends JavaPlugin implements Listener {
         );
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onPlayerInteract(final PlayerInteractEvent event) {
-
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-
-            final ItemStack item = new ItemStack(Material.STONE);
-            final ItemMeta meta = item.getItemMeta();
-
-            final List<String> lore = new ArrayList<>(Arrays.asList(
-                    "§fOne side of a line - And another",
-                    "§fA second - More detail on this side",
-                    "§fA third line - with a dash",
-                    "§fAnd a last line that - is off from others"
-            ));
-
-            final int line = Strings.getLongestLine(lore);
-            for (int i = 0; i < lore.size(); i++) {
-                lore.set(i, Strings.centerOn(lore.get(i), '-', line));
-            }
-
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            event.getPlayer().getInventory().addItem(item);
-        }
-    }
-
     @Override
     public void onEnable() {
         fastAsyncSupport = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit") != null;
-        Bukkit.getPluginManager().registerEvents(this, this);
     }
 
     /**

@@ -556,7 +556,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @param typeId The ID to test the value for.
      * @return If this compound contains the key and the value
      *         has the matching {@link NBTBase#getTypeId() type ID}.
-     * @see NBTType NBT Type IDs
+     * @see NBTType
      */
     public boolean hasKey(final String key, final int typeId) {
 

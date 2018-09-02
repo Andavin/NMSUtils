@@ -86,10 +86,10 @@ public final class NBTTagByteArray extends NBTBase implements DataHolder<byte[]>
 
     private static byte[] convert(final List<Byte> data) {
 
+        int i = 0;
         final byte[] array = new byte[data.size()];
-        for (int i = 0; i < array.length; i++) {
-            final Byte num = data.get(i);
-            array[i] = num == null ? 0 : num;
+        for (final Byte num : data) { // Optimized iterations vs get(i) for some List impl
+            array[i++] = num != null ? num : 0;
         }
 
         return array;

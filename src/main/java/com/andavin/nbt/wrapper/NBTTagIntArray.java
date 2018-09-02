@@ -86,10 +86,10 @@ public final class NBTTagIntArray extends NBTBase implements DataHolder<int[]> {
 
     private static int[] convert(final List<Integer> data) {
 
+        int i = 0;
         final int[] array = new int[data.size()];
-        for (int i = 0; i < array.length; i++) {
-            final Integer num = data.get(i);
-            array[i] = num == null ? 0 : num;
+        for (final Integer num : data) { // Optimized iterations vs get(i) for some List impl
+            array[i++] = num != null ? num : 0;
         }
 
         return array;
