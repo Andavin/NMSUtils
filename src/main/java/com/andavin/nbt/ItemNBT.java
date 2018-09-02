@@ -126,12 +126,14 @@ public final class ItemNBT {
 
     /**
      * Get the {@link NBTTagCompound tag} that is the main
-     * NBT tag on the given {@link ItemStack}. This method
-     * states with certainty that the passed in ItemStack
-     * is an instance of {@code CraftItemStack}.
+     * NBT tag on the given {@link ItemStack} or create a new
+     * NBT tag and add it to the item. The only time that this
+     * will return {@code null} is if the passed ItemStack is
+     * either {@code null} or {@link Material#AIR}.
      * <p>
-     * If the ItemStack passed in is not a {@code CraftItemStack},
-     * then this method will fail!
+     * This method requires that the passed in ItemStack be an
+     * instance of {@code CraftItemStack}. If this is not so,
+     * then this method will fail with an exception.
      * <p>
      * {@link #ensureCraftItem(ItemStack)} may be used to ensure
      * the instance of the ItemStack.
@@ -140,9 +142,9 @@ public final class ItemNBT {
      * @return The NBT tag on the item or create one and set it on the
      *         item if there was none.
      * @throws IllegalArgumentException If the item is not an {@code CraftItemStack}.
-     * @see #ensureCraftItem(ItemStack) Ensure CraftItemStack instance
+     * @see #ensureCraftItem(ItemStack) Ensure CraftItemStack instance helper
      */
-    public static NBTTagCompound getAndCreateTag(final ItemStack item) {
+    public static NBTTagCompound getOrCreateTag(final ItemStack item) throws IllegalArgumentException {
 
         checkArgument(CRAFT_ITEM.isInstance(item), "must be CraftItemStack");
         if (isEmpty(item)) {
@@ -205,8 +207,8 @@ public final class ItemNBT {
             map.put(key, tag.getWrapped()); // Set our value under the key
         } else {
             // No need to pull current info because there isn't any.
-            Reflection.setValue(TAG, nms, new NBTTagCompound( // If they item didn't exist above,
-                    Collections.singletonMap(key, tag)));     // then set the new tag onto the item
+            Reflection.setValue(TAG, nms, new NBTTagCompound(          // If they item didn't exist above,
+                    Collections.singletonMap(key, tag)).getWrapped()); // then set the new tag onto the item
         }
 
         // If the item was instanceof CraftItemStack then we just edited
