@@ -87,7 +87,6 @@ public final class ChunkVisual {
         this.chunk = chunk;
         this.x = LongHash.msw(chunk);
         this.z = LongHash.lsw(chunk);
-        //noinspection ConstantConditions
         this.chunkPair = Reflection.getInstance(CHUNK_PAIR, this.x, this.z);
     }
 

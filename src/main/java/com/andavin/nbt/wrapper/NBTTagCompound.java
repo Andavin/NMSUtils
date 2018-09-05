@@ -81,7 +81,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         map.forEach(this::set);
     }
 
-    @SuppressWarnings("ConstantConditions")
     NBTTagCompound(final Object wrapped) {
         super(wrapped);
         this.map = Reflection.getValue(DATA, wrapped);

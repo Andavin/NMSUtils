@@ -59,7 +59,7 @@ public abstract class NBTBase implements ConfigurationSerializable {
      */
     NBTBase(final Object wrapped) {
         this.wrapped = wrapped;
-        final NBTTag type = this.getClass().getAnnotation(NBTTag.class);
+        final NBTTag type = this.getClass().getDeclaredAnnotation(NBTTag.class);
         checkState(type != null, "{} missing tag annotation", this.getClass());
         this.typeId = type.typeId();
     }

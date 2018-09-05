@@ -79,7 +79,7 @@ public final class ItemNBT {
      */
     public static boolean hasTag(final ItemStack item, final String... keys) {
 
-        if (isEmpty(item) || keys.length == 0) {
+        if (isEmpty(item) || keys.length == 0 || !CRAFT_ITEM.isInstance(item)) {
             return false;
         }
 
@@ -174,7 +174,7 @@ public final class ItemNBT {
      */
     public static <T extends NBTBase> T getTag(final ItemStack item, final String key) {
 
-        if (isEmpty(item) || key == null || key.isEmpty()) {
+        if (isEmpty(item) || key == null || key.isEmpty() || !CRAFT_ITEM.isInstance(item)) {
             return null;
         }
 
@@ -250,7 +250,7 @@ public final class ItemNBT {
      */
     public static void removeTag(final ItemStack item, final String key) {
 
-        if (!isEmpty(item) && key != null && !key.isEmpty()) {
+        if (!isEmpty(item) && key != null && !key.isEmpty() && CRAFT_ITEM.isInstance(item)) {
 
             final Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
             if (nbt != null) {

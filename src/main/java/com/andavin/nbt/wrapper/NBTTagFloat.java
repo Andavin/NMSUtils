@@ -50,7 +50,6 @@ public final class NBTTagFloat extends NBTNumber {
 
     NBTTagFloat(final Object wrapped) {
         super(wrapped);
-        //noinspection ConstantConditions
         this.data = Reflection.getValue(DATA, wrapped);
     }
 

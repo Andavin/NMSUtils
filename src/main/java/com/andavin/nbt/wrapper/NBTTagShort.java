@@ -50,7 +50,6 @@ public final class NBTTagShort extends NBTNumber {
 
     NBTTagShort(final Object wrapped) {
         super(wrapped);
-        //noinspection ConstantConditions
         this.data = Reflection.getValue(DATA, wrapped);
     }
 
