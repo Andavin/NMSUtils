@@ -27,6 +27,7 @@ package com.andavin.nbt;
 import com.andavin.nbt.wrapper.NBTBase;
 import com.andavin.nbt.wrapper.NBTHelper;
 import com.andavin.nbt.wrapper.NBTTagCompound;
+import com.andavin.nbt.wrapper.NBTType;
 import com.andavin.reflect.Reflection;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -38,6 +39,7 @@ import java.util.Collections;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Andavin
@@ -121,7 +123,7 @@ public final class ItemNBT {
         }
 
         final Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
-        return nbt == null ? null : NBTHelper.wrap(nbt);
+        return nbt != null ? NBTHelper.wrap(NBTType.COMPOUND, nbt) : null;
     }
 
     /**
@@ -159,7 +161,7 @@ public final class ItemNBT {
             return tag;
         }
 
-        return NBTHelper.wrap(nbt);
+        return NBTHelper.wrap(NBTType.COMPOUND, nbt);
     }
 
     /**
@@ -179,7 +181,12 @@ public final class ItemNBT {
         }
 
         final Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
-        return nbt == null ? null : NBTHelper.wrap(Reflection.<Map<String, Object>>getValue(MAP, nbt).get(key));
+        if (nbt == null) {
+            return null;
+        }
+
+        final Object tag = Reflection.<Map<String, Object>>getValue(MAP, nbt).get(key);
+        return tag != null ? NBTHelper.wrap(tag) : null;
     }
 
     /**
@@ -192,6 +199,7 @@ public final class ItemNBT {
      */
     public static ItemStack setTag(final ItemStack item, final String key, final NBTBase tag) {
 
+        checkNotNull(tag, "tag cannot be null");
         if (isEmpty(item) || key == null || key.isEmpty()) {
             return item;
         }
@@ -247,16 +255,20 @@ public final class ItemNBT {
      *
      * @param item The item to remove the tag from.
      * @param key The key the tag is mapped under.
+     * @return If a tag existed under the given key and was
+     *         successfully removed.
      */
-    public static void removeTag(final ItemStack item, final String key) {
+    public static boolean removeTag(final ItemStack item, final String key) {
 
         if (!isEmpty(item) && key != null && !key.isEmpty() && CRAFT_ITEM.isInstance(item)) {
 
             final Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
             if (nbt != null) {
-                Reflection.<Map<String, Object>>getValue(MAP, nbt).remove(key);
+                return Reflection.<Map<String, Object>>getValue(MAP, nbt).remove(key) != null;
             }
         }
+
+        return false;
     }
 
     /**
