@@ -62,10 +62,10 @@ public final class ChunkVisual {
     private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR;
 
     static {
-        final Class<?> blockData = Reflection.getMcClass("IBlockData");
-        final Class<?> singlePacket = Reflection.getMcClass("PacketPlayOutBlockChange");
-        final Class<?> multiPacket = Reflection.getMcClass("PacketPlayOutMultiBlockChange");
-        final Class<?> multiBlock = Reflection.getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
+        Class<?> blockData = Reflection.getMcClass("IBlockData");
+        Class<?> singlePacket = Reflection.getMcClass("PacketPlayOutBlockChange");
+        Class<?> multiPacket = Reflection.getMcClass("PacketPlayOutMultiBlockChange");
+        Class<?> multiBlock = Reflection.getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
         BLOCK_POS = Reflection.getConstructor(Reflection.getMcClass("BlockPosition"), int.class, int.class, int.class);
         CHUNK_PAIR = Reflection.getConstructor(Reflection.getMcClass("ChunkCoordIntPair"), int.class, int.class);
         M_PACKET = Reflection.getConstructor(multiPacket);
@@ -83,7 +83,7 @@ public final class ChunkVisual {
     private final Map<Short, VisualBlock> blocks = new ConcurrentHashMap<>();
     private final LinkedList<List<VisualBlock>> snapshots = new LinkedList<>();
 
-    ChunkVisual(final long chunk) {
+    ChunkVisual(long chunk) {
         this.chunk = chunk;
         this.x = LongHash.msw(chunk);
         this.z = LongHash.lsw(chunk);
@@ -154,7 +154,7 @@ public final class ChunkVisual {
      *
      * @param block The {@link VisualBlock block} to add.
      */
-    public void addBlock(final VisualBlock block) {
+    public void addBlock(VisualBlock block) {
         this.blocks.put(block.getPackedPos(), block);
     }
 
@@ -170,7 +170,7 @@ public final class ChunkVisual {
      * @return The VisualBlock previously at the given coordinates or
      *         {@code null} if there is no block at the coordinates.
      */
-    public VisualBlock removeBlock(final int x, final int y, final int z) {
+    public VisualBlock removeBlock(int x, int y, int z) {
 
         if (x >> 4 != this.x || z >> 4 != this.z) {
             return null;
@@ -192,7 +192,7 @@ public final class ChunkVisual {
      *         if there is no block at the coordinates.
      */
     @Nullable
-    public VisualBlock getBlock(final int x, final int y, final int z) {
+    public VisualBlock getBlock(int x, int y, int z) {
 
         if (x >> 4 != this.x || z >> 4 != this.z) {
             return null;
@@ -247,7 +247,7 @@ public final class ChunkVisual {
      * @see #setType(Material, int, Material)
      * @see #setType(Material, int, Material, int)
      */
-    public void revert(final AreaVisual visual) {
+    public void revert(AreaVisual visual) {
         this.revert(1, visual);
     }
 
@@ -303,7 +303,7 @@ public final class ChunkVisual {
      * @see #setType(Material, int, Material)
      * @see #setType(Material, int, Material, int)
      */
-    public void revert(final int amount, final AreaVisual visual) {
+    public void revert(int amount, AreaVisual visual) {
 
         if (this.snapshots.isEmpty() || amount < 1) {
             return;
@@ -327,20 +327,20 @@ public final class ChunkVisual {
             // Load up all of the blocks in other chunks and this chunk
             // These will all have unique IDs that can be referenced
             ChunkVisual currentChunk = null;
-            final Map<Long, VisualBlock> allBlocks = new HashMap<>();
+            Map<Long, VisualBlock> allBlocks = new HashMap<>();
             visual.getChunks().forEach(chunk -> chunk.blocks.values()
                     .forEach(block -> allBlocks.put(block.getId(), block)));
 
-            for (final VisualBlock block : snapshot) { // Iterate the snapshot
+            for (VisualBlock block : snapshot) { // Iterate the snapshot
 
                 // Now we just need to find where each snapshot block is located
-                final VisualBlock toRevert = allBlocks.get(block.getId()); // The block that needs to be reverted
+                VisualBlock toRevert = allBlocks.get(block.getId()); // The block that needs to be reverted
                 if (toRevert == null) {
                     // Couldn't find the block anywhere so it was removed (no reverting)
                     continue;
                 }
 
-                final VisualBlock reverted = new VisualBlock(toRevert.getId(),
+                VisualBlock reverted = new VisualBlock(toRevert.getId(),
                         toRevert.getX(), toRevert.getY(), toRevert.getZ(), block.getType(), block.getData());
                 if (toRevert.getChunk() == this.chunk) {
                     // Found the block in this chunk so revert it and move on
@@ -374,7 +374,7 @@ public final class ChunkVisual {
      *                 to change to the new type.
      * @param toType The type to change the matching blocks to.
      */
-    public void setType(final Material fromType, final Material toType) {
+    public void setType(Material fromType, Material toType) {
         this.setType(fromType, -1, toType, 0);
     }
 
@@ -389,7 +389,7 @@ public final class ChunkVisual {
      *                          blocks should be ignored and not change type.
      * @see #revert(AreaVisual) revert
      */
-    public void setType(final Material fromType, final Material toType, final boolean ignoreDirectional) {
+    public void setType(Material fromType, Material toType, boolean ignoreDirectional) {
         this.setType(fromType, -1, toType, 0, ignoreDirectional);
     }
 
@@ -402,7 +402,7 @@ public final class ChunkVisual {
      * @param toType The type to change the matching blocks to.
      * @param toData The data to change the matching blocks to.
      */
-    public void setType(final Material fromType, final Material toType, final int toData) {
+    public void setType(Material fromType, Material toType, int toData) {
         this.setType(fromType, -1, toType, toData);
     }
 
@@ -418,7 +418,7 @@ public final class ChunkVisual {
      *                          blocks should be ignored and not change type.
      * @see #revert(AreaVisual) revert
      */
-    public void setType(final Material fromType, final Material toType, final int toData, final boolean ignoreDirectional) {
+    public void setType(Material fromType, Material toType, int toData, boolean ignoreDirectional) {
         this.setType(fromType, -1, toType, toData, ignoreDirectional);
     }
 
@@ -437,7 +437,7 @@ public final class ChunkVisual {
      *                 blocks to change to the new type.
      * @param toType The type to change the matching blocks to.
      */
-    public void setType(final Material fromType, final int fromData, final Material toType) {
+    public void setType(Material fromType, int fromData, Material toType) {
         this.setType(fromType, fromData, toType, 0);
     }
 
@@ -459,7 +459,7 @@ public final class ChunkVisual {
      *                          blocks should be ignored and not change type.
      * @see #revert(AreaVisual) revert
      */
-    public void setType(final Material fromType, final int fromData, final Material toType, final boolean ignoreDirectional) {
+    public void setType(Material fromType, int fromData, Material toType, boolean ignoreDirectional) {
         this.setType(fromType, fromData, toType, 0, ignoreDirectional);
     }
 
@@ -480,7 +480,7 @@ public final class ChunkVisual {
      * @param toType The type to change the matching blocks to.
      * @param toData The data to change the matching blocks to.
      */
-    public void setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+    public void setType(Material fromType, int fromData, Material toType, int toData) {
         this.setType(fromType, fromData, toType, toData, false);
     }
 
@@ -504,10 +504,10 @@ public final class ChunkVisual {
      *                          blocks should be ignored and not change type.
      * @see #revert(AreaVisual) revert
      */
-    public synchronized void setType(final Material fromType, final int fromData,
-            final Material toType, final int toData, final boolean ignoreDirectional) {
+    public synchronized void setType(Material fromType, int fromData,
+                                     Material toType, int toData, boolean ignoreDirectional) {
 
-        final List<VisualBlock> changed = new LinkedList<>();
+        List<VisualBlock> changed = new LinkedList<>();
         this.snapshots.addFirst(changed);
         if (this.snapshots.size() > MAX_SNAPSHOTS) {
             this.snapshots.removeLast();
@@ -515,7 +515,7 @@ public final class ChunkVisual {
 
         this.blocks.entrySet().forEach(entry -> {
 
-            final VisualBlock block = entry.getValue();
+            VisualBlock block = entry.getValue();
             if (ignoreDirectional && block.isDirectional()) {
                 return;
             }
@@ -544,7 +544,7 @@ public final class ChunkVisual {
      * @param direction The {@link BlockFace direction} to shift the blocks in.
      * @return The leftover blocks that are no longer in this chunk.
      */
-    public List<VisualBlock> shift(final BlockFace direction) {
+    public List<VisualBlock> shift(BlockFace direction) {
         return this.transform(block -> block.shift(direction));
     }
 
@@ -565,7 +565,7 @@ public final class ChunkVisual {
      * @param direction The {@link BlockFace direction} to shift the blocks in.
      * @return The leftover blocks that are no longer in this chunk.
      */
-    public List<VisualBlock> shift(final int distance, final BlockFace direction) {
+    public List<VisualBlock> shift(int distance, BlockFace direction) {
         return this.transform(block -> block.shift(distance, direction));
     }
 
@@ -588,7 +588,7 @@ public final class ChunkVisual {
      * @param z The amount of blocks to shift along the z-axis.
      * @return The leftover blocks that are no longer in this chunk.
      */
-    public List<VisualBlock> shift(final int x, final int y, final int z) {
+    public List<VisualBlock> shift(int x, int y, int z) {
         return this.transform(block -> block.shift(x, y, z));
     }
 
@@ -605,7 +605,7 @@ public final class ChunkVisual {
      * @param degrees The amount of degrees to rotate around the origin.
      * @return The leftover blocks that are no longer in this chunk.
      */
-    public List<VisualBlock> rotateX(final Vector origin, final float degrees) {
+    public List<VisualBlock> rotateX(Vector origin, float degrees) {
         return this.transform(block -> block.rotateX(origin, degrees));
     }
 
@@ -622,7 +622,7 @@ public final class ChunkVisual {
      * @param degrees The amount of degrees to rotate around the origin.
      * @return The leftover blocks that are no longer in this chunk.
      */
-    public List<VisualBlock> rotateY(final Vector origin, final float degrees) {
+    public List<VisualBlock> rotateY(Vector origin, float degrees) {
         return this.transform(block -> block.rotateY(origin, degrees));
     }
 
@@ -639,7 +639,7 @@ public final class ChunkVisual {
      * @param degrees The amount of degrees to rotate around the origin.
      * @return The leftover blocks that are no longer in this chunk.
      */
-    public List<VisualBlock> rotateZ(final Vector origin, final float degrees) {
+    public List<VisualBlock> rotateZ(Vector origin, float degrees) {
         return this.transform(block -> block.rotateZ(origin, degrees));
     }
 
@@ -655,14 +655,14 @@ public final class ChunkVisual {
      * @param transformer The function to use on each block to transform it.
      * @return The leftover blocks that are no longer in this chunk.
      */
-    public List<VisualBlock> transform(final Function<VisualBlock, VisualBlock> transformer) {
+    public List<VisualBlock> transform(Function<VisualBlock, VisualBlock> transformer) {
 
-        final List<VisualBlock> blocks = new LinkedList<>(this.blocks.values());
+        List<VisualBlock> blocks = new LinkedList<>(this.blocks.values());
         this.blocks.clear();
-        final ListIterator<VisualBlock> itr = blocks.listIterator();
+        ListIterator<VisualBlock> itr = blocks.listIterator();
         while (itr.hasNext()) {
 
-            final VisualBlock transformed = transformer.apply(itr.next());
+            VisualBlock transformed = transformer.apply(itr.next());
             if (transformed.getChunk() == this.chunk) { // Make sure it is still in this chunk
                 this.blocks.put(transformed.getPackedPos(), transformed);
                 itr.remove();
@@ -680,7 +680,7 @@ public final class ChunkVisual {
      *
      * @param player The player to send the {@link VisualBlock blocks} to.
      */
-    public void visualize(final Player player) {
+    public void visualize(Player player) {
 
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
             this.sendBlocks(player, new ArrayList<>(this.blocks.values()));
@@ -697,7 +697,7 @@ public final class ChunkVisual {
      * @param snapshot The {@link #snapshot() snapshot} of a previous
      *                 version of this chunk.
      */
-    public void visualize(final Player player, final Set<VisualBlock> snapshot) {
+    public void visualize(Player player, Set<VisualBlock> snapshot) {
 
         /*
          * Three different kinds of blocks that need updated:
@@ -706,17 +706,17 @@ public final class ChunkVisual {
          * 3. Blocks added
          */
 
-        final World world = player.getWorld();
+        World world = player.getWorld();
         if (!this.isLoaded(world)) {
             // No need to update if this chunk isn't loaded
             return;
         }
 
-        final ChunkSnapshot chunk = world.getChunkAt(this.x, this.z).getChunkSnapshot();
-        final List<VisualBlock> needsUpdate = new LinkedList<>();
+        ChunkSnapshot chunk = world.getChunkAt(this.x, this.z).getChunkSnapshot();
+        List<VisualBlock> needsUpdate = new LinkedList<>();
         snapshot.forEach(block -> {
 
-            final VisualBlock current = this.blocks.get(block.getPackedPos());
+            VisualBlock current = this.blocks.get(block.getPackedPos());
             if (current == null) {
                 // The block was removed
                 needsUpdate.add(block.getRealType(chunk));
@@ -746,9 +746,9 @@ public final class ChunkVisual {
      * @param y The Y coordinate of the block to refresh.
      * @param z The Z coordinate of the block to refresh.
      */
-    public void refresh(final Player player, final int x, final int y, final int z) {
+    public void refresh(Player player, int x, int y, int z) {
 
-        final VisualBlock block = this.getBlock(x, y, z);
+        VisualBlock block = this.getBlock(x, y, z);
         if (block != null) {
             this.sendBlocks(player, Collections.singletonList(block));
         }
@@ -760,7 +760,7 @@ public final class ChunkVisual {
      *
      * @param player The player to clear the blocks for.
      */
-    public void reset(final Player player) {
+    public void reset(Player player) {
 
         if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
 
@@ -770,8 +770,8 @@ public final class ChunkVisual {
                 return;
             }
 
-            final ChunkSnapshot chunk = player.getWorld().getChunkAt(this.x, this.z).getChunkSnapshot();
-            final List<VisualBlock> blocks = this.blocks.values().stream()
+            ChunkSnapshot chunk = player.getWorld().getChunkAt(this.x, this.z).getChunkSnapshot();
+            List<VisualBlock> blocks = this.blocks.values().stream()
                     .map(block -> block.getRealType(chunk)).collect(Collectors.toList());
             this.sendBlocks(player, blocks);
         }
@@ -789,7 +789,7 @@ public final class ChunkVisual {
     }
 
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
         return this == obj || obj != null && obj.getClass() == ChunkVisual.class
                               && ((ChunkVisual) obj).chunk == chunk;
     }
@@ -814,14 +814,14 @@ public final class ChunkVisual {
      * @param player The player to send the packet to.
      * @param blocks The block changes to send to the player.
      */
-    public void sendBlocks(final Player player, final List<VisualBlock> blocks) {
+    public void sendBlocks(Player player, List<VisualBlock> blocks) {
 
         // TODO add a fail safe to check if the chunk is in view distance of the player and/or is loaded
         // If there is only a single block to send then send
         // a single PacketPlayOutBlockChange packet
         if (blocks.size() == 1) {
-            final VisualBlock block = blocks.get(0);
-            final Object packet = Reflection.getInstance(S_PACKET);
+            VisualBlock block = blocks.get(0);
+            Object packet = Reflection.getInstance(S_PACKET);
             Reflection.setValue(POSITION, packet, Reflection.getInstance(BLOCK_POS,
                     block.getX(), block.getY(), block.getZ())); // Set the position
             Reflection.setValue(S_BLOCK_DATA, packet, block.getBlockData()); // And the data
@@ -830,14 +830,14 @@ public final class ChunkVisual {
         }
 
         // There are multiple here so send a PacketPlayOutMultiBlockChange packet
-        final Object packet = Reflection.getInstance(M_PACKET);
-        final Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(), blocks.size());
+        Object packet = Reflection.getInstance(M_PACKET);
+        Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(), blocks.size());
         Reflection.setValue(CHUNK, packet, this.chunkPair); // Set the chunk that it is in
         Reflection.setValue(M_BLOCK_DATA, packet, blockData); // Place the array into the packet
 
         // Then update the array with all of the data and positions
         int i = 0;
-        for (final VisualBlock block : blocks) {
+        for (VisualBlock block : blocks) {
             blockData[i++] = Reflection.getInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
         }
 
@@ -845,7 +845,7 @@ public final class ChunkVisual {
         PacketSender.sendPacket(player, packet);
     }
 
-    private boolean isLoaded(final World world) {
+    private boolean isLoaded(World world) {
         return world.isChunkLoaded(this.x, this.z);
     }
 }

@@ -64,7 +64,7 @@ public final class Scheduler {
      * @param run The {@link Runnable} to execute.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask sync(final Runnable run) {
+    public static BukkitTask sync(Runnable run) {
         return Bukkit.getScheduler().runTask(PluginRegistry.getPlugin(SEARCH), run);
     }
 
@@ -75,7 +75,7 @@ public final class Scheduler {
      * @param run The {@link Runnable} to execute.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask async(final Runnable run) {
+    public static BukkitTask async(Runnable run) {
         return Bukkit.getScheduler().runTaskAsynchronously(PluginRegistry.getPlugin(SEARCH), run);
     }
 
@@ -87,7 +87,7 @@ public final class Scheduler {
      * @param delay The ticks (1 tick = 50 milliseconds, 20 ticks = 1 second) after which to run the task.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask later(final Runnable run, final long delay) {
+    public static BukkitTask later(Runnable run, long delay) {
         return Bukkit.getScheduler().runTaskLater(PluginRegistry.getPlugin(SEARCH), run, delay);
     }
 
@@ -99,7 +99,7 @@ public final class Scheduler {
      * @param delay The ticks (1 tick = 50 milliseconds, 20 ticks = 1 second) after which to run the task.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask laterAsync(final Runnable run, final long delay) {
+    public static BukkitTask laterAsync(Runnable run, long delay) {
         return Bukkit.getScheduler().runTaskLaterAsynchronously(PluginRegistry.getPlugin(SEARCH), run, delay);
     }
 
@@ -112,7 +112,7 @@ public final class Scheduler {
      * @param period The period in ticks to wait until running again after each run.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask repeat(final Runnable run, final long delay, final long period) {
+    public static BukkitTask repeat(Runnable run, long delay, long period) {
         return Bukkit.getScheduler().runTaskTimer(PluginRegistry.getPlugin(SEARCH), run, delay, period);
     }
 
@@ -125,7 +125,7 @@ public final class Scheduler {
      * @param period The period in ticks to wait until running again after each run.
      * @return The {@link BukkitTask} that is returned after registering the task.
      */
-    public static BukkitTask repeatAsync(final Runnable run, final long delay, final long period) {
+    public static BukkitTask repeatAsync(Runnable run, long delay, long period) {
         return Bukkit.getScheduler().runTaskTimerAsynchronously(PluginRegistry.getPlugin(SEARCH), run, delay, period);
     }
 
@@ -152,9 +152,9 @@ public final class Scheduler {
      * @param until The {@link Supplier} to test when to cancel. When this is {@code true} the task will be cancelled.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatUntil(final Runnable run, final long delay,
-            final long period, final Supplier<Boolean> until) {
-        final BukkitTask task = Scheduler.repeat(run, delay, period);
+    public static BukkitTask repeatUntil(Runnable run, long delay,
+                                         long period, Supplier<Boolean> until) {
+        BukkitTask task = Scheduler.repeat(run, delay, period);
         TASKS.add(new Task(true, task, until));
         return task;
     }
@@ -183,9 +183,9 @@ public final class Scheduler {
      *         When this returns {@code true} the task will be cancelled.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatAsyncUntil(final Runnable run, final long delay,
-            final long period, final Supplier<Boolean> until) {
-        final BukkitTask task = Scheduler.repeatAsync(run, delay, period);
+    public static BukkitTask repeatAsyncUntil(Runnable run, long delay,
+                                              long period, Supplier<Boolean> until) {
+        BukkitTask task = Scheduler.repeatAsync(run, delay, period);
         TASKS.add(new Task(true, task, until));
         return task;
     }
@@ -215,9 +215,9 @@ public final class Scheduler {
      *         in order for the task to continue to run.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatWhile(final Runnable run, final long delay,
-            final long period, final Supplier<Boolean> condition) {
-        final BukkitTask task = Scheduler.repeat(run, delay, period);
+    public static BukkitTask repeatWhile(Runnable run, long delay,
+                                         long period, Supplier<Boolean> condition) {
+        BukkitTask task = Scheduler.repeat(run, delay, period);
         TASKS.add(new Task(false, task, condition));
         return task;
     }
@@ -247,9 +247,9 @@ public final class Scheduler {
      *         in order for the task to continue to run.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatAsyncWhile(final Runnable run, final long delay,
-            final long period, final Supplier<Boolean> condition) {
-        final BukkitTask task = Scheduler.repeatAsync(run, delay, period);
+    public static BukkitTask repeatAsyncWhile(Runnable run, long delay,
+                                              long period, Supplier<Boolean> condition) {
+        BukkitTask task = Scheduler.repeatAsync(run, delay, period);
         TASKS.add(new Task(false, task, condition));
         return task;
     }
@@ -280,9 +280,9 @@ public final class Scheduler {
      * @param unit The {@link TimeUnit} to multiply the duration by.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatFor(final Runnable run, final long delay,
-            final long period, final long duration, final TimeUnit unit) {
-        final BukkitTask task = Scheduler.repeat(run, delay, period);
+    public static BukkitTask repeatFor(Runnable run, long delay,
+                                       long period, long duration, TimeUnit unit) {
+        BukkitTask task = Scheduler.repeat(run, delay, period);
         TASKS.add(new Task(unit.toMillis(duration), task));
         return task;
     }
@@ -313,9 +313,9 @@ public final class Scheduler {
      * @param unit The {@link TimeUnit} to multiply the duration by.
      * @return The {@link BukkitTask task} that was scheduled.
      */
-    public static BukkitTask repeatAsyncFor(final Runnable run, final long delay,
-            final long period, final long duration, final TimeUnit unit) {
-        final BukkitTask task = Scheduler.repeatAsync(run, delay, period);
+    public static BukkitTask repeatAsyncFor(Runnable run, long delay,
+                                            long period, long duration, TimeUnit unit) {
+        BukkitTask task = Scheduler.repeatAsync(run, delay, period);
         TASKS.add(new Task(unit.toMillis(duration), task));
         return task;
     }
@@ -328,7 +328,7 @@ public final class Scheduler {
      *
      * @param runnable The runnable to execute.
      */
-    public static void execute(final Runnable runnable) {
+    public static void execute(Runnable runnable) {
         EXECUTOR_SERVICE.execute(runnable);
     }
 
@@ -342,7 +342,7 @@ public final class Scheduler {
      * @param unit The {@link TimeUnit unit} of delay to delay the execution for.
      * @return The {@link ScheduledFuture} to determine when the runnable is executed.
      */
-    public static ScheduledFuture<?> later(final Runnable runnable, final long delay, final TimeUnit unit) {
+    public static ScheduledFuture<?> later(Runnable runnable, long delay, TimeUnit unit) {
         return EXECUTOR_SERVICE.schedule(runnable, delay, unit);
     }
 
@@ -357,7 +357,7 @@ public final class Scheduler {
      * @return The {@link ScheduledFuture} to determine when the runnable has finished
      *         execution or to use to {@link ScheduledFuture#cancel(boolean) cancel} the task.
      */
-    public static ScheduledFuture<?> repeat(final Runnable runnable, final long period, final TimeUnit unit) {
+    public static ScheduledFuture<?> repeat(Runnable runnable, long period, TimeUnit unit) {
         return EXECUTOR_SERVICE.scheduleAtFixedRate(runnable, 0, period, unit);
     }
 
@@ -368,14 +368,14 @@ public final class Scheduler {
         private final BukkitTask task;
         private final Supplier<Boolean> condition;
 
-        private Task(final long limit, final BukkitTask task) {
+        private Task(long limit, BukkitTask task) {
             this.task = task;
             this.until = false;
             this.condition = null;
             this.limit = System.currentTimeMillis() + limit;
         }
 
-        private Task(final boolean until, final BukkitTask task, final Supplier<Boolean> condition) {
+        private Task(boolean until, BukkitTask task, Supplier<Boolean> condition) {
             this.limit = -1;
             this.until = until;
             this.task = task;
@@ -407,7 +407,7 @@ public final class Scheduler {
         }
 
         @Override
-        public boolean equals(final Object obj) {
+        public boolean equals(Object obj) {
             return obj != null && obj.getClass() == Task.class &&
                    this.task.getTaskId() == ((Task) obj).task.getTaskId();
         }

@@ -41,7 +41,7 @@ public final class NBTTagEnd extends NBTBase {
         super(NBTHelper.createTag(NBTTagEnd.class));
     }
 
-    NBTTagEnd(final Object wrapped) {
+    NBTTagEnd(Object wrapped) {
         super(wrapped);
     }
 
@@ -53,7 +53,7 @@ public final class NBTTagEnd extends NBTBase {
      *        {@link ConfigurationSerializable#serialize()}.
      * @return The newly created, deserialized object.
      */
-    public static NBTTagEnd deserialize(final Map<String, Object> map) {
+    public static NBTTagEnd deserialize(Map<String, Object> map) {
         return new NBTTagEnd();
     }
 }

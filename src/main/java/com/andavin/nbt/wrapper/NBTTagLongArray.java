@@ -47,15 +47,15 @@ public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]>
     private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagLongArray"), "b");
     private final long[] data;
 
-    public NBTTagLongArray(final long... data) {
+    public NBTTagLongArray(long... data) {
         this(NBTHelper.createTag(NBTTagLongArray.class, (Object) data));
     }
 
-    public NBTTagLongArray(final List<Long> data) {
+    public NBTTagLongArray(List<Long> data) {
         this(convert(data));
     }
 
-    NBTTagLongArray(final Object wrapped) {
+    NBTTagLongArray(Object wrapped) {
         super(wrapped);
         this.data = Reflection.getValue(DATA, wrapped);
     }
@@ -82,15 +82,15 @@ public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]>
      *        {@link ConfigurationSerializable#serialize()}.
      * @return The newly created, deserialized object.
      */
-    public static NBTTagLongArray deserialize(final Map<String, Object> map) {
+    public static NBTTagLongArray deserialize(Map<String, Object> map) {
         return new NBTTagLongArray((long[]) map.get("data"));
     }
 
-    private static long[] convert(final List<Long> data) {
+    private static long[] convert(List<Long> data) {
 
         int i = 0;
-        final long[] array = new long[data.size()];
-        for (final Long num : data) { // Optimized iterations vs get(i) for some List impl
+        long[] array = new long[data.size()];
+        for (Long num : data) { // Optimized iterations vs get(i) for some List impl
             array[i++] = num != null ? num : 0;
         }
 

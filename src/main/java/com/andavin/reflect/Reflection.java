@@ -102,7 +102,7 @@ public final class Reflection {
      * @param <T> The object type to get the instance for.
      * @return A new instance of the given class or null if it is not possible.
      */
-    public static <T> T getInstance(final Class<T> clazz, final Object... params) {
+    public static <T> T getInstance(Class<T> clazz, Object... params) {
 
         if (params.length == 0) {
 
@@ -114,7 +114,7 @@ public final class Reflection {
             }
         }
 
-        final Constructor<T> con = Reflection.getConstructor(clazz, Reflection.getClassesForObjects(params));
+        Constructor<T> con = Reflection.getConstructor(clazz, Reflection.getClassesForObjects(params));
         return con == null ? null : Reflection.getInstance(con, params);
     }
 
@@ -128,7 +128,7 @@ public final class Reflection {
      * @param <T> The type of object to retrieve.
      * @return The object type of the given constructor.
      */
-    public static <T> T getInstance(final Constructor<T> con, final Object... params) {
+    public static <T> T getInstance(Constructor<T> con, Object... params) {
 
         if (!con.isAccessible()) {
             con.setAccessible(true);
@@ -136,7 +136,7 @@ public final class Reflection {
 
         try {
             return con.newInstance(params);
-        } catch (final InstantiationException | IllegalAccessException | InvocationTargetException e) {
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
             Logger.severe(e);
             return null;
         }
@@ -153,7 +153,7 @@ public final class Reflection {
      * @param name The name of the field to set the value of.
      * @param value The value to give the field.
      */
-    public static void setValue(final Class<?> clazz, final Object instance, final String name, final Object value) {
+    public static void setValue(Class<?> clazz, Object instance, String name, Object value) {
         Reflection.setValue(Reflection.getField(clazz, name), instance, value);
     }
 
@@ -165,7 +165,7 @@ public final class Reflection {
      * @param instance The instance of the class to set the field for.
      * @param value The value to give the field.
      */
-    public static void setValue(final Field field, final Object instance, final Object value) {
+    public static void setValue(Field field, Object instance, Object value) {
 
         if (field != null) {
 
@@ -193,7 +193,7 @@ public final class Reflection {
      * @param <T> The declaration type of the field.
      * @return The value of the given field or null if none exists.
      */
-    public static <T> T getValue(final Class<?> clazz, final Object instance, final String name) {
+    public static <T> T getValue(Class<?> clazz, Object instance, String name) {
         return Reflection.getValue(Reflection.getField(clazz, name), instance);
     }
 
@@ -207,7 +207,7 @@ public final class Reflection {
      * @return The value of the given field or null if none exists.
      */
     // May need to validate the generic return type T by taking a Class<T> as parameter
-    public static <T> T getValue(final Field field, final Object instance) {
+    public static <T> T getValue(Field field, Object instance) {
 
         if (field == null) {
             return null;
@@ -221,7 +221,7 @@ public final class Reflection {
         try {
             value = (T) field.get(instance);
             // For now catch the ClassCastException
-        } catch (final ClassCastException | IllegalAccessException e) {
+        } catch (ClassCastException | IllegalAccessException e) {
             Logger.severe(e);
         }
 
@@ -238,21 +238,21 @@ public final class Reflection {
      * @param name The name of the field.
      * @return The field or null if no field exists.
      */
-    public static Field getField(final Class<?> clazz, final String name) {
+    public static Field getField(Class<?> clazz, String name) {
 
         try {
             return clazz.getDeclaredField(name);
-        } catch (final NoSuchFieldException e) {
+        } catch (NoSuchFieldException e) {
 
             try {
-                final Class<?> superClazz = clazz.getSuperclass();
+                Class<?> superClazz = clazz.getSuperclass();
                 return superClazz == null ? null : superClazz.getField(name);
-            } catch (final NoSuchFieldException e1) {
+            } catch (NoSuchFieldException e1) {
                 // Do nothing just continue
             }
         }
 
-        for (final Field field : clazz.getDeclaredFields()) {
+        for (Field field : clazz.getDeclaredFields()) {
 
             if (field.getName().equals(name)) {
                 return field;
@@ -276,7 +276,7 @@ public final class Reflection {
      * @param <T> The method return type (if different an exception will be thrown).
      * @return The value that the method returned.
      */
-    public static <T> T invokeMethod(final Class<?> clazz, final Object instance, final String name, final Object... params) {
+    public static <T> T invokeMethod(Class<?> clazz, Object instance, String name, Object... params) {
         return Reflection.invokeMethod(Reflection.getMethod(clazz, name, Reflection.getClassesForObjects(params)), instance, params);
     }
 
@@ -291,7 +291,7 @@ public final class Reflection {
      * @return The value that the method returned.
      */
     // May need to validate the generic return type T by taking a Class<T> as parameter
-    public static <T> T invokeMethod(final Method method, final Object instance, final Object... params) {
+    public static <T> T invokeMethod(Method method, Object instance, Object... params) {
 
         if (method == null) {
             return null;
@@ -307,7 +307,7 @@ public final class Reflection {
             value = (T) method.invoke(instance, params);
 
             // For now catch the ClassCastException
-        } catch (final ClassCastException | IllegalAccessException | InvocationTargetException e) {
+        } catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
             Logger.severe(e);
         }
 
@@ -325,21 +325,21 @@ public final class Reflection {
      * @param paramTypes The parameter types of the method.
      * @return The method or null if no method exists.
      */
-    public static Method getMethod(final Class<?> clazz, final String name, final Class<?>... paramTypes) {
+    public static Method getMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
 
         try {
             return clazz.getDeclaredMethod(name, paramTypes);
-        } catch (final NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
 
             try {
                 // No class only methods can be found so search public super class
                 return clazz.getSuperclass().getMethod(name, paramTypes);
-            } catch (final NoSuchMethodException e1) {
+            } catch (NoSuchMethodException e1) {
                 // Do nothing just continue
             }
         }
 
-        for (final Method method : clazz.getDeclaredMethods()) {
+        for (Method method : clazz.getDeclaredMethods()) {
 
             if (method.getName().equals(name) && method.getParameterCount() == paramTypes.length
                 && Reflection.matchParams(method.getParameterTypes(), paramTypes)) {
@@ -347,12 +347,12 @@ public final class Reflection {
             }
         }
 
-        final Class<?> superClazz = clazz.getSuperclass();
+        Class<?> superClazz = clazz.getSuperclass();
         if (superClazz == null) {
             return null;
         }
 
-        for (final Method method : superClazz.getMethods()) {
+        for (Method method : superClazz.getMethods()) {
 
             if (method.getName().equals(name) && method.getParameterCount() == paramTypes.length
                 && Reflection.matchParams(method.getParameterTypes(), paramTypes)) {
@@ -372,11 +372,11 @@ public final class Reflection {
      * @param <T> The type of the class to retrieve the constructor for.
      * @return The constructor that matches the requested or null if none is found.
      */
-    public static <T> Constructor<T> getConstructor(final Class<T> clazz, final Class<?>... paramTypes) {
+    public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... paramTypes) {
 
         try {
             return clazz.getDeclaredConstructor(paramTypes);
-        } catch (final NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             // Do nothing just continue
         }
 
@@ -388,7 +388,7 @@ public final class Reflection {
         // for compatibility ourselves, but widen the restrictions a bit.
 
         // All constructors in class regardless of accessibility
-        for (final Constructor<?> con : clazz.getDeclaredConstructors()) {
+        for (Constructor<?> con : clazz.getDeclaredConstructors()) {
 
             // Must have the same amount of parameters
             if (con.getParameterCount() == paramTypes.length && Reflection.matchParams(con.getParameterTypes(), paramTypes)) {
@@ -410,7 +410,7 @@ public final class Reflection {
      * @return The class of the given type or null if the class does not exist.
      * @throws ClassCastException If the class is not the type that is given by the generic type.
      */
-    public static <T> Class<T> getClassType(final String name) {
+    public static <T> Class<T> getClassType(String name) {
         return (Class<T>) Reflection.getClass(name);
     }
 
@@ -426,7 +426,7 @@ public final class Reflection {
      * @param name The name of the class to retrieve.
      * @return The Minecraft class for the given name or null if class was not found.
      */
-    public static Class<?> getMcClass(final String name) {
+    public static Class<?> getMcClass(String name) {
         return Reflection.getClass(NMS_PREFIX + name);
     }
 
@@ -444,7 +444,7 @@ public final class Reflection {
      * @param name The name of the class to retrieve.
      * @return The Craftbukkit class for the given name or null if class was not found.
      */
-    public static Class<?> getCraftClass(final String name) {
+    public static Class<?> getCraftClass(String name) {
         return Reflection.getClass(CRAFT_PREFIX + name);
     }
 
@@ -475,13 +475,13 @@ public final class Reflection {
      * @param exclude The classes to skip over when finding the calling class.
      * @return The name of the class index away from calling a method.
      */
-    public static String getCallerClass(final int index, final Class<?>... exclude) {
+    public static String getCallerClass(int index, Class<?>... exclude) {
 
-        final Set<String> excluded;
+        Set<String> excluded;
         if (exclude.length != 0) {
 
             excluded = new HashSet<>((int) (exclude.length / 0.75));
-            for (final Class<?> clazz : exclude) {
+            for (Class<?> clazz : exclude) {
                 excluded.add(clazz.getName());
             }
         } else {
@@ -505,15 +505,15 @@ public final class Reflection {
      * @param excluded The class names to exclude.
      * @return The name of the class index away from calling a method.
      */
-    public static String getCallerClass(int index, final Set<String> excluded) {
+    public static String getCallerClass(int index, Set<String> excluded) {
 
         // Exclude java.lang.Thread, this class and
         // first index of the class calling this method
         index += 3;
         int i = 0;
-        for (final StackTraceElement element : Thread.currentThread().getStackTrace()) {
+        for (StackTraceElement element : Thread.currentThread().getStackTrace()) {
 
-            final String name = element.getClassName();
+            String name = element.getClassName();
             if (!excluded.contains(name) && i++ == index) {
                 return name;
             }
@@ -531,20 +531,20 @@ public final class Reflection {
      * @param paramTypes The parameter types to test against.
      * @return Whether the parameters match or not.
      */
-    private static boolean matchParams(final Class<?>[] params, final Class<?>... paramTypes) {
+    private static boolean matchParams(Class<?>[] params, Class<?>... paramTypes) {
 
         for (int i = 0; i < params.length; ++i) {
 
-            final Class<?> param = params[i];
-            final Class<?> paramType = paramTypes[i];
+            Class<?> param = params[i];
+            Class<?> paramType = paramTypes[i];
 
             // If there is anything that does not match then return false
             if (!param.isAssignableFrom(paramType)) {
 
                 // Primitives can have mismatch problems sometimes
                 if (param.isPrimitive() || paramType.isPrimitive()) {
-                    final Class<?> type1 = param.isPrimitive() ? param : Reflection.getValue(param, null, "TYPE");
-                    final Class<?> type2 =
+                    Class<?> type1 = param.isPrimitive() ? param : Reflection.getValue(param, null, "TYPE");
+                    Class<?> type2 =
                             paramType.isPrimitive() ? paramType : Reflection.getValue(paramType, null, "TYPE");
                     return type1 == type2;
                 }
@@ -563,11 +563,11 @@ public final class Reflection {
      * @param params the parameter objects to get the classes for.
      * @return The class types of each parameter object.
      */
-    private static Class<?>[] getClassesForObjects(final Object... params) {
+    private static Class<?>[] getClassesForObjects(Object... params) {
 
-        final Class<?>[] paramClasses = new Class<?>[params.length];
+        Class<?>[] paramClasses = new Class<?>[params.length];
         for (int i = 0; i < params.length; ++i) {
-            final Object param = params[i]; // Null check
+            Object param = params[i]; // Null check
             paramClasses[i] = param == null ? Void.class : param.getClass();
         }
 
@@ -580,11 +580,11 @@ public final class Reflection {
      * @param name The canonical name of the class to retrieve.
      * @return The class with the name or null if the class is not found.
      */
-    private static Class<?> getClass(final String name) {
+    private static Class<?> getClass(String name) {
 
         try {
             return Class.forName(name);
-        } catch (final ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             return null;
         }
     }

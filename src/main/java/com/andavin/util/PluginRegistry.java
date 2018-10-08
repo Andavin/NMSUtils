@@ -65,9 +65,9 @@ public final class PluginRegistry {
      *
      * @param plugin The {@link Plugin plugin} instance to register.
      */
-    public static void register(final Plugin plugin) {
-        final Class<? extends Plugin> clazz = plugin.getClass();
-        final String pack = clazz.getPackage().getName();
+    public static void register(Plugin plugin) {
+        Class<? extends Plugin> clazz = plugin.getClass();
+        String pack = clazz.getPackage().getName();
         PLUGINS.put(pack, new WeakReference<>(plugin));
     }
 
@@ -81,10 +81,10 @@ public final class PluginRegistry {
     @Nonnull
     static Logger getLogger() {
 
-        final HashSet<String> excluded = new HashSet<>(3);
+        HashSet<String> excluded = new HashSet<>(3);
         excluded.add(com.andavin.util.Logger.class.getName());
         excluded.add(Reflection.class.getName());
-        final String className = Reflection.getCallerClass(0, excluded);
+        String className = Reflection.getCallerClass(0, excluded);
 
         Plugin plugin = getPlugin(className);
         for (int tries = 1; plugin == null && tries <= 10; tries++) {
@@ -104,10 +104,10 @@ public final class PluginRegistry {
      * @return The plugin that called the method.
      */
     @Nonnull
-    public static Plugin getPlugin(final int attempts) {
+    public static Plugin getPlugin(int attempts) {
 
-        final Set<String> excluded = Collections.singleton(Scheduler.class.getName());
-        final String className = Reflection.getCallerClass(1, excluded); // Exclude the class that called this
+        Set<String> excluded = Collections.singleton(Scheduler.class.getName());
+        String className = Reflection.getCallerClass(1, excluded); // Exclude the class that called this
         Plugin plugin = getPlugin(className);
         for (int tries = 2; plugin == null && tries <= attempts; tries++) {
             plugin = getPlugin(Reflection.getCallerClass(tries, excluded));
@@ -123,14 +123,14 @@ public final class PluginRegistry {
      * @return The {@link Plugin} that is registered with the class name.
      */
     @Nullable
-    public static Plugin getPlugin(final String className) {
+    public static Plugin getPlugin(String className) {
 
-        final char[] chars = className.toCharArray();
+        char[] chars = className.toCharArray();
         for (int i = chars.length - 1; i >= 0; i--) {
 
             if (chars[i] == '.') {
 
-                final WeakReference<Plugin> reference = PLUGINS.get(new String(chars, 0, i));
+                WeakReference<Plugin> reference = PLUGINS.get(new String(chars, 0, i));
                 if (reference != null && reference.get() != null) {
                     return reference.get();
                 }
@@ -143,7 +143,7 @@ public final class PluginRegistry {
 
     private static void refresh() {
 
-        for (final Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
+        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
             register(plugin);
         }
     }

@@ -50,7 +50,7 @@ public final class Highlighter {
 
     private final List<ChatComponent> comps;
 
-    Highlighter(final List<ChatComponent> comps) {
+    Highlighter(List<ChatComponent> comps) {
         this.comps = comps;
     }
 
@@ -61,7 +61,7 @@ public final class Highlighter {
      * @return A reference to this Highlighter.
      * @throws IllegalArgumentException If the ChatColor is not a color.
      */
-    public Highlighter color(final ChatColor color) {
+    public Highlighter color(ChatColor color) {
         checkArgument(color.isColor(), "Color must be a color, but got %s instead.", color.name());
         this.comps.forEach(comp -> comp.color(color));
         return this;
@@ -74,7 +74,7 @@ public final class Highlighter {
      * @param set Whether it should be set on or off.
      * @return A reference to this Highlighter.
      */
-    public Highlighter bold(final boolean set) {
+    public Highlighter bold(boolean set) {
         this.comps.forEach(comp -> comp.bold(set));
         return this;
     }
@@ -86,7 +86,7 @@ public final class Highlighter {
      * @param set Whether it should be set on or off.
      * @return A reference to this Highlighter.
      */
-    public Highlighter italic(final boolean set) {
+    public Highlighter italic(boolean set) {
         this.comps.forEach(comp -> comp.italic(set));
         return this;
     }
@@ -98,7 +98,7 @@ public final class Highlighter {
      * @param set Whether it should be set on or off.
      * @return A reference to this Highlighter.
      */
-    public Highlighter magic(final boolean set) {
+    public Highlighter magic(boolean set) {
         this.comps.forEach(comp -> comp.magic(set));
         return this;
     }
@@ -110,7 +110,7 @@ public final class Highlighter {
      * @param set Whether it should be set on or off.
      * @return A reference to this Highlighter.
      */
-    public Highlighter strikethrough(final boolean set) {
+    public Highlighter strikethrough(boolean set) {
         this.comps.forEach(comp -> comp.strikethrough(set));
         return this;
     }
@@ -122,7 +122,7 @@ public final class Highlighter {
      * @param set Whether it should be set on or off.
      * @return A reference to this Highlighter.
      */
-    public Highlighter underline(final boolean set) {
+    public Highlighter underline(boolean set) {
         this.comps.forEach(comp -> comp.underlined(set));
         return this;
     }
@@ -140,7 +140,7 @@ public final class Highlighter {
      * @param click The command to run, file to be opened, etc.
      * @return A reference to this object.
      */
-    public Highlighter event(final ClickEvent.Action action, final String click) {
+    public Highlighter event(ClickEvent.Action action, String click) {
         this.comps.forEach(comp -> comp.event(action, click));
         return this;
     }
@@ -154,7 +154,7 @@ public final class Highlighter {
      * @param hover What to show when hovered over.
      * @return A reference to this object.
      */
-    public Highlighter event(final HoverEvent.Action action, final ChatComponent hover) {
+    public Highlighter event(HoverEvent.Action action, ChatComponent hover) {
         this.comps.forEach(comp -> comp.event(action, hover));
         return this;
     }

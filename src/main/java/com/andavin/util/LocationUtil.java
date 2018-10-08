@@ -45,7 +45,7 @@ public final class LocationUtil {
 
     static {
 
-        final BlockFace[] values = BlockFace.values();
+        BlockFace[] values = BlockFace.values();
         LEFT_ROTATION = new BlockFace[values.length];
         LEFT_ROTATION[BlockFace.SELF.ordinal()] = BlockFace.SELF;
         LEFT_ROTATION[BlockFace.UP.ordinal()] = BlockFace.UP;
@@ -96,7 +96,7 @@ public final class LocationUtil {
      * @param loc The location to get the block location from.
      * @return The centered location.
      */
-    public static Location center(final Location loc) {
+    public static Location center(Location loc) {
         return new Location(loc.getWorld(),
                 loc.getBlockX() + 0.5,
                 loc.getBlockY() + 0.5,
@@ -112,7 +112,7 @@ public final class LocationUtil {
      * @param loc2 The second location in question.
      * @return If the location are on the same block.
      */
-    public static boolean isSameBlock(final Location loc1, final Location loc2) {
+    public static boolean isSameBlock(Location loc1, Location loc2) {
         return loc1.getWorld().equals(loc2.getWorld()) && loc1.getBlockX() == loc2.getBlockX()
                && loc1.getBlockY() == loc2.getBlockY() && loc1.getBlockZ() == loc2.getBlockZ();
     }
@@ -124,7 +124,7 @@ public final class LocationUtil {
      * @param loc The location in question.
      * @return If the location's chunk is loaded.
      */
-    public static boolean isChunkLoaded(final Location loc) {
+    public static boolean isChunkLoaded(Location loc) {
         return loc.getWorld().isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
     }
 
@@ -153,7 +153,7 @@ public final class LocationUtil {
      * @return The direction that the location is facing.
      * @see #getDirection(Location, boolean, boolean)
      */
-    public static BlockFace getDirection(final Location loc) {
+    public static BlockFace getDirection(Location loc) {
         return getDirection(loc, true, false);
     }
 
@@ -177,7 +177,7 @@ public final class LocationUtil {
      * @return The direction that the location is facing.
      * @see #getDirection(Location, boolean, boolean)
      */
-    public static BlockFace getCardinalDirection(final Location loc) {
+    public static BlockFace getCardinalDirection(Location loc) {
         return getDirection(loc, false, false);
     }
 
@@ -200,7 +200,7 @@ public final class LocationUtil {
      * @return The direction that the location is facing.
      * @see #getDirection(Location, boolean, boolean)
      */
-    public static BlockFace getVerticalDirection(final Location loc) {
+    public static BlockFace getVerticalDirection(Location loc) {
         return getDirection(loc, false, true);
     }
 
@@ -217,11 +217,11 @@ public final class LocationUtil {
      *                 directions should be included in the calculation.
      * @return The direction that the location is facing.
      */
-    public static BlockFace getDirection(final Location loc, final boolean diagonal, final boolean vertical) {
+    public static BlockFace getDirection(Location loc, boolean diagonal, boolean vertical) {
 
         if (vertical) {
 
-            final float pitch = loc.getPitch();
+            float pitch = loc.getPitch();
             if (pitch > 70) {
                 return BlockFace.UP;
             }
@@ -231,7 +231,7 @@ public final class LocationUtil {
             }
         }
 
-        final BlockFace[] directions = diagonal ? DIAGONAL : CARDINAL;
+        BlockFace[] directions = diagonal ? DIAGONAL : CARDINAL;
         return directions[Math.round(loc.getYaw() / (360 / directions.length)) & directions.length - 1];
     }
 
@@ -243,7 +243,7 @@ public final class LocationUtil {
      * @param to The BlockFace to measure to (degrees from 0º).
      * @return The amount of degrees that separate the two BlockFaces.
      */
-    public static float getDifference(BlockFace from, final BlockFace to) {
+    public static float getDifference(BlockFace from, BlockFace to) {
 
         if (from == to) {
             return 0F;
@@ -279,13 +279,13 @@ public final class LocationUtil {
      * @param zAxis If the rotation is taking place on the z-axis.
      * @return The block face that is rotated.
      */
-    public static BlockFace rotate(final BlockFace face, final float degrees, final boolean xAxis, final boolean zAxis) {
+    public static BlockFace rotate(BlockFace face, float degrees, boolean xAxis, boolean zAxis) {
 
         if (face == BlockFace.SELF || degrees == 0) {
             return face;
         }
 
-        final float dRotations = degrees / 22.5F;
+        float dRotations = degrees / 22.5F;
         int rotations = (int) dRotations;
         if (dRotations > rotations) { // If the degrees were positive
             rotations++;
@@ -305,7 +305,7 @@ public final class LocationUtil {
                 rotations /= -3;
             }
 
-            final boolean positive = rotations == 1;
+            boolean positive = rotations == 1;
             switch (face) {
                 case UP:
                     return xAxis ? positive ? BlockFace.NORTH : BlockFace.SOUTH :
@@ -340,7 +340,7 @@ public final class LocationUtil {
      * @param face The face to rotate on the y-axis.
      * @return The BlockFace that has been rotated 22.5º on the y-axis.
      */
-    public static BlockFace rotateRight(final BlockFace face) {
+    public static BlockFace rotateRight(BlockFace face) {
         return RIGHT_ROTATION[face.ordinal()];
     }
 
@@ -355,7 +355,7 @@ public final class LocationUtil {
      *               So {@code 4} would result in a 90º rotation.
      * @return The BlockFace that has been rotated 22.5º on the y-axis.
      */
-    public static BlockFace rotateRight(final BlockFace face, int amount) {
+    public static BlockFace rotateRight(BlockFace face, int amount) {
 
         amount %= 16; // Anything over 16 is over a full rotation
         if (amount == 0 || face == BlockFace.SELF || face == BlockFace.UP || face == BlockFace.DOWN) { // No rotation
@@ -388,7 +388,7 @@ public final class LocationUtil {
      * @param face The face to rotate on the y-axis.
      * @return The BlockFace that has been rotated 22.5º on the y-axis.
      */
-    public static BlockFace rotateLeft(final BlockFace face) {
+    public static BlockFace rotateLeft(BlockFace face) {
         return LEFT_ROTATION[face.ordinal()];
     }
 
@@ -403,7 +403,7 @@ public final class LocationUtil {
      *               So {@code 4} would result in a 90º rotation.
      * @return The BlockFace that has been rotated 22.5º on the y-axis.
      */
-    public static BlockFace rotateLeft(final BlockFace face, int amount) {
+    public static BlockFace rotateLeft(BlockFace face, int amount) {
 
         amount %= 16; // Anything over 16 is over a full rotation
         if (amount == 0 || face == BlockFace.SELF || face == BlockFace.UP || face == BlockFace.DOWN) { // No rotation

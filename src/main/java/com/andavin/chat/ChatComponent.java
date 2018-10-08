@@ -61,15 +61,15 @@ public class ChatComponent {
 
     static {
 
-        final Class<?> format = Reflection.getMcClass("EnumChatFormat");
-        for (final ChatColor color : ChatColor.values()) {
+        Class<?> format = Reflection.getMcClass("EnumChatFormat");
+        for (ChatColor color : ChatColor.values()) {
             NMS_COLORS.put(color, Reflection.getValue(format, null, color.name()));
         }
 
-        final Class<?> iBaseClass = Reflection.getMcClass("IChatBaseComponent");
-        final Class<?> baseClass = Reflection.getMcClass("ChatBaseComponent");
-        final Class<?> chatClass = Reflection.getMcClass("ChatComponentText");
-        final Class<?> messageClass = Reflection.getMcClass("ChatMessage");
+        Class<?> iBaseClass = Reflection.getMcClass("IChatBaseComponent");
+        Class<?> baseClass = Reflection.getMcClass("ChatBaseComponent");
+        Class<?> chatClass = Reflection.getMcClass("ChatComponentText");
+        Class<?> messageClass = Reflection.getMcClass("ChatMessage");
 
         CHAT = Reflection.getField(chatClass, "b");
         MESSAGE = Reflection.getField(messageClass, "d");
@@ -79,7 +79,7 @@ public class ChatComponent {
             throw new NullPointerException("Classes for ChatComponentText and/or ChatMessage could not be found!");
         }
 
-        final Field mods = Reflection.getField(Field.class, "modifiers");
+        Field mods = Reflection.getField(Field.class, "modifiers");
         Reflection.setValue(mods, CHAT, CHAT.getModifiers() & ~Modifier.FINAL);
         Reflection.setValue(mods, MESSAGE, MESSAGE.getModifiers() & ~Modifier.FINAL);
     }
@@ -90,7 +90,7 @@ public class ChatComponent {
      * @param text Initial text to place in the ChatComponent.
      * @return The new ChatComponent for the text.
      */
-    public static ChatComponent create(final String text) {
+    public static ChatComponent create(String text) {
         return new ChatComponent(text);
     }
 
@@ -102,9 +102,9 @@ public class ChatComponent {
      * @param str The string to get the component from.
      * @return The new ChatComponent from the given string.
      */
-    public static ChatComponent fromString(final String str) {
+    public static ChatComponent fromString(String str) {
 
-        final Object[] comps = Reflection.invokeMethod(FROM_STRING, null, str);
+        Object[] comps = Reflection.invokeMethod(FROM_STRING, null, str);
         if (comps != null) {
             return ChatComponent.wrap(comps[0]);
         }
@@ -118,7 +118,7 @@ public class ChatComponent {
      * @param baseComponent The IChatBaseComponent to wrap.
      * @return The wrapper ChatComponent.
      */
-    public static ChatComponent wrap(final Object baseComponent) {
+    public static ChatComponent wrap(Object baseComponent) {
         return new ChatComponent(baseComponent);
     }
 
@@ -126,12 +126,12 @@ public class ChatComponent {
     private ChatComponent current;
     private final List<Object> siblings;
 
-    private ChatComponent(final String text) {
+    private ChatComponent(String text) {
         this.base = new ChatComponentText(text);
         this.siblings = Reflection.getValue(SIBLINGS, this.base);
     }
 
-    private ChatComponent(final Object baseComponent) {
+    private ChatComponent(Object baseComponent) {
         this.base = baseComponent;
         this.siblings = Reflection.getValue(SIBLINGS, this.base);
     }
@@ -143,7 +143,7 @@ public class ChatComponent {
      * @param text The message to add to the end.
      * @return A reference to the new ChatComponent sibling.
      */
-    public ChatComponent addSibling(final String text) {
+    public ChatComponent addSibling(String text) {
         return this.addSibling(new ChatComponent(text));
     }
 
@@ -154,7 +154,7 @@ public class ChatComponent {
      * @param component The message to add to the end.
      * @return A reference to the new ChatComponent sibling.
      */
-    public ChatComponent addSibling(final ChatComponent component) {
+    public ChatComponent addSibling(ChatComponent component) {
         Reflection.invokeMethod(ADD_SIBLING, this.base, component.base);
         this.current = component;
         return component;
@@ -167,7 +167,7 @@ public class ChatComponent {
      * @param baseComponent The message to add to the end.
      * @return A reference to the new ChatComponent sibling.
      */
-    public ChatComponent addSibling(final Object baseComponent) {
+    public ChatComponent addSibling(Object baseComponent) {
         return this.addSibling(new ChatComponent(baseComponent));
     }
 
@@ -184,12 +184,12 @@ public class ChatComponent {
      * @see #highlight(String, boolean)
      * @see Highlighter
      */
-    public Highlighter highlight(final boolean caseSensitive, final String... highlight) {
+    public Highlighter highlight(boolean caseSensitive, String... highlight) {
 
-        final List<ChatComponent> comps = new ArrayList<>();
-        for (final String word : highlight) {
+        List<ChatComponent> comps = new ArrayList<>();
+        for (String word : highlight) {
 
-            final List<ChatComponent> highlights = this.highlight(word, caseSensitive);
+            List<ChatComponent> highlights = this.highlight(word, caseSensitive);
             if (!highlights.isEmpty()) {
                 comps.addAll(highlights);
             }
@@ -246,16 +246,16 @@ public class ChatComponent {
      * @param caseSensitive Whether the highlighted word should be searched with case sensitivity.
      * @return All of the occurrences of the highlight word as ChatComponents so their attributes can be set.
      */
-    public List<ChatComponent> highlight(final String highlight, final boolean caseSensitive) {
+    public List<ChatComponent> highlight(String highlight, boolean caseSensitive) {
 
-        final List<ChatComponent> highlights = new LinkedList<>();
-        final List<ChatComponent> comps = this.getSiblings();
+        List<ChatComponent> highlights = new LinkedList<>();
+        List<ChatComponent> comps = this.getSiblings();
         this.siblings.clear(); // Clear all the siblings of the base component
         comps.add(0, this);
 
         for (int i = 0; i < comps.size(); ++i) {
 
-            final ChatComponent comp = comps.get(i);
+            ChatComponent comp = comps.get(i);
             String text = comp.getText();
             int index = caseSensitive ? StringUtils.indexOf(text, highlight) :
                     StringUtils.indexOfIgnoreCase(text, highlight);
@@ -266,14 +266,14 @@ public class ChatComponent {
             comps.remove(i);
             while (index != -1) {
 
-                final ChatComponent begin = new ChatComponent(text.substring(0, index));  // Get the part before the word
+                ChatComponent begin = new ChatComponent(text.substring(0, index));  // Get the part before the word
                 begin.setChatModifier(comp.getChatModifier());                            // Set it to the same chat modifier that it was
                 comps.add(i++, begin);                                                    // Add it back in the same position
 
                 text = text.substring(index);
-                final int wordEnd = highlight.length();
+                int wordEnd = highlight.length();
 
-                final ChatComponent middle = new ChatComponent(text.substring(0, wordEnd));   // Get the word itself
+                ChatComponent middle = new ChatComponent(text.substring(0, wordEnd));   // Get the word itself
                 highlights.add(middle);                                                       // No chat modifications
                 comps.add(i++, middle);                                                       // Add separate but after the beginning
 
@@ -289,7 +289,7 @@ public class ChatComponent {
                 continue;
             }
 
-            final ChatComponent end = new ChatComponent(text);
+            ChatComponent end = new ChatComponent(text);
             end.setChatModifier(comp.getChatModifier());                // Set the modifier to what it was
             comps.add(i, end);                                          // Add it back in after the other two
         }
@@ -309,7 +309,7 @@ public class ChatComponent {
      * @return A reference to this ChatComponent.
      * @throws IllegalArgumentException If the ChatColor is not a color.
      */
-    public ChatComponent color(final ChatColor color) {
+    public ChatComponent color(ChatColor color) {
         checkArgument(color.isColor(), "Color must be a color, but got a format %s instead.", color.name());
 //        this.getChatModifier().setColor(this.getColor(color));
         return this;
@@ -332,7 +332,7 @@ public class ChatComponent {
      * @param set Whether it should be set on or off.
      * @return A reference to this ChatComponent.
      */
-    public ChatComponent bold(final boolean set) {
+    public ChatComponent bold(boolean set) {
         this.getChatModifier().setBold(set);
         return this;
     }
@@ -354,7 +354,7 @@ public class ChatComponent {
      * @param set Whether it should be set on or off.
      * @return A reference to this ChatComponent.
      */
-    public ChatComponent italic(final boolean set) {
+    public ChatComponent italic(boolean set) {
         this.getChatModifier().setItalic(set);
         return this;
     }
@@ -376,7 +376,7 @@ public class ChatComponent {
      * @param set Whether it should be set on or off.
      * @return A reference to this ChatComponent.
      */
-    public ChatComponent magic(final boolean set) {
+    public ChatComponent magic(boolean set) {
         this.getChatModifier().setRandom(set);
         return this;
     }
@@ -398,7 +398,7 @@ public class ChatComponent {
      * @param set Whether it should be set on or off.
      * @return A reference to this ChatComponent.
      */
-    public ChatComponent strikethrough(final boolean set) {
+    public ChatComponent strikethrough(boolean set) {
         this.getChatModifier().setStrikethrough(set);
         return this;
     }
@@ -420,7 +420,7 @@ public class ChatComponent {
      * @param set Whether it should be set on or off.
      * @return A reference to this ChatComponent.
      */
-    public ChatComponent underlined(final boolean set) {
+    public ChatComponent underlined(boolean set) {
         this.getChatModifier().setUnderline(set);
         return this;
     }
@@ -438,7 +438,7 @@ public class ChatComponent {
      * @param click The command to run, file to be opened, etc.
      * @return A reference to this object.
      */
-    public ChatComponent event(final ClickEvent.Action action, final String click) {
+    public ChatComponent event(ClickEvent.Action action, String click) {
 //        final ChatModifier modifier = this.base.getChatModifier();
 //        modifier.setChatClickable(new ChatClickable(this.getAction(action), click));
         return this;
@@ -452,7 +452,7 @@ public class ChatComponent {
      * @param hover What to show when hovered over.
      * @return A reference to this object.
      */
-    public ChatComponent event(final HoverEvent.Action action, final ChatComponent hover) {
+    public ChatComponent event(HoverEvent.Action action, ChatComponent hover) {
 //        final ChatModifier modifier = this.base.getChatModifier();
 //        modifier.setChatHoverable(new ChatHoverable(this.getAction(action), hover.getBaseComponent()));
         return this;
@@ -492,7 +492,7 @@ public class ChatComponent {
     }
 
     @Override
-    public final boolean equals(final Object o) {
+    public final boolean equals(Object o) {
         return o == this || o instanceof ChatComponent &&
                             ((ChatComponent) o).getBaseComponent().equals(this.getBaseComponent());
     }
@@ -508,7 +508,7 @@ public class ChatComponent {
         return null;
     }
 
-    private void setText(final String text) {
+    private void setText(String text) {
 
         if (this.base instanceof ChatComponentText) {
             Reflection.setValue(CHAT, this.base, text);
@@ -531,13 +531,13 @@ public class ChatComponent {
         return null;
     }
 
-    private void setChatModifier(final ChatModifier modifier) {
+    private void setChatModifier(ChatModifier modifier) {
 //        final IChatBaseComponent base = this.current != null ? this.current.getBaseComponent() : this.base;
 //        base.setChatModifier(modifier);
     }
 
     @Nonnull
-    private EnumClickAction getAction(final ClickEvent.Action action) {
+    private EnumClickAction getAction(ClickEvent.Action action) {
 
         switch (action) {
 
@@ -559,7 +559,7 @@ public class ChatComponent {
     }
 
     @Nonnull
-    private EnumHoverAction getAction(final HoverEvent.Action action) {
+    private EnumHoverAction getAction(HoverEvent.Action action) {
 
         switch (action) {
 

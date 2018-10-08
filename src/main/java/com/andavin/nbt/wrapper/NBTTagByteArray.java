@@ -45,15 +45,15 @@ public final class NBTTagByteArray extends NBTBase implements DataHolder<byte[]>
     private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagByteArray"), "data");
     private final byte[] data;
 
-    public NBTTagByteArray(final byte... data) {
+    public NBTTagByteArray(byte... data) {
         this(NBTHelper.createTag(NBTTagByteArray.class, (Object) data));
     }
 
-    public NBTTagByteArray(final List<Byte> data) {
+    public NBTTagByteArray(List<Byte> data) {
         this(convert(data));
     }
 
-    NBTTagByteArray(final Object wrapped) {
+    NBTTagByteArray(Object wrapped) {
         super(wrapped);
         this.data = Reflection.getValue(DATA, wrapped);
     }
@@ -80,15 +80,15 @@ public final class NBTTagByteArray extends NBTBase implements DataHolder<byte[]>
      *        {@link ConfigurationSerializable#serialize()}.
      * @return The newly created, deserialized object.
      */
-    public static NBTTagByteArray deserialize(final Map<String, Object> map) {
+    public static NBTTagByteArray deserialize(Map<String, Object> map) {
         return new NBTTagByteArray((byte[]) map.get("data"));
     }
 
-    private static byte[] convert(final List<Byte> data) {
+    private static byte[] convert(List<Byte> data) {
 
         int i = 0;
-        final byte[] array = new byte[data.size()];
-        for (final Byte num : data) { // Optimized iterations vs get(i) for some List impl
+        byte[] array = new byte[data.size()];
+        for (Byte num : data) { // Optimized iterations vs get(i) for some List impl
             array[i++] = num != null ? num : 0;
         }
 

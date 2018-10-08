@@ -79,7 +79,7 @@ public final class VisualBlock {
 
     static {
 
-        final Class<?> block = Reflection.getMcClass("Block");
+        Class<?> block = Reflection.getMcClass("Block");
         Object registry = Reflection.getValue(block, null, "REGISTRY_ID");
         if (registry == null) {
             registry = Reflection.getValue(block, null, "d");
@@ -108,7 +108,7 @@ public final class VisualBlock {
      * @param z The Z position of the block in the world.
      * @param type The {@link Material type} of the block that should be visualized.
      */
-    public VisualBlock(final int x, final int y, final int z, final Material type) {
+    public VisualBlock(int x, int y, int z, Material type) {
         this(x, y, z, type, 0);
     }
 
@@ -123,7 +123,7 @@ public final class VisualBlock {
      * @param data The data (0-15) that sets the block apart from others of its type;
      *             this is usually for color.
      */
-    public VisualBlock(final int x, final int y, final int z, final Material type, final int data) {
+    public VisualBlock(int x, int y, int z, Material type, int data) {
         this(ID.getAndIncrement(), x, y, z, type, data);
     }
 
@@ -143,7 +143,7 @@ public final class VisualBlock {
      * @param data The data (0-15) that sets the block apart from others of its type;
      *             this is usually for color.
      */
-    VisualBlock(final long id, final int x, final int y, final int z, final Material type, final int data) {
+    VisualBlock(long id, int x, int y, int z, Material type, int data) {
         this.id = id;
         this.x = x;
         this.y = y;
@@ -156,7 +156,7 @@ public final class VisualBlock {
         this.packedPos = (short) ((x & 0xF) << 12 | (z & 0xF) << 8 | y & 0xFF);
         // Pack the block type ID into a single number
         // First 12 bits are the type ID then last 4 bits are data 0-15
-        final int packedType = (short) ((type.getId() & 0xFFF) << 4 | data & 0xF);
+        int packedType = (short) ((type.getId() & 0xFFF) << 4 | data & 0xF);
         checkState(0 <= packedType && packedType < BLOCK_DATA.size(),
                 "%s:%s is not a valid block type with this server version", type, data);
         this.blockData = BLOCK_DATA.get(packedType);
@@ -317,7 +317,7 @@ public final class VisualBlock {
      * @param world The world to get the type of the block from.
      * @return A new block of the type of the actual block at this block's location.
      */
-    public VisualBlock getRealType(final World world) {
+    public VisualBlock getRealType(World world) {
         return this.getRealType(world.getChunkAt(this.x >> 4, this.z >> 4));
     }
 
@@ -331,8 +331,8 @@ public final class VisualBlock {
      * @param chunk The chunk to get the block from within.
      * @return A new block of the type of the actual block at this block's location.
      */
-    public VisualBlock getRealType(final Chunk chunk) {
-        final Block block = chunk.getBlock(this.x & 0xF, this.y & 0xFF, this.z & 0xF);
+    public VisualBlock getRealType(Chunk chunk) {
+        Block block = chunk.getBlock(this.x & 0xF, this.y & 0xFF, this.z & 0xF);
         return new VisualBlock(this.x, this.y, this.z, block.getType(), block.getData());
     }
 
@@ -343,9 +343,9 @@ public final class VisualBlock {
      * @param snapshot A snapshot of the chunk that this block is contained within.
      * @return A new block of the type of the actual block at this block's location.
      */
-    public VisualBlock getRealType(final ChunkSnapshot snapshot) {
-        final int x = this.x & 0xF, y = this.y & 0xFF, z = this.z & 0xF;
-        final Material type = Material.getMaterial(snapshot.getBlockTypeId(x, y, z));
+    public VisualBlock getRealType(ChunkSnapshot snapshot) {
+        int x = this.x & 0xF, y = this.y & 0xFF, z = this.z & 0xF;
+        Material type = Material.getMaterial(snapshot.getBlockTypeId(x, y, z));
         return new VisualBlock(this.x, this.y, this.z, type, snapshot.getBlockData(x, y, z));
     }
 
@@ -356,7 +356,7 @@ public final class VisualBlock {
      * @param direction The {@link BlockFace direction} to shift the block in.
      * @return A new block that is shifted relative to this block.
      */
-    public VisualBlock shift(final BlockFace direction) {
+    public VisualBlock shift(BlockFace direction) {
         return this.shift(1, direction);
     }
 
@@ -369,7 +369,7 @@ public final class VisualBlock {
      * @param direction The {@link BlockFace direction} to shift the block in.
      * @return A new block that is shifted relative to this block.
      */
-    public VisualBlock shift(final int distance, final BlockFace direction) {
+    public VisualBlock shift(int distance, BlockFace direction) {
         return new VisualBlock(
                 this.id,
                 this.x + distance * direction.getModX(),
@@ -391,7 +391,7 @@ public final class VisualBlock {
      * @param z The amount of blocks to shift along the z-axis.
      * @return A new block that is shifted relative to this block.
      */
-    public VisualBlock shift(final int x, final int y, final int z) {
+    public VisualBlock shift(int x, int y, int z) {
         return new VisualBlock(
                 this.id,
                 this.x + x,
@@ -417,22 +417,22 @@ public final class VisualBlock {
      * @return A new block that is rotated the specified degrees around
      *         the X-axis based on the origin.
      */
-    public VisualBlock rotateX(final Vector origin, float degrees) {
+    public VisualBlock rotateX(Vector origin, float degrees) {
 
         degrees %= 360;
-        final byte data;
+        byte data;
         if (this.directional) {
 
-            final Class<? extends MaterialData> dataType = this.type.getData();
+            Class<? extends MaterialData> dataType = this.type.getData();
             if (Directional.class.isAssignableFrom(dataType)) {
-                final MaterialData typeData = this.type.getNewData(this.data);
-                final Directional direction = (Directional) typeData;
-                final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
+                MaterialData typeData = this.type.getNewData(this.data);
+                Directional direction = (Directional) typeData;
+                BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
                 direction.setFacingDirection(face);
                 data = typeData.getData();
             } else if (Tree.class.isAssignableFrom(dataType)) {
-                final Tree tree = (Tree) this.type.getNewData(this.data);
-                final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, true, false);
+                Tree tree = (Tree) this.type.getNewData(this.data);
+                BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, true, false);
                 tree.setDirection(face);
                 data = tree.getData();
             } else {
@@ -442,9 +442,9 @@ public final class VisualBlock {
             data = this.data;
         }
 
-        final int originY = origin.getBlockY();
-        final int originZ = origin.getBlockZ();
-        final double cos = dCos(degrees), sin = -dSin(degrees);
+        int originY = origin.getBlockY();
+        int originZ = origin.getBlockZ();
+        double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
                 this.id,
                 this.x,
@@ -470,35 +470,35 @@ public final class VisualBlock {
      * @return A new block that is rotated the specified degrees around
      *         the Y-axis based on the origin.
      */
-    public VisualBlock rotateY(final Vector origin, float degrees) {
+    public VisualBlock rotateY(Vector origin, float degrees) {
 
         degrees %= 360;
-        final byte data;
+        byte data;
         if (this.directional) {
 
-            final Class<? extends MaterialData> dataType = this.type.getData();
+            Class<? extends MaterialData> dataType = this.type.getData();
             if (Directional.class.isAssignableFrom(dataType)) {
-                final MaterialData typeData = this.type.getNewData(this.data);
-                final Directional direction = (Directional) typeData;
-                final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
+                MaterialData typeData = this.type.getNewData(this.data);
+                Directional direction = (Directional) typeData;
+                BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
                 direction.setFacingDirection(face);
                 data = typeData.getData();
             } else if (Tree.class.isAssignableFrom(dataType)) {
-                final Tree tree = (Tree) this.type.getNewData(this.data);
-                final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, false);
+                Tree tree = (Tree) this.type.getNewData(this.data);
+                BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, false);
                 tree.setDirection(face);
                 data = tree.getData();
             } else if (Rails.class.isAssignableFrom(dataType) &&
                        (degrees % 90 == 0 || !ExtendedRails.class.isAssignableFrom(dataType))) {
-                final Rails rails = (Rails) this.type.getNewData(this.data);
-                final BlockFace face = LocationUtil.rotate(rails.getDirection(), degrees, false, false);
+                Rails rails = (Rails) this.type.getNewData(this.data);
+                BlockFace face = LocationUtil.rotate(rails.getDirection(), degrees, false, false);
                 rails.setDirection(face, rails.isOnSlope());
                 data = rails.getData();
             } else {
 
                 if (this.type == Material.ANVIL) {
-                    final BlockFace direction = this.getAnvilDirection();
-                    final BlockFace face = LocationUtil.rotate(direction, degrees, false, false);
+                    BlockFace direction = this.getAnvilDirection();
+                    BlockFace face = LocationUtil.rotate(direction, degrees, false, false);
                     data = this.getDataForDirection(direction);
                 } else {
                     data = this.data;
@@ -508,9 +508,9 @@ public final class VisualBlock {
             data = this.data;
         }
 
-        final int originX = origin.getBlockX();
-        final int originZ = origin.getBlockZ();
-        final double cos = dCos(degrees), sin = -dSin(degrees);
+        int originX = origin.getBlockX();
+        int originZ = origin.getBlockZ();
+        double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
                 this.id,
                 (int) (originX + (this.x - originX) * cos + (this.z - originZ) * sin),
@@ -536,22 +536,22 @@ public final class VisualBlock {
      * @return A new block that is rotated the specified degrees around
      *         the Z-axis based on the origin.
      */
-    public VisualBlock rotateZ(final Vector origin, float degrees) {
+    public VisualBlock rotateZ(Vector origin, float degrees) {
 
         degrees %= 360;
-        final byte data;
+        byte data;
         if (this.directional) {
 
-            final Class<? extends MaterialData> dataType = this.type.getData();
+            Class<? extends MaterialData> dataType = this.type.getData();
             if (Directional.class.isAssignableFrom(dataType)) {
-                final MaterialData typeData = this.type.getNewData(this.data);
-                final Directional direction = (Directional) typeData;
-                final BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);
+                MaterialData typeData = this.type.getNewData(this.data);
+                Directional direction = (Directional) typeData;
+                BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);
                 direction.setFacingDirection(face);
                 data = typeData.getData();
             } else if (Tree.class.isAssignableFrom(dataType)) {
-                final Tree tree = (Tree) this.type.getNewData(this.data);
-                final BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, true);
+                Tree tree = (Tree) this.type.getNewData(this.data);
+                BlockFace face = LocationUtil.rotate(tree.getDirection(), degrees, false, true);
                 tree.setDirection(face);
                 data = tree.getData();
             } else {
@@ -561,9 +561,9 @@ public final class VisualBlock {
             data = this.data;
         }
 
-        final int originX = origin.getBlockX();
-        final int originY = origin.getBlockY();
-        final double cos = dCos(degrees), sin = -dSin(degrees);
+        int originX = origin.getBlockX();
+        int originY = origin.getBlockY();
+        double cos = dCos(degrees), sin = -dSin(degrees);
         return new VisualBlock(
                 this.id,
                 (int) (originX + (this.x - originX) * cos - (this.y - originY) * sin),
@@ -607,7 +607,7 @@ public final class VisualBlock {
      * @param other The other VisualBlock to check against this one.
      * @return If the two blocks are equivalent in position, type and data.
      */
-    public boolean equals(final VisualBlock other) {
+    public boolean equals(VisualBlock other) {
         return this.chunk == other.chunk && this.packedPos == other.packedPos
                && this.type == other.type && this.data == other.data;
     }
@@ -623,7 +623,7 @@ public final class VisualBlock {
      * used which will check position and type.
      */
     @Override
-    public boolean equals(final Object obj) {
+    public boolean equals(Object obj) {
 
         if (this == obj) {
             return true;
@@ -633,7 +633,7 @@ public final class VisualBlock {
             return false;
         }
 
-        final VisualBlock block = (VisualBlock) obj;
+        VisualBlock block = (VisualBlock) obj;
         return block.chunk == this.chunk && block.packedPos == this.packedPos;
     }
 
@@ -671,7 +671,7 @@ public final class VisualBlock {
         }
     }
 
-    private byte getDataForDirection(final BlockFace face) {
+    private byte getDataForDirection(BlockFace face) {
 
         switch (face) {
 
@@ -730,7 +730,7 @@ public final class VisualBlock {
      * @param degrees the angle
      * @return the cosine of the given angle
      */
-    private static double dCos(final double degrees) {
+    private static double dCos(double degrees) {
 
         int dInt = (int) degrees;
         if (degrees == dInt && dInt % 90 == 0) {
@@ -765,7 +765,7 @@ public final class VisualBlock {
      * @param degrees the angle
      * @return the sine of the given angle
      */
-    private static double dSin(final double degrees) {
+    private static double dSin(double degrees) {
 
         int dInt = (int) degrees;
         if (degrees == dInt && dInt % 90 == 0) {
@@ -790,7 +790,7 @@ public final class VisualBlock {
         return Math.sin(Math.toRadians(degrees));
     }
 
-    private static boolean isDirectional(final Class<? extends MaterialData> clazz) {
+    private static boolean isDirectional(Class<? extends MaterialData> clazz) {
         return Directional.class.isAssignableFrom(clazz) ||
                Tree.class.isAssignableFrom(clazz) ||
                Rails.class.isAssignableFrom(clazz) ||

@@ -76,12 +76,12 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *
      * @param map The Map to create the compound from.
      */
-    public NBTTagCompound(final Map<String, NBTBase> map) {
+    public NBTTagCompound(Map<String, NBTBase> map) {
         this();
         map.forEach(this::set);
     }
 
-    NBTTagCompound(final Object wrapped) {
+    NBTTagCompound(Object wrapped) {
         super(wrapped);
         this.map = Reflection.getValue(DATA, wrapped);
         if (!this.map.isEmpty()) {
@@ -138,10 +138,10 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase set(final String key, final NBTBase value) {
+    public NBTBase set(String key, NBTBase value) {
         checkNotNull(key, "null keys not permitted");
         checkNotNull(value, "null values not permitted");
-        final NBTBase old = this.wrapped.put(key, value);
+        NBTBase old = this.wrapped.put(key, value);
         this.map.put(key, value.wrapped); // Will be the wrapped object of old
         return old;
     }
@@ -156,7 +156,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setByte(final String key, final byte value) {
+    public NBTBase setByte(String key, byte value) {
         return this.set(key, new NBTTagByte(value));
     }
 
@@ -170,7 +170,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setShort(final String key, final short value) {
+    public NBTBase setShort(String key, short value) {
         return this.set(key, new NBTTagShort(value));
     }
 
@@ -184,7 +184,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setInt(final String key, final int value) {
+    public NBTBase setInt(String key, int value) {
         return this.set(key, new NBTTagInt(value));
     }
 
@@ -198,7 +198,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setLong(final String key, final long value) {
+    public NBTBase setLong(String key, long value) {
         return this.set(key, new NBTTagLong(value));
     }
 
@@ -212,7 +212,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setFloat(final String key, final float value) {
+    public NBTBase setFloat(String key, float value) {
         return this.set(key, new NBTTagFloat(value));
     }
 
@@ -226,7 +226,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setDouble(final String key, final double value) {
+    public NBTBase setDouble(String key, double value) {
         return this.set(key, new NBTTagDouble(value));
     }
 
@@ -240,7 +240,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setBoolean(final String key, final boolean value) {
+    public NBTBase setBoolean(String key, boolean value) {
         return this.setByte(key, (byte) (value ? 1 : 0));
     }
 
@@ -254,7 +254,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setString(final String key, final String value) {
+    public NBTBase setString(String key, String value) {
         return this.set(key, new NBTTagString(value));
     }
 
@@ -269,7 +269,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setByteArray(final String key, final byte[] value) {
+    public NBTBase setByteArray(String key, byte[] value) {
         return this.set(key, new NBTTagByteArray(value));
     }
 
@@ -284,7 +284,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setIntArray(final String key, final int[] value) {
+    public NBTBase setIntArray(String key, int[] value) {
         return this.set(key, new NBTTagIntArray(value));
     }
 
@@ -302,7 +302,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         {@code null} otherwise.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public NBTBase setLongArray(final String key, final int[] value) {
+    public NBTBase setLongArray(String key, int[] value) {
         return this.set(key, new NBTTagLongArray(value));
     }
 
@@ -318,7 +318,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @param uuid The {@link UUID value} to store under the key.
      * @throws NullPointerException If key or value are {@code null}.
      */
-    public void setUniqueId(final String key, final UUID uuid) {
+    public void setUniqueId(String key, UUID uuid) {
         checkNotNull(key, "null keys not permitted");
         this.setLong(key + "Most", uuid.getMostSignificantBits());
         this.setLong(key + "Least", uuid.getLeastSignificantBits());
@@ -337,7 +337,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         an instance of {@code T}.
      */
     @Nullable
-    public <T extends NBTBase> T get(final String key) {
+    public <T extends NBTBase> T get(String key) {
 
         try {
             return (T) this.wrapped.get(key);
@@ -356,8 +356,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The {@code byte} value stored or {@code 0} if there was 
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
-    public byte getByte(final String key) {
-        final NBTNumber tag = this.get(key);
+    public byte getByte(String key) {
+        NBTNumber tag = this.get(key);
         return tag != null ? tag.asByte() : 0;
     }
 
@@ -371,8 +371,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The {@code short} value stored or {@code 0} if there was 
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
-    public short getShort(final String key) {
-        final NBTNumber tag = this.get(key);
+    public short getShort(String key) {
+        NBTNumber tag = this.get(key);
         return tag != null ? tag.asShort() : 0;
     }
 
@@ -386,8 +386,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The {@code int} value stored or {@code 0} if there was 
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
-    public int getInteger(final String key) {
-        final NBTNumber tag = this.get(key);
+    public int getInteger(String key) {
+        NBTNumber tag = this.get(key);
         return tag != null ? tag.asInt() : 0;
     }
 
@@ -401,8 +401,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The {@code long} value stored or {@code 0} if there was 
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
-    public long getLong(final String key) {
-        final NBTNumber tag = this.get(key);
+    public long getLong(String key) {
+        NBTNumber tag = this.get(key);
         return tag != null ? tag.asLong() : 0;
     }
 
@@ -416,8 +416,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The {@code float} value stored or {@code 0} if there was 
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
-    public float getFloat(final String key) {
-        final NBTNumber tag = this.get(key);
+    public float getFloat(String key) {
+        NBTNumber tag = this.get(key);
         return tag != null ? tag.asFloat() : 0;
     }
 
@@ -431,8 +431,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The {@code double} value stored or {@code 0} if there was 
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
-    public double getDouble(final String key) {
-        final NBTNumber tag = this.get(key);
+    public double getDouble(String key) {
+        NBTNumber tag = this.get(key);
         return tag != null ? tag.asDouble() : 0;
     }
 
@@ -446,7 +446,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The {@code boolean} value stored or {@code false} if there
      *         was no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
-    public boolean getBoolean(final String key) {
+    public boolean getBoolean(String key) {
         return this.getByte(key) != 0;
     }
 
@@ -458,8 +458,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         ({@code ""}) if there was no mapping for the key.
      */
     @Nonnull
-    public String getString(final String key) {
-        final NBTTagString tag = this.get(key);
+    public String getString(String key) {
+        NBTTagString tag = this.get(key);
         return tag != null ? tag.toString() : "";
     }
 
@@ -472,8 +472,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         or if the mapping was not of the type {@link NBTTagLongArray}.
      */
     @Nonnull
-    public byte[] getByteArray(final String key) {
-        final NBTTagByteArray tag = this.get(key);
+    public byte[] getByteArray(String key) {
+        NBTTagByteArray tag = this.get(key);
         return tag != null ? tag.getData() : new byte[0];
     }
 
@@ -486,8 +486,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         or if the mapping was not of the type {@link NBTTagIntArray}.
      */
     @Nonnull
-    public int[] getIntArray(final String key) {
-        final NBTTagIntArray tag = this.get(key);
+    public int[] getIntArray(String key) {
+        NBTTagIntArray tag = this.get(key);
         return tag != null ? tag.getData() : new int[0];
     }
 
@@ -503,8 +503,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         or if the mapping was not of the type {@link NBTTagLongArray}.
      */
     @Nonnull
-    public long[] getLongArray(final String key) {
-        final NBTTagLongArray tag = this.get(key);
+    public long[] getLongArray(String key) {
+        NBTTagLongArray tag = this.get(key);
         return tag != null ? tag.getData() : new long[0];
     }
 
@@ -517,8 +517,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         the mappings did not conform to {@code long}s properly.
      */
     @Nullable
-    public UUID getUniqueId(final String key) {
-        final NBTTagLong most = this.get(key + "Most"), least = this.get(key + "Least");
+    public UUID getUniqueId(String key) {
+        NBTTagLong most = this.get(key + "Most"), least = this.get(key + "Least");
         return most != null && least != null ? new UUID(most.asLong(), least.asLong()) : null;
     }
 
@@ -529,8 +529,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The ID of the value mapped to the given key or
      *         {@link NBTType#END} if there was no mapping.
      */
-    public byte getTypeAt(final String key) {
-        final NBTBase value = this.get(key);
+    public byte getTypeAt(String key) {
+        NBTBase value = this.get(key);
         return value != null ? value.getTypeId() : NBTType.END;
     }
 
@@ -543,7 +543,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return If there is currently a value stored at the given key.
      * @see NBTType NBT Type IDs
      */
-    public boolean hasKey(final String key) {
+    public boolean hasKey(String key) {
         return this.map.containsKey(key);
     }
 
@@ -557,9 +557,9 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         has the matching {@link NBTBase#getTypeId() type ID}.
      * @see NBTType
      */
-    public boolean hasKey(final String key, final int typeId) {
+    public boolean hasKey(String key, int typeId) {
 
-        final byte type = this.getTypeAt(key);
+        byte type = this.getTypeAt(key);
         if (type == typeId) {
             return true;
         }
@@ -587,7 +587,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @param key The key to test for the {@linkplain UUID} mapping.
      * @return If there is a {@code UUID} mapped to the given key.
      */
-    public boolean hasUniqueId(final String key) {
+    public boolean hasUniqueId(String key) {
         return this.hasKey(key + "Most", NBTType.UUID) && this.hasKey(key + "Least", NBTType.UUID);
     }
 
@@ -601,7 +601,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The value mapped previously mapped to the key
      *         or {@code null} if no mapping existed.
      */
-    public NBTBase remove(final String key) {
+    public NBTBase remove(String key) {
         this.map.remove(key);
         return this.wrapped.remove(key);
     }
@@ -614,7 +614,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *
      * @param action The action to take for each key-value pair.
      */
-    public void forEach(final BiConsumer<? super String, ? super NBTBase> action) {
+    public void forEach(BiConsumer<? super String, ? super NBTBase> action) {
         this.wrapped.forEach(action);
     }
 
@@ -626,7 +626,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *        {@link ConfigurationSerializable#serialize()}.
      * @return The newly created, deserialized object.
      */
-    public static NBTTagCompound deserialize(final Map<String, Object> map) {
+    public static NBTTagCompound deserialize(Map<String, Object> map) {
         return new NBTTagCompound((Map<String, NBTBase>) map.get("data"));
     }
 }

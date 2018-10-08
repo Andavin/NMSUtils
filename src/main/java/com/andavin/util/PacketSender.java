@@ -69,8 +69,8 @@ public final class PacketSender {
      * @param packet The packet instance to send.
      * @see Reflection
      */
-    public static void sendPacket(final Player player, final Object packet) {
-        final Object conn = Reflection.getValue(CONNECTION, Reflection.invokeMethod(HANDLE, player));
+    public static void sendPacket(Player player, Object packet) {
+        Object conn = Reflection.getValue(CONNECTION, Reflection.invokeMethod(HANDLE, player));
         Reflection.invokeMethod(SEND_PACKET, conn, packet);
     }
 
@@ -88,8 +88,8 @@ public final class PacketSender {
      * @param packets The list of packet instances to send.
      * @see Reflection
      */
-    public static void sendPackets(final Player player, final List<Object> packets) {
-        final Object conn = Reflection.getValue(CONNECTION, Reflection.invokeMethod(HANDLE, player));
+    public static void sendPackets(Player player, List<Object> packets) {
+        Object conn = Reflection.getValue(CONNECTION, Reflection.invokeMethod(HANDLE, player));
         packets.forEach(packet -> Reflection.invokeMethod(SEND_PACKET, conn, packet));
     }
 }

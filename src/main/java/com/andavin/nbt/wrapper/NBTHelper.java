@@ -60,8 +60,8 @@ public final class NBTHelper {
     private static final Map<Class<?>, Constructor<? extends NBTBase>> WRAPPERS = new HashMap<>();
 
     static {
-        final Class<?> compoundTag = Reflection.getMcClass("NBTTagCompound");
-        final Class<?> streamTools = Reflection.getMcClass("NBTCompressedStreamTools");
+        Class<?> compoundTag = Reflection.getMcClass("NBTTagCompound");
+        Class<?> streamTools = Reflection.getMcClass("NBTCompressedStreamTools");
         READ = Reflection.getMethod(streamTools, "a", InputStream.class);
         WRITE = Reflection.getMethod(streamTools, "a", compoundTag, OutputStream.class);
     }
@@ -72,17 +72,17 @@ public final class NBTHelper {
      * @param classes The classes to register.
      */
     @SafeVarargs
-    public static void register(final Class<? extends NBTBase>... classes) {
+    public static void register(Class<? extends NBTBase>... classes) {
 
-        for (final Class<? extends NBTBase> clazz : classes) {
+        for (Class<? extends NBTBase> clazz : classes) {
 
-            final String name = clazz.getSimpleName();
-            final Class<?> nmsType = Reflection.getMcClass(name);
-            final NBTTag type = clazz.getDeclaredAnnotation(NBTTag.class);
+            String name = clazz.getSimpleName();
+            Class<?> nmsType = Reflection.getMcClass(name);
+            NBTTag type = clazz.getDeclaredAnnotation(NBTTag.class);
             if (type != null && nmsType != null) {
                 ConfigurationSerialization.registerClass(clazz);
-                final Constructor<?> wrap = Reflection.getConstructor(nmsType, type.params());
-                final Constructor<? extends NBTBase> wrapper = Reflection.getConstructor(clazz, Object.class);
+                Constructor<?> wrap = Reflection.getConstructor(nmsType, type.params());
+                Constructor<? extends NBTBase> wrapper = Reflection.getConstructor(clazz, Object.class);
                 checkState(wrapper != null, "%s missing constructor", name);
                 checkState(wrap != null, "%s incorrect annotation types", name);
                 WRAPPERS.put(nmsType, wrapper);
@@ -105,11 +105,11 @@ public final class NBTHelper {
      *                            ID as the passed in type ID.
      * @see NBTType NBT Type IDs
      */
-    public static <T extends NBTBase> T cast(final byte typeId, final NBTBase tag) {
+    public static <T extends NBTBase> T cast(byte typeId, NBTBase tag) {
 
-        final Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
+        Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
         supportCheck(con, typeId);
-        final Class<? extends NBTBase> clazz = con.getDeclaringClass();
+        Class<? extends NBTBase> clazz = con.getDeclaringClass();
         if (!clazz.isInstance(tag)) {
             throw new ClassCastException("Cannot cast " + tag.getClass().getSimpleName() + " (" + tag.getTypeId() +
                                          ") to " + clazz.getSimpleName() + " (" + typeId + ')');
@@ -129,9 +129,9 @@ public final class NBTHelper {
      *                            for the passed in object.
      * @throws NullPointerException If the NBT object is {@code null}.
      */
-    public static <T extends NBTBase> T wrap(final Object nbt) {
+    public static <T extends NBTBase> T wrap(Object nbt) {
         checkNotNull(nbt, "NBT object cannot be null");
-        final Constructor<? extends NBTBase> wrapper = WRAPPERS.get(nbt.getClass());
+        Constructor<? extends NBTBase> wrapper = WRAPPERS.get(nbt.getClass());
         supportCheck(wrapper, nbt.getClass().getSimpleName());
         return (T) Reflection.getInstance(wrapper, nbt);
     }
@@ -151,9 +151,9 @@ public final class NBTHelper {
      * @throws NullPointerException If the NBT object is {@code null}.
      * @see NBTType NBT Type IDs
      */
-    public static <T extends NBTBase> T wrap(final byte typeId, final Object nbt) {
+    public static <T extends NBTBase> T wrap(byte typeId, Object nbt) {
         checkNotNull(nbt, "NBT object cannot be null");
-        final Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
+        Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
         supportCheck(con, nbt.getClass().getSimpleName());
         return (T) Reflection.getInstance(con, nbt);
     }
@@ -166,8 +166,8 @@ public final class NBTHelper {
      * @param args The arguments to pass to the NMS constructor.
      * @return The newly create NMS NBT tag object.
      */
-    public static Object createTag(final Class<? extends NBTBase> clazz, final Object... args) {
-        final Constructor<?> con = WRAPPED.get(clazz);
+    public static Object createTag(Class<? extends NBTBase> clazz, Object... args) {
+        Constructor<?> con = WRAPPED.get(clazz);
         supportCheck(con, clazz.getSimpleName());
         return Reflection.getInstance(con, args);
     }
@@ -181,9 +181,9 @@ public final class NBTHelper {
      * @throws IOException If something goes wrong while reading the file.
      * @throws IllegalArgumentException If the file is not an NBT file ending in {@code .dat}.
      */
-    public static NBTTagCompound read(final File file) throws IOException, IllegalArgumentException {
+    public static NBTTagCompound read(File file) throws IOException, IllegalArgumentException {
         checkArgument(file.getPath().endsWith(".dat"), "can only read NBT files with the extension 'dat'.");
-        final InputStream stream = new BufferedInputStream(new FileInputStream(file));
+        InputStream stream = new BufferedInputStream(new FileInputStream(file));
         return Reflection.invokeMethod(READ, null, stream);
     }
 
@@ -196,13 +196,13 @@ public final class NBTHelper {
      * @throws IOException If something goes wrong while writing to the file.
      * @throws IllegalArgumentException If the file is not an NBT file ending in {@code .dat}.
      */
-    public static void write(final File file, final NBTTagCompound tag) throws IOException, IllegalArgumentException {
+    public static void write(File file, NBTTagCompound tag) throws IOException, IllegalArgumentException {
         checkArgument(file.getPath().endsWith(".dat"), "can only write to NBT files with the extension 'dat'.");
-        final OutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
+        OutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
         Reflection.invokeMethod(WRITE, null, tag.getWrapped(), stream);
     }
 
-    private static void supportCheck(final Constructor<?> con, final Object support) {
+    private static void supportCheck(Constructor<?> con, Object support) {
 
         if (con == null) {
             throw new UnsupportedOperationException(support + " is not supported on this server version.");

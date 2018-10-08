@@ -36,7 +36,7 @@ import com.andavin.DataHolder;
  */
 public abstract class NBTNumber extends NBTBase implements DataHolder<Number> {
 
-    NBTNumber(final Object handle) {
+    NBTNumber(Object handle) {
         super(handle);
     }
 

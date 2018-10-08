@@ -56,7 +56,7 @@ public final class ItemNBT {
     private static final Method CRAFT_MIRROR;
 
     static {
-        final Class<?> itemClass = Reflection.getMcClass("ItemStack");
+        Class<?> itemClass = Reflection.getMcClass("ItemStack");
         TAG = Reflection.getField(itemClass, "tag");
         CRAFT_MIRROR = Reflection.getMethod(CRAFT_ITEM, "asCraftMirror", itemClass);
     }
@@ -68,7 +68,7 @@ public final class ItemNBT {
      * @param item The item in question.
      * @return If the item is empty.
      */
-    public static boolean isEmpty(final ItemStack item) {
+    public static boolean isEmpty(ItemStack item) {
         return item == null || item.getType() == Material.AIR;
     }
 
@@ -79,20 +79,20 @@ public final class ItemNBT {
      * @param keys The key to check for.
      * @return If one of the given keys is present as an NBT tag.
      */
-    public static boolean hasTag(final ItemStack item, final String... keys) {
+    public static boolean hasTag(ItemStack item, String... keys) {
 
         if (isEmpty(item) || keys.length == 0 || !CRAFT_ITEM.isInstance(item)) {
             return false;
         }
 
-        final Object nms = getNmsItemStack(item);
-        final Object nbt = Reflection.getValue(TAG, nms);
+        Object nms = getNmsItemStack(item);
+        Object nbt = Reflection.getValue(TAG, nms);
         if (nbt == null) {
             return false;
         }
 
-        final Map<String, Object> map = Reflection.getValue(MAP, nbt);
-        for (final String key : keys) {
+        Map<String, Object> map = Reflection.getValue(MAP, nbt);
+        for (String key : keys) {
 
             if (map.containsKey(key)) {
                 return true;
@@ -116,13 +116,13 @@ public final class ItemNBT {
      * @see #ensureCraftItem(ItemStack) Ensure CraftItemStack instance
      */
     @Nullable
-    public static NBTTagCompound getTag(final ItemStack item) {
+    public static NBTTagCompound getTag(ItemStack item) {
 
         if (isEmpty(item) || !CRAFT_ITEM.isInstance(item)) {
             return null;
         }
 
-        final Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
+        Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
         return nbt != null ? NBTHelper.wrap(NBTType.COMPOUND, nbt) : null;
     }
 
@@ -146,17 +146,17 @@ public final class ItemNBT {
      * @throws IllegalArgumentException If the item is not an {@code CraftItemStack}.
      * @see #ensureCraftItem(ItemStack) Ensure CraftItemStack instance helper
      */
-    public static NBTTagCompound getOrCreateTag(final ItemStack item) throws IllegalArgumentException {
+    public static NBTTagCompound getOrCreateTag(ItemStack item) throws IllegalArgumentException {
 
         checkArgument(CRAFT_ITEM.isInstance(item), "must be CraftItemStack");
         if (isEmpty(item)) {
             return null;
         }
 
-        final Object nms = getNmsItemStack(item);
-        final Object nbt = Reflection.getValue(TAG, nms);
+        Object nms = getNmsItemStack(item);
+        Object nbt = Reflection.getValue(TAG, nms);
         if (nbt == null) {
-            final NBTTagCompound tag = new NBTTagCompound();
+            NBTTagCompound tag = new NBTTagCompound();
             Reflection.setValue(TAG, nms, tag.getWrapped());
             return tag;
         }
@@ -174,18 +174,18 @@ public final class ItemNBT {
      * @param <T> The type of {@link NBTBase} tag to retrieve.
      * @return The NBTBase tag that was on the item.
      */
-    public static <T extends NBTBase> T getTag(final ItemStack item, final String key) {
+    public static <T extends NBTBase> T getTag(ItemStack item, String key) {
 
         if (isEmpty(item) || key == null || key.isEmpty() || !CRAFT_ITEM.isInstance(item)) {
             return null;
         }
 
-        final Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
+        Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
         if (nbt == null) {
             return null;
         }
 
-        final Object tag = Reflection.<Map<String, Object>>getValue(MAP, nbt).get(key);
+        Object tag = Reflection.<Map<String, Object>>getValue(MAP, nbt).get(key);
         return tag != null ? NBTHelper.wrap(tag) : null;
     }
 
@@ -197,7 +197,7 @@ public final class ItemNBT {
      * @param tag The NBT tag to set under the key.
      * @return The item that has the tag on it (may or may not be the same item instance).
      */
-    public static ItemStack setTag(final ItemStack item, final String key, final NBTBase tag) {
+    public static ItemStack setTag(ItemStack item, String key, NBTBase tag) {
 
         checkNotNull(tag, "tag cannot be null");
         if (isEmpty(item) || key == null || key.isEmpty()) {
@@ -207,11 +207,11 @@ public final class ItemNBT {
         // Get the NMS ItemStack ... If the ItemStack was already
         // an instance of CraftItemStack then the matching NMS ItemStack
         // will be returned else there will be a copy given
-        final Object nms = getNmsItemStack(item);
-        final Object nbt = Reflection.getValue(TAG, nms);
+        Object nms = getNmsItemStack(item);
+        Object nbt = Reflection.getValue(TAG, nms);
         if (nbt != null) {
             // If the tag already exists pull it. If it doesn't, create a new one.
-            final Map<String, Object> map = Reflection.getValue(MAP, nbt);
+            Map<String, Object> map = Reflection.getValue(MAP, nbt);
             map.put(key, tag.getWrapped()); // Set our value under the key
         } else {
             // No need to pull current info because there isn't any.
@@ -232,16 +232,16 @@ public final class ItemNBT {
      * @param nbtTags The tags to set onto the item already mapped to their keys.
      * @return The item that has the tags on it (may or may not be the same item instance).
      */
-    public static ItemStack setTags(final ItemStack item, final Map<String, NBTBase> nbtTags) {
+    public static ItemStack setTags(ItemStack item, Map<String, NBTBase> nbtTags) {
 
         if (isEmpty(item) || nbtTags == null || nbtTags.isEmpty()) {
             return item;
         }
 
-        final Object nms = getNmsItemStack(item);
-        final Object nbt = Reflection.getValue(TAG, nms);
+        Object nms = getNmsItemStack(item);
+        Object nbt = Reflection.getValue(TAG, nms);
         if (nbt != null) {
-            final Map<String, Object> map = Reflection.getValue(MAP, nbt);
+            Map<String, Object> map = Reflection.getValue(MAP, nbt);
             nbtTags.forEach((key, tag) -> map.put(key, tag.getWrapped()));
             return item;
         }
@@ -258,11 +258,11 @@ public final class ItemNBT {
      * @return If a tag existed under the given key and was
      *         successfully removed.
      */
-    public static boolean removeTag(final ItemStack item, final String key) {
+    public static boolean removeTag(ItemStack item, String key) {
 
         if (!isEmpty(item) && key != null && !key.isEmpty() && CRAFT_ITEM.isInstance(item)) {
 
-            final Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
+            Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
             if (nbt != null) {
                 return Reflection.<Map<String, Object>>getValue(MAP, nbt).remove(key) != null;
             }
@@ -278,7 +278,7 @@ public final class ItemNBT {
      * @param item The ItemStack to ensure.
      * @return The ItemStack that is an instance of {@code CraftItemStack}.
      */
-    public static ItemStack ensureCraftItem(final ItemStack item) {
+    public static ItemStack ensureCraftItem(ItemStack item) {
         return CRAFT_ITEM.isInstance(item) ? item : Reflection.invokeMethod(CRAFT_COPY, null, item);
     }
 
@@ -294,7 +294,7 @@ public final class ItemNBT {
      * @param item The item to get the NMS version for.
      * @return The NMS item stack.
      */
-    public static Object getNmsItemStack(final ItemStack item) {
+    public static Object getNmsItemStack(ItemStack item) {
         return CRAFT_ITEM.isInstance(item) ? Reflection.getValue(HANDLE, item) :
                 Reflection.invokeMethod(NMS_COPY, null, item);
     }

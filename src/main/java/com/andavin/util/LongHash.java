@@ -39,7 +39,7 @@ public final class LongHash {
      * @param lsw The Z value or second integer to hash.
      * @return The {@code long} hash that is created from the two integers.
      */
-    public static long toLong(final int msw, final int lsw) {
+    public static long toLong(int msw, int lsw) {
         return ((long) msw << 32) + (long) lsw - Integer.MIN_VALUE;
     }
 
@@ -50,7 +50,7 @@ public final class LongHash {
      * @param l The {@code long} hash to get the first integer from.
      * @return The X value or first integer that was hashed into the long.
      */
-    public static int msw(final long l) {
+    public static int msw(long l) {
         return (int) (l >> 32);
     }
 
@@ -61,7 +61,7 @@ public final class LongHash {
      * @param l The {@code long} hash to get the second integer from.
      * @return The Z value or first integer that was hashed into the long.
      */
-    public static int lsw(final long l) {
+    public static int lsw(long l) {
         return (int) l + Integer.MIN_VALUE;
     }
 }

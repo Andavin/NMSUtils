@@ -73,7 +73,7 @@ public final class AreaVisual {
      * @param action The action to execute for each player.
      * @return This AreaVisual object.
      */
-    public AreaVisual forEach(final Consumer<Player> action) {
+    public AreaVisual forEach(Consumer<Player> action) {
 
         if (!this.visualized.isEmpty()) {
             this.visualized.values().stream().map(WeakReference::get).filter(Objects::nonNull).forEach(action);
@@ -102,7 +102,7 @@ public final class AreaVisual {
      * @param player The client to show the fake blocks to.
      * @return This AreaVisual object.
      */
-    public AreaVisual visualize(final Player player) {
+    public AreaVisual visualize(Player player) {
 
         synchronized (this.visualized) {
             this.visualized.put(player.getUniqueId(), new WeakReference<>(player));
@@ -138,12 +138,12 @@ public final class AreaVisual {
      *               This could be shifting, adding blocks etc.
      * @return This AreaVisual object.
      */
-    public AreaVisual refresh(final Runnable action) {
+    public AreaVisual refresh(Runnable action) {
 
         if (!this.visualized.isEmpty()) {
 
-            final Set<Player> players = this.getPlayers();
-            final Map<Long, Set<VisualBlock>> snaps = new HashMap<>((int) (chunks.size() / 0.75));
+            Set<Player> players = this.getPlayers();
+            Map<Long, Set<VisualBlock>> snaps = new HashMap<>((int) (chunks.size() / 0.75));
             if (action != null) {
                 this.chunks.forEach((hash, chunk) -> snaps.put(hash, chunk.snapshot()));
                 action.run();
@@ -170,8 +170,8 @@ public final class AreaVisual {
      * @param z The Z coordinate of the block to refresh.
      * @return This AreaVisual object.
      */
-    public AreaVisual refresh(final int x, final int y, final int z) {
-        final ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
+    public AreaVisual refresh(int x, int y, int z) {
+        ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
         return chunk != null ? this.forEach(player -> chunk.refresh(player, x, y, z)) : this;
     }
 
@@ -198,7 +198,7 @@ public final class AreaVisual {
      * @param player The player to reset the visualized blocks for.
      * @return This AreaVisual object.
      */
-    public AreaVisual reset(final Player player) {
+    public AreaVisual reset(Player player) {
 
         if (this.visualized.remove(player.getUniqueId()) != null) {
             this.chunks.values().forEach(chunk -> chunk.reset(player));
@@ -242,7 +242,7 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public AreaVisual addBlock(final VisualBlock block) {
+    public AreaVisual addBlock(VisualBlock block) {
         this.chunks.computeIfAbsent(block.getChunk(), ChunkVisual::new).addBlock(block);
         return this;
     }
@@ -256,10 +256,10 @@ public final class AreaVisual {
      * @return This AreaVisual object.
      * @see VisualBlock
      */
-    public AreaVisual addBlock(final Collection<VisualBlock> blocks) {
+    public AreaVisual addBlock(Collection<VisualBlock> blocks) {
 
         ChunkVisual chunk = null;
-        for (final VisualBlock block : blocks) {
+        for (VisualBlock block : blocks) {
 
             if (chunk == null || block.getChunk() != chunk.getChunk()) {
                 chunk = this.chunks.computeIfAbsent(block.getChunk(), ChunkVisual::new);
@@ -283,14 +283,14 @@ public final class AreaVisual {
      * @return The VisualBlock previously at the given coordinates or
      *         {@code null} if there is no block at the coordinates.
      */
-    public VisualBlock removeBlock(final int x, final int y, final int z) {
+    public VisualBlock removeBlock(int x, int y, int z) {
 
-        final ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
+        ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
         if (chunk == null) {
             return null;
         }
 
-        final VisualBlock block = chunk.removeBlock(x, y, z);
+        VisualBlock block = chunk.removeBlock(x, y, z);
         if (block != null) {
             this.forEach(player -> chunk.sendBlocks(player,
                     Collections.singletonList(block.getRealType(player.getWorld()))));
@@ -306,7 +306,7 @@ public final class AreaVisual {
      * @return A unique {@link Set} of blocks within this area.
      */
     public Set<VisualBlock> getBlocks() {
-        final Set<VisualBlock> blocks = new HashSet<>();
+        Set<VisualBlock> blocks = new HashSet<>();
         this.chunks.values().forEach(chunk -> blocks.addAll(chunk.snapshot()));
         return blocks;
     }
@@ -323,8 +323,8 @@ public final class AreaVisual {
      * @return The VisualBlock at the given coordinates or {@code null}
      *         if there is no block at the coordinates.
      */
-    public VisualBlock getBlock(final int x, final int y, final int z) {
-        final ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
+    public VisualBlock getBlock(int x, int y, int z) {
+        ChunkVisual chunk = this.chunks.get(LongHash.toLong(x >> 4, z >> 4));
         return chunk != null ? chunk.getBlock(x, y, z) : null;
     }
 
@@ -350,7 +350,7 @@ public final class AreaVisual {
      *         contained in this area visual or {@code null} if there
      *         is no chunk with the coordinates.
      */
-    public ChunkVisual getChunk(final int x, final int z) {
+    public ChunkVisual getChunk(int x, int z) {
         return this.chunks.get(LongHash.toLong(x, z));
     }
 
@@ -444,7 +444,7 @@ public final class AreaVisual {
      * @see #setType(Material, int, Material)
      * @see #setType(Material, int, Material, int)
      */
-    public AreaVisual revert(final boolean refresh) {
+    public AreaVisual revert(boolean refresh) {
         return this.revert(1, refresh);
     }
 
@@ -496,7 +496,7 @@ public final class AreaVisual {
      * @see #setType(Material, int, Material)
      * @see #setType(Material, int, Material, int)
      */
-    public AreaVisual revert(final int amount) {
+    public AreaVisual revert(int amount) {
         return this.revert(amount, true);
     }
 
@@ -550,7 +550,7 @@ public final class AreaVisual {
      * @see #setType(Material, int, Material)
      * @see #setType(Material, int, Material, int)
      */
-    public AreaVisual revert(final int amount, final boolean refresh) {
+    public AreaVisual revert(int amount, boolean refresh) {
         return this.alter(chunk -> chunk.revert(amount, this), refresh);
     }
 
@@ -563,7 +563,7 @@ public final class AreaVisual {
      * @param toType The type to change the matching blocks to.
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final Material toType) {
+    public AreaVisual setType(Material fromType, Material toType) {
         return this.setType(fromType, -1, toType, 0, true);
     }
 
@@ -578,7 +578,7 @@ public final class AreaVisual {
      *                automatically during the type change.
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final Material toType, final boolean refresh) {
+    public AreaVisual setType(Material fromType, Material toType, boolean refresh) {
         return this.setType(fromType, -1, toType, 0, refresh);
     }
 
@@ -596,8 +596,8 @@ public final class AreaVisual {
      * @return This AreaVisual object after the types have been changed.
      * @see #revert()
      */
-    public AreaVisual setType(final Material fromType, final Material toType,
-            final boolean refresh, final boolean ignoreDirectional) {
+    public AreaVisual setType(Material fromType, Material toType,
+                              boolean refresh, boolean ignoreDirectional) {
         return this.setType(fromType, -1, toType, 0, refresh, ignoreDirectional);
     }
 
@@ -611,7 +611,7 @@ public final class AreaVisual {
      * @param toData The data to change the matching blocks to.
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final Material toType, final int toData) {
+    public AreaVisual setType(Material fromType, Material toType, int toData) {
         return this.setType(fromType, -1, toType, toData, true);
     }
 
@@ -627,7 +627,7 @@ public final class AreaVisual {
      *                automatically during the type change.
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final Material toType, final int toData, final boolean refresh) {
+    public AreaVisual setType(Material fromType, Material toType, int toData, boolean refresh) {
         return this.setType(fromType, -1, toType, toData, refresh);
     }
 
@@ -646,8 +646,8 @@ public final class AreaVisual {
      * @return This AreaVisual object after the types have been changed.
      * @see #revert()
      */
-    public AreaVisual setType(final Material fromType, final Material toType, final int toData,
-            final boolean refresh, final boolean ignoreDirectional) {
+    public AreaVisual setType(Material fromType, Material toType, int toData,
+                              boolean refresh, boolean ignoreDirectional) {
         return this.setType(fromType, -1, toType, toData, refresh, ignoreDirectional);
     }
 
@@ -667,7 +667,7 @@ public final class AreaVisual {
      * @param toType The type to change the matching blocks to.
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final int fromData, final Material toType) {
+    public AreaVisual setType(Material fromType, int fromData, Material toType) {
         return this.setType(fromType, fromData, toType, 0, true);
     }
 
@@ -689,7 +689,7 @@ public final class AreaVisual {
      *                automatically during the type change.
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final int fromData, final Material toType, final boolean refresh) {
+    public AreaVisual setType(Material fromType, int fromData, Material toType, boolean refresh) {
         return this.setType(fromType, fromData, toType, 0, refresh);
     }
 
@@ -714,8 +714,8 @@ public final class AreaVisual {
      * @return This AreaVisual object after the types have been changed.
      * @see #revert()
      */
-    public AreaVisual setType(final Material fromType, final int fromData,
-            final Material toType, final boolean refresh, final boolean ignoreDirectional) {
+    public AreaVisual setType(Material fromType, int fromData,
+                              Material toType, boolean refresh, boolean ignoreDirectional) {
         return this.setType(fromType, fromData, toType, 0, refresh, ignoreDirectional);
     }
 
@@ -737,7 +737,7 @@ public final class AreaVisual {
      * @param toData The data to change the matching blocks to.
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final int fromData, final Material toType, final int toData) {
+    public AreaVisual setType(Material fromType, int fromData, Material toType, int toData) {
         return this.setType(fromType, fromData, toType, toData, true);
     }
 
@@ -759,8 +759,8 @@ public final class AreaVisual {
      * @param refresh If the blocks should be {@link #refresh(Runnable) refreshed}
      * @return This AreaVisual object after the types have been changed.
      */
-    public AreaVisual setType(final Material fromType, final int fromData,
-            final Material toType, final int toData, final boolean refresh) {
+    public AreaVisual setType(Material fromType, int fromData,
+                              Material toType, int toData, boolean refresh) {
         return this.alter(chunk -> chunk.setType(fromType, fromData, toType, toData), refresh);
     }
 
@@ -785,8 +785,8 @@ public final class AreaVisual {
      * @return This AreaVisual object after the types have been changed.
      * @see #revert()
      */
-    public AreaVisual setType(final Material fromType, final int fromData,
-            final Material toType, final int toData, final boolean refresh, final boolean ignoreDirectional) {
+    public AreaVisual setType(Material fromType, int fromData,
+                              Material toType, int toData, boolean refresh, boolean ignoreDirectional) {
         return this.alter(chunk -> chunk.setType(fromType, fromData, toType, toData, ignoreDirectional), refresh);
     }
 
@@ -797,7 +797,7 @@ public final class AreaVisual {
      * @param direction The {@link BlockFace direction} to shift the blocks in.
      * @return This AreaVisual object after it has been shifted.
      */
-    public AreaVisual shift(final BlockFace direction) {
+    public AreaVisual shift(BlockFace direction) {
         return this.transform(chunk -> chunk.shift(direction), true);
     }
 
@@ -813,7 +813,7 @@ public final class AreaVisual {
      * @param direction The {@link BlockFace direction} to shift the blocks in.
      * @return This AreaVisual object after it has been shifted.
      */
-    public AreaVisual shift(final int distance, final BlockFace direction) {
+    public AreaVisual shift(int distance, BlockFace direction) {
         return this.transform(chunk -> chunk.shift(distance, direction), true);
     }
 
@@ -831,7 +831,7 @@ public final class AreaVisual {
      * @param z The amount of blocks to shift along the z-axis.
      * @return This AreaVisual object after it has been shifted.
      */
-    public AreaVisual shift(final int x, final int y, final int z) {
+    public AreaVisual shift(int x, int y, int z) {
         return this.transform(chunk -> chunk.shift(x, y, z), true);
     }
 
@@ -852,7 +852,7 @@ public final class AreaVisual {
      * @param degrees The amount of degrees to rotate around the origin.
      * @return This AreaVisual object after it has been rotated.
      */
-    public AreaVisual rotateX(final Vector origin, final float degrees) {
+    public AreaVisual rotateX(Vector origin, float degrees) {
         return this.transform(chunk -> chunk.rotateX(origin, degrees), true);
     }
 
@@ -873,7 +873,7 @@ public final class AreaVisual {
      * @param degrees The amount of degrees to rotate around the origin.
      * @return This AreaVisual object after it has been rotated.
      */
-    public AreaVisual rotateY(final Vector origin, final float degrees) {
+    public AreaVisual rotateY(Vector origin, float degrees) {
         return this.transform(chunk -> chunk.rotateY(origin, degrees), true);
     }
 
@@ -894,7 +894,7 @@ public final class AreaVisual {
      * @param degrees The amount of degrees to rotate around the origin.
      * @return This AreaVisual object after it has been rotated.
      */
-    public AreaVisual rotateZ(final Vector origin, final float degrees) {
+    public AreaVisual rotateZ(Vector origin, float degrees) {
         return this.transform(chunk -> chunk.rotateZ(origin, degrees), true);
     }
 
@@ -910,7 +910,7 @@ public final class AreaVisual {
      *                automatically during the transformation.
      * @return This AreaVisual object after it has been transformed.
      */
-    public AreaVisual transform(final Function<ChunkVisual, List<VisualBlock>> transformer, final boolean refresh) {
+    public AreaVisual transform(Function<ChunkVisual, List<VisualBlock>> transformer, boolean refresh) {
 
         if (this.chunks.isEmpty()) {
             return this;
@@ -920,7 +920,7 @@ public final class AreaVisual {
             return this.refresh(() -> this.transform(transformer, false));
         }
 
-        final List<VisualBlock> overflow = new ArrayList<>();
+        List<VisualBlock> overflow = new ArrayList<>();
         this.chunks.values().forEach(chunk -> overflow.addAll(transformer.apply(chunk)));
         if (!overflow.isEmpty()) {
             this.addBlock(overflow);
@@ -944,7 +944,7 @@ public final class AreaVisual {
      * @return This AreaVisual object after it has been transformed.
      */
     // Named to alter to avoid lambda confusion
-    private AreaVisual alter(final Consumer<ChunkVisual> transformer, final boolean refresh) {
+    private AreaVisual alter(Consumer<ChunkVisual> transformer, boolean refresh) {
 
         if (this.chunks.isEmpty()) {
             return this;

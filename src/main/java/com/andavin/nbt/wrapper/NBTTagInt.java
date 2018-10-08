@@ -43,12 +43,12 @@ public final class NBTTagInt extends NBTNumber {
     private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagInt"), "data");
     private final int data;
 
-    public NBTTagInt(final int data) {
+    public NBTTagInt(int data) {
         super(NBTHelper.createTag(NBTTagInt.class, data));
         this.data = data;
     }
 
-    NBTTagInt(final Object wrapped) {
+    NBTTagInt(Object wrapped) {
         super(wrapped);
         this.data = Reflection.getValue(DATA, wrapped);
     }
@@ -101,7 +101,7 @@ public final class NBTTagInt extends NBTNumber {
      *        {@link ConfigurationSerializable#serialize()}.
      * @return The newly created, deserialized object.
      */
-    public static NBTTagInt deserialize(final Map<String, Object> map) {
+    public static NBTTagInt deserialize(Map<String, Object> map) {
         return new NBTTagInt(((Integer) map.get("data")).intValue());
     }
 }

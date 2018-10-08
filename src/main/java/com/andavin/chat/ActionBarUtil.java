@@ -58,7 +58,7 @@ public final class ActionBarUtil {
      * @param player The player to send the message to.
      * @param msg The message to send.
      */
-    public static void sendActionBar(final Player player, final String msg) {
+    public static void sendActionBar(Player player, String msg) {
 
         if (CHAT == null) { // 1.12+
             // Honestly this may not even be worth it. The speed difference between

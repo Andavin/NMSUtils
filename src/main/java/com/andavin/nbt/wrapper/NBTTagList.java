@@ -67,12 +67,12 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      *
      * @param list The List to create the tag from.
      */
-    public NBTTagList(final List<NBTBase> list) {
+    public NBTTagList(List<NBTBase> list) {
         this();
         list.forEach(this::add);
     }
 
-    NBTTagList(final Object wrapped) {
+    NBTTagList(Object wrapped) {
         super(wrapped);
         this.list = Reflection.getValue(DATA, wrapped);
         if (!this.list.isEmpty()) {
@@ -127,7 +127,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param tag The tag to add to this list.
      * @return If the tag was successfully added.
      */
-    public boolean add(final NBTBase tag) {
+    public boolean add(NBTBase tag) {
 
         if (this.isType(tag)) {
             this.wrapped.add(tag);
@@ -149,7 +149,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param index The index to add the tag at.
      * @param tag The tag to add to this list.
      */
-    public void add(final int index, final NBTBase tag) {
+    public void add(int index, NBTBase tag) {
 
         if (this.isInRange(index) && this.isType(tag)) {
             this.wrapped.add(index, tag);
@@ -170,7 +170,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param tag The tag to replace the index with.
      * @return The {@link NBTBase tag} that was previously at the index.
      */
-    public NBTBase set(final int index, final NBTBase tag) {
+    public NBTBase set(int index, NBTBase tag) {
 
         if (this.isInRange(index) && this.isType(tag)) {
             this.list.set(index, tag);
@@ -188,7 +188,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param index The index to get the tag at.
      * @return The tag at the given index.
      */
-    public NBTBase get(final int index) {
+    public NBTBase get(int index) {
         return this.wrapped.get(index);
     }
 
@@ -199,7 +199,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param tag The tag to remove the equivalents.
      * @return If any tag was successfully removed.
      */
-    public boolean remove(final NBTBase tag) {
+    public boolean remove(NBTBase tag) {
         this.list.remove(tag.wrapped);
         return this.wrapped.remove(tag);
     }
@@ -212,7 +212,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param index The index to remove the tag at.
      * @return The tag that was removed.
      */
-    public NBTBase remove(final int index) {
+    public NBTBase remove(int index) {
         this.list.remove(index);
         return this.wrapped.remove(index);
     }
@@ -225,7 +225,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      *        {@link ConfigurationSerializable#serialize()}.
      * @return The newly created, deserialized object.
      */
-    public static NBTTagList deserialize(final Map<String, Object> map) {
+    public static NBTTagList deserialize(Map<String, Object> map) {
         return new NBTTagList((List<NBTBase>) map.get("data"));
     }
 
@@ -234,13 +234,13 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
         return this.wrapped.iterator();
     }
 
-    private boolean isInRange(final int index) {
+    private boolean isInRange(int index) {
         return 0 <= index && index < this.list.size();
     }
 
-    private boolean isType(final NBTBase tag) {
+    private boolean isType(NBTBase tag) {
 
-        final byte id = tag.getTypeId();
+        byte id = tag.getTypeId();
         if (id == NBTType.END) {
             return false;
         }

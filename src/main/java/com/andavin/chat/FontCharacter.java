@@ -156,9 +156,9 @@ public enum FontCharacter {
 
     static {
 
-        final FontCharacter[] chars = FontCharacter.values();
+        FontCharacter[] chars = FontCharacter.values();
         CHARS = new HashMap<>(chars.length);
-        for (final FontCharacter c : chars) {
+        for (FontCharacter c : chars) {
             CHARS.put(c.getCharacter(), c);
         }
     }
@@ -166,7 +166,7 @@ public enum FontCharacter {
     private final int length;
     private final char character;
 
-    FontCharacter(final char character, final int length) {
+    FontCharacter(char character, int length) {
         this.character = character;
         this.length = length;
     }
@@ -178,7 +178,7 @@ public enum FontCharacter {
      * @param c The character.
      * @return The utility.
      */
-    public static FontCharacter getByCharacter(final char c) {
+    public static FontCharacter getByCharacter(char c) {
         return CHARS.get(c);
     }
 

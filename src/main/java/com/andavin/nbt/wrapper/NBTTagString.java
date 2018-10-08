@@ -44,12 +44,12 @@ public final class NBTTagString extends NBTBase implements DataHolder<String> {
     private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagString"), "data");
     private final String data;
 
-    public NBTTagString(final String data) {
+    public NBTTagString(String data) {
         super(NBTHelper.createTag(NBTTagString.class, data));
         this.data = data;
     }
 
-    NBTTagString(final Object wrapped) {
+    NBTTagString(Object wrapped) {
         super(wrapped);
         this.data = Reflection.getValue(DATA, wrapped);
     }
@@ -72,7 +72,7 @@ public final class NBTTagString extends NBTBase implements DataHolder<String> {
      *        {@link ConfigurationSerializable#serialize()}.
      * @return The newly created, deserialized object.
      */
-    public static NBTTagByte deserialize(final Map<String, Object> map) {
+    public static NBTTagByte deserialize(Map<String, Object> map) {
         return new NBTTagByte(map.get("data"));
     }
 }

@@ -57,9 +57,9 @@ public abstract class NBTBase implements ConfigurationSerializable {
      *
      * @param wrapped The NMS NBT object to wrap.
      */
-    NBTBase(final Object wrapped) {
+    NBTBase(Object wrapped) {
         this.wrapped = wrapped;
-        final NBTTag type = this.getClass().getDeclaredAnnotation(NBTTag.class);
+        NBTTag type = this.getClass().getDeclaredAnnotation(NBTTag.class);
         checkState(type != null, "{} missing tag annotation", this.getClass());
         this.typeId = type.typeId();
     }
@@ -100,7 +100,7 @@ public abstract class NBTBase implements ConfigurationSerializable {
     }
 
     @Override
-    public final boolean equals(final Object o) {
+    public final boolean equals(Object o) {
         return o instanceof NBTBase && this.wrapped.equals(((NBTBase) o).wrapped);
     }
 
