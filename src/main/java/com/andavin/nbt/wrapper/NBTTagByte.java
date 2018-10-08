@@ -43,6 +43,10 @@ public final class NBTTagByte extends NBTNumber {
     private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagByte"), "data");
     private final byte data;
 
+    public NBTTagByte(int data) {
+        this((byte) data);
+    }
+
     public NBTTagByte(byte data) {
         super(NBTHelper.createTag(NBTTagByte.class, data));
         this.data = data;

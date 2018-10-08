@@ -43,6 +43,10 @@ public final class NBTTagFloat extends NBTNumber {
     private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagFloat"), "data");
     private final float data;
 
+    public NBTTagFloat(double data) {
+        this((float) data);
+    }
+
     public NBTTagFloat(float data) {
         super(NBTHelper.createTag(NBTTagFloat.class, data));
         this.data = data;
