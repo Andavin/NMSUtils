@@ -40,7 +40,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.LONG, params = long.class)
 public final class NBTTagLong extends NBTNumber {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagLong"), "data");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagLong"), "data");
     private final long data;
 
     public NBTTagLong(long data) {

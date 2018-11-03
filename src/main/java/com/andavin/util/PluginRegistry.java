@@ -26,6 +26,7 @@ package com.andavin.util;
 
 import com.andavin.NMSUtils;
 import com.andavin.reflect.Reflection;
+import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
@@ -33,9 +34,7 @@ import org.bukkit.plugin.PluginLogger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -47,6 +46,7 @@ import java.util.logging.Logger;
 public final class PluginRegistry {
 
     private static final Map<String, WeakReference<Plugin>> PLUGINS = new HashMap<>();
+    private static final Set<String> EXCLUDED = Sets.newHashSet(com.andavin.util.Logger.class.getName());
 
     static {
         // A least one plugin should be loaded at the point
@@ -66,9 +66,15 @@ public final class PluginRegistry {
      * @param plugin The {@link Plugin plugin} instance to register.
      */
     public static void register(Plugin plugin) {
+
         Class<? extends Plugin> clazz = plugin.getClass();
-        String pack = clazz.getPackage().getName();
-        PLUGINS.put(pack, new WeakReference<>(plugin));
+        Package pack = clazz.getPackage();
+        if (pack == null) {
+            return;
+        }
+
+        String name = pack.getName();
+        PLUGINS.put(name, new WeakReference<>(plugin));
     }
 
     /**
@@ -81,17 +87,12 @@ public final class PluginRegistry {
     @Nonnull
     static Logger getLogger() {
 
-        HashSet<String> excluded = new HashSet<>(3);
-        excluded.add(com.andavin.util.Logger.class.getName());
-        excluded.add(Reflection.class.getName());
-        String className = Reflection.getCallerClass(0, excluded);
-
-        Plugin plugin = getPlugin(className);
-        for (int tries = 1; plugin == null && tries <= 10; tries++) {
-            plugin = getPlugin(Reflection.getCallerClass(tries, excluded));
+        Plugin plugin = getPlugin(Reflection.getCallerClass(1));
+        for (int tries = 2; plugin == null && tries <= 10; tries++) {
+            plugin = getPlugin(Reflection.getCallerClass(tries));
         }
 
-        return plugin == null ? Bukkit.getLogger() : plugin.getLogger();
+        return plugin != null ? plugin.getLogger() : Bukkit.getLogger();
     }
 
     /**
@@ -106,11 +107,10 @@ public final class PluginRegistry {
     @Nonnull
     public static Plugin getPlugin(int attempts) {
 
-        Set<String> excluded = Collections.singleton(Scheduler.class.getName());
-        String className = Reflection.getCallerClass(1, excluded); // Exclude the class that called this
+        String className = Reflection.getCallerClass(1); // Exclude the class that called this
         Plugin plugin = getPlugin(className);
         for (int tries = 2; plugin == null && tries <= attempts; tries++) {
-            plugin = getPlugin(Reflection.getCallerClass(tries, excluded));
+            plugin = getPlugin(Reflection.getCallerClass(tries));
         }
 
         return plugin != null ? plugin : NMSUtils.getInstance();

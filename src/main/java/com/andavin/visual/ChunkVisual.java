@@ -38,15 +38,7 @@ import javax.annotation.Nullable;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -62,19 +54,19 @@ public final class ChunkVisual {
     private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR;
 
     static {
-        Class<?> blockData = Reflection.getMcClass("IBlockData");
-        Class<?> singlePacket = Reflection.getMcClass("PacketPlayOutBlockChange");
-        Class<?> multiPacket = Reflection.getMcClass("PacketPlayOutMultiBlockChange");
-        Class<?> multiBlock = Reflection.getMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
-        BLOCK_POS = Reflection.getConstructor(Reflection.getMcClass("BlockPosition"), int.class, int.class, int.class);
-        CHUNK_PAIR = Reflection.getConstructor(Reflection.getMcClass("ChunkCoordIntPair"), int.class, int.class);
-        M_PACKET = Reflection.getConstructor(multiPacket);
-        MULTI_BLOCK = Reflection.getConstructor(multiBlock, multiPacket, short.class, blockData);
-        S_PACKET = Reflection.getConstructor(singlePacket);
-        CHUNK = Reflection.getField(multiPacket, "a");
-        M_BLOCK_DATA = Reflection.getField(multiPacket, "b");
-        POSITION = Reflection.getField(singlePacket, "a");
-        S_BLOCK_DATA = Reflection.getField(singlePacket, "block");
+        Class<?> blockData = Reflection.findMcClass("IBlockData");
+        Class<?> singlePacket = Reflection.findMcClass("PacketPlayOutBlockChange");
+        Class<?> multiPacket = Reflection.findMcClass("PacketPlayOutMultiBlockChange");
+        Class<?> multiBlock = Reflection.findMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
+        BLOCK_POS = Reflection.findConstructor(Reflection.findMcClass("BlockPosition"), int.class, int.class, int.class);
+        CHUNK_PAIR = Reflection.findConstructor(Reflection.findMcClass("ChunkCoordIntPair"), int.class, int.class);
+        M_PACKET = Reflection.findConstructor(multiPacket);
+        MULTI_BLOCK = Reflection.findConstructor(multiBlock, multiPacket, short.class, blockData);
+        S_PACKET = Reflection.findConstructor(singlePacket);
+        CHUNK = Reflection.findField(multiPacket, "a");
+        M_BLOCK_DATA = Reflection.findField(multiPacket, "b");
+        POSITION = Reflection.findField(singlePacket, "a");
+        S_BLOCK_DATA = Reflection.findField(singlePacket, "block");
     }
 
     private final int x, z;
@@ -87,7 +79,7 @@ public final class ChunkVisual {
         this.chunk = chunk;
         this.x = LongHash.msw(chunk);
         this.z = LongHash.lsw(chunk);
-        this.chunkPair = Reflection.getInstance(CHUNK_PAIR, this.x, this.z);
+        this.chunkPair = Reflection.newInstance(CHUNK_PAIR, this.x, this.z);
     }
 
     /**
@@ -821,8 +813,8 @@ public final class ChunkVisual {
         // a single PacketPlayOutBlockChange packet
         if (blocks.size() == 1) {
             VisualBlock block = blocks.get(0);
-            Object packet = Reflection.getInstance(S_PACKET);
-            Reflection.setValue(POSITION, packet, Reflection.getInstance(BLOCK_POS,
+            Object packet = Reflection.newInstance(S_PACKET);
+            Reflection.setValue(POSITION, packet, Reflection.newInstance(BLOCK_POS,
                     block.getX(), block.getY(), block.getZ())); // Set the position
             Reflection.setValue(S_BLOCK_DATA, packet, block.getBlockData()); // And the data
             PacketSender.sendPacket(player, packet);
@@ -830,7 +822,7 @@ public final class ChunkVisual {
         }
 
         // There are multiple here so send a PacketPlayOutMultiBlockChange packet
-        Object packet = Reflection.getInstance(M_PACKET);
+        Object packet = Reflection.newInstance(M_PACKET);
         Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(), blocks.size());
         Reflection.setValue(CHUNK, packet, this.chunkPair); // Set the chunk that it is in
         Reflection.setValue(M_BLOCK_DATA, packet, blockData); // Place the array into the packet
@@ -838,7 +830,7 @@ public final class ChunkVisual {
         // Then update the array with all of the data and positions
         int i = 0;
         for (VisualBlock block : blocks) {
-            blockData[i++] = Reflection.getInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
+            blockData[i++] = Reflection.newInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
         }
 
         // Send the packet to the player

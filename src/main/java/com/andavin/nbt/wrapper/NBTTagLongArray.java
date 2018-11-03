@@ -44,7 +44,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.LONG_ARRAY, params = long[].class)
 public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]> {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagLongArray"), "b");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagLongArray"), "b");
     private final long[] data;
 
     public NBTTagLongArray(long... data) {

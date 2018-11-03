@@ -33,11 +33,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.material.Directional;
-import org.bukkit.material.ExtendedRails;
-import org.bukkit.material.MaterialData;
-import org.bukkit.material.Rails;
-import org.bukkit.material.Tree;
+import org.bukkit.material.*;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
@@ -79,7 +75,7 @@ public final class VisualBlock {
 
     static {
 
-        Class<?> block = Reflection.getMcClass("Block");
+        Class<?> block = Reflection.findMcClass("Block");
         Object registry = Reflection.getValue(block, null, "REGISTRY_ID");
         if (registry == null) {
             registry = Reflection.getValue(block, null, "d");

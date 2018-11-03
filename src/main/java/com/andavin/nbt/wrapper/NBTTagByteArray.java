@@ -42,7 +42,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.BYTE_ARRAY, params = byte[].class)
 public final class NBTTagByteArray extends NBTBase implements DataHolder<byte[]> {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagByteArray"), "data");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagByteArray"), "data");
     private final byte[] data;
 
     public NBTTagByteArray(byte... data) {

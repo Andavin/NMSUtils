@@ -43,9 +43,9 @@ public final class ActionBarUtil {
     static {
 
         if (Reflection.VERSION_NUMBER < Reflection.v1_12) {
-            CHAT = Reflection.getConstructor(Reflection.getMcClass("ChatComponentText"), String.class);
-            PACKET = Reflection.getConstructor(Reflection.getMcClass("PacketPlayOutChat"),
-                    Reflection.getMcClass("IChatBaseComponent"), byte.class);
+            CHAT = Reflection.findConstructor(Reflection.findMcClass("ChatComponentText"), String.class);
+            PACKET = Reflection.findConstructor(Reflection.findMcClass("PacketPlayOutChat"),
+                    Reflection.findMcClass("IChatBaseComponent"), byte.class);
         } else {
             PACKET = CHAT = null;
         }
@@ -67,6 +67,6 @@ public final class ActionBarUtil {
             return;
         }
 
-        PacketSender.sendPacket(player, Reflection.getInstance(PACKET, Reflection.getInstance(CHAT, msg), (byte) 2));
+        PacketSender.sendPacket(player, Reflection.newInstance(PACKET, Reflection.newInstance(CHAT, msg), (byte) 2));
     }
 }

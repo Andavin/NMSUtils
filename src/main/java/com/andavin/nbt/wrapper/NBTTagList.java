@@ -47,7 +47,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.LIST)
 public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase>>, Iterable<NBTBase> {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagList"), "list");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagList"), "list");
 
     private byte tagType = -1;
     private final List<Object> list;

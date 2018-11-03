@@ -41,7 +41,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.STRING, params = String.class)
 public final class NBTTagString extends NBTBase implements DataHolder<String> {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagString"), "data");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagString"), "data");
     private final String data;
 
     public NBTTagString(String data) {

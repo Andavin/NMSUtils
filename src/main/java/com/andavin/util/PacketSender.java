@@ -49,10 +49,10 @@ public final class PacketSender {
     private static final Method SEND_PACKET, HANDLE;
 
     static {
-        CONNECTION = Reflection.getField(Reflection.getMcClass("EntityPlayer"), "playerConnection");
-        SEND_PACKET = Reflection.getMethod(Reflection.getMcClass("PlayerConnection"),
-                "sendPacket", Reflection.getMcClass("Packet"));
-        HANDLE = Reflection.getMethod(Reflection.getCraftClass("entity.CraftPlayer"), "getHandle");
+        CONNECTION = Reflection.findField(Reflection.findMcClass("EntityPlayer"), "playerConnection");
+        SEND_PACKET = Reflection.findMethod(Reflection.findMcClass("PlayerConnection"),
+                "sendPacket", Reflection.findMcClass("Packet"));
+        HANDLE = Reflection.findMethod(Reflection.findCraftClass("entity.CraftPlayer"), "getHandle");
     }
 
     /**
@@ -61,8 +61,8 @@ public final class PacketSender {
      * <p>
      * The packet must be a Minecraft packet that extends the NMS
      * {@code Packet}. If a direct instantiation of a packet needs
-     * to be avoided, the {@link Reflection#getInstance(Class, Object...)}
-     * and {@link Reflection#getMcClass(String)} or similar methods
+     * to be avoided, the {@link Reflection#newInstance(Class, Object...)}
+     * and {@link Reflection#findMcClass(String)} or similar methods
      * can be used to create an instance.
      *
      * @param player The player to send the packet to.
@@ -70,8 +70,8 @@ public final class PacketSender {
      * @see Reflection
      */
     public static void sendPacket(Player player, Object packet) {
-        Object conn = Reflection.getValue(CONNECTION, Reflection.invokeMethod(HANDLE, player));
-        Reflection.invokeMethod(SEND_PACKET, conn, packet);
+        Object conn = Reflection.getValue(CONNECTION, Reflection.invoke(HANDLE, player));
+        Reflection.invoke(SEND_PACKET, conn, packet);
     }
 
     /**
@@ -80,8 +80,8 @@ public final class PacketSender {
      * <p>
      * The packet must be a Minecraft packet that extends the NMS
      * {@code Packet}. If a direct instantiation of a packet needs
-     * to be avoided, the {@link Reflection#getInstance(Class, Object...)}
-     * and {@link Reflection#getMcClass(String)} or similar methods
+     * to be avoided, the {@link Reflection#newInstance(Class, Object...)}
+     * and {@link Reflection#findMcClass(String)} or similar methods
      * can be used to create an instance.
      *
      * @param player The player to send the packet to.
@@ -89,7 +89,7 @@ public final class PacketSender {
      * @see Reflection
      */
     public static void sendPackets(Player player, List<Object> packets) {
-        Object conn = Reflection.getValue(CONNECTION, Reflection.invokeMethod(HANDLE, player));
-        packets.forEach(packet -> Reflection.invokeMethod(SEND_PACKET, conn, packet));
+        Object conn = Reflection.getValue(CONNECTION, Reflection.invoke(HANDLE, player));
+        packets.forEach(packet -> Reflection.invoke(SEND_PACKET, conn, packet));
     }
 }

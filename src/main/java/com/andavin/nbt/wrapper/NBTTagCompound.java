@@ -59,7 +59,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @NBTTag(typeId = NBTType.COMPOUND)
 public final class NBTTagCompound extends NBTBase implements DataHolder<Map<String, NBTBase>> {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagCompound"), "map");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagCompound"), "map");
     private final Map<String, Object> map;
     private final Map<String, NBTBase> wrapped;
 

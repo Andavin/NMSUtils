@@ -47,18 +47,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class ItemNBT {
 
-    private static final Class<?> CRAFT_ITEM = Reflection.getCraftClass("inventory.CraftItemStack");
-    private static final Field HANDLE = Reflection.getField(CRAFT_ITEM, "handle");
+    private static final Class<?> CRAFT_ITEM = Reflection.findCraftClass("inventory.CraftItemStack");
+    private static final Field HANDLE = Reflection.findField(CRAFT_ITEM, "handle");
     private static final Field TAG, MAP = Reflection.getValue(NBTTagCompound.class, null, "DATA");
 
-    private static final Method CRAFT_COPY = Reflection.getMethod(CRAFT_ITEM, "asCraftCopy", ItemStack.class);
-    private static final Method NMS_COPY = Reflection.getMethod(CRAFT_ITEM, "asNMSCopy", ItemStack.class);
+    private static final Method CRAFT_COPY = Reflection.findMethod(CRAFT_ITEM, "asCraftCopy", ItemStack.class);
+    private static final Method NMS_COPY = Reflection.findMethod(CRAFT_ITEM, "asNMSCopy", ItemStack.class);
     private static final Method CRAFT_MIRROR;
 
     static {
-        Class<?> itemClass = Reflection.getMcClass("ItemStack");
-        TAG = Reflection.getField(itemClass, "tag");
-        CRAFT_MIRROR = Reflection.getMethod(CRAFT_ITEM, "asCraftMirror", itemClass);
+        Class<?> itemClass = Reflection.findMcClass("ItemStack");
+        TAG = Reflection.findField(itemClass, "tag");
+        CRAFT_MIRROR = Reflection.findMethod(CRAFT_ITEM, "asCraftMirror", itemClass);
     }
 
     /**
@@ -222,7 +222,7 @@ public final class ItemNBT {
         // If the item was instanceof CraftItemStack then we just edited
         // the basic object so we can just pass itself back.
         // Otherwise, we need to create a Bukkit mirror of the new NMS ItemStack.
-        return CRAFT_ITEM.isInstance(item) ? item : Reflection.invokeMethod(CRAFT_MIRROR, null, nms);
+        return CRAFT_ITEM.isInstance(item) ? item : Reflection.invoke(CRAFT_MIRROR, null, nms);
     }
 
     /**
@@ -247,7 +247,7 @@ public final class ItemNBT {
         }
 
         Reflection.setValue(TAG, nms, new NBTTagCompound(nbtTags).getWrapped());
-        return Reflection.invokeMethod(CRAFT_MIRROR, null, nms);
+        return Reflection.invoke(CRAFT_MIRROR, null, nms);
     }
 
     /**
@@ -279,7 +279,7 @@ public final class ItemNBT {
      * @return The ItemStack that is an instance of {@code CraftItemStack}.
      */
     public static ItemStack ensureCraftItem(ItemStack item) {
-        return CRAFT_ITEM.isInstance(item) ? item : Reflection.invokeMethod(CRAFT_COPY, null, item);
+        return CRAFT_ITEM.isInstance(item) ? item : Reflection.invoke(CRAFT_COPY, null, item);
     }
 
     /**
@@ -296,6 +296,6 @@ public final class ItemNBT {
      */
     public static Object getNmsItemStack(ItemStack item) {
         return CRAFT_ITEM.isInstance(item) ? Reflection.getValue(HANDLE, item) :
-                Reflection.invokeMethod(NMS_COPY, null, item);
+                Reflection.invoke(NMS_COPY, null, item);
     }
 }

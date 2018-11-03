@@ -40,7 +40,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.FLOAT, params = float.class)
 public final class NBTTagFloat extends NBTNumber {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagFloat"), "data");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagFloat"), "data");
     private final float data;
 
     public NBTTagFloat(double data) {

@@ -42,7 +42,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.INT_ARRAY, params = int[].class)
 public final class NBTTagIntArray extends NBTBase implements DataHolder<int[]> {
 
-    private static final Field DATA = Reflection.getField(Reflection.getMcClass("NBTTagIntArray"), "data");
+    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagIntArray"), "data");
     private final int[] data;
 
     public NBTTagIntArray(int... data) {
