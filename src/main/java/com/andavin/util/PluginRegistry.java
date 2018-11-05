@@ -87,7 +87,12 @@ public final class PluginRegistry {
      */
     @Nonnull
     static Logger getLogger() {
+
         Plugin plugin = getPlugin(Reflection.getCallerClass(1));
+        for (int tries = 2; plugin == null && tries <= 10; tries++) {
+            plugin = getPlugin(Reflection.getCallerClass(tries));
+        }
+
         return plugin != null ? plugin.getLogger() : Bukkit.getLogger();
     }
 
