@@ -670,47 +670,14 @@ public final class VisualBlock {
     private byte getDataForDirection(BlockFace face) {
 
         switch (face) {
-
             case NORTH:
-
-                if (this.data < 4) {
-                    return 0;
-                } else if (this.data < 8) {
-                    return 4;
-                } else {
-                    return 8;
-                }
-
+                return (byte) (this.data < 4 ? 0 : this.data < 8 ? 4 : 8);
             case EAST:
-
-                if (this.data < 4) {
-                    return 1;
-                } else if (this.data < 8) {
-                    return 5;
-                } else {
-                    return 9;
-                }
-
+                return (byte) (this.data < 4 ? 1 : this.data < 8 ? 5 : 9);
             case SOUTH:
-
-                if (this.data < 4) {
-                    return 2;
-                } else if (this.data < 8) {
-                    return 6;
-                } else {
-                    return 10;
-                }
-
+                return (byte) (this.data < 4 ? 2 : this.data < 8 ? 6 : 10);
             case WEST:
-
-                if (this.data < 4) {
-                    return 3;
-                } else if (this.data < 8) {
-                    return 7;
-                } else {
-                    return 11;
-                }
-
+                return (byte) (this.data < 4 ? 3 : this.data < 8 ? 7 : 11);
             default:
                 return this.data;
         }

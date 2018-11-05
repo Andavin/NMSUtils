@@ -26,10 +26,7 @@ package com.andavin.reflect;
 
 import com.andavin.util.Logger;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.lang.reflect.*;
 import java.util.*;
 
 public final class Reflection {
@@ -304,14 +301,16 @@ public final class Reflection {
 
         try {
             return clazz.getDeclaredField(name);
-        } catch (NoSuchFieldException e) {
+        } catch (NoSuchFieldException ignored) {
+        }
 
-            try {
-                Class<?> superClazz = clazz.getSuperclass();
-                return superClazz == null ? null : superClazz.getField(name);
-            } catch (NoSuchFieldException e1) {
-                // Do nothing just continue
+        try {
+
+            Class<?> superClazz = clazz.getSuperclass();
+            if (superClazz != null) {
+                return superClazz.getField(name);
             }
+        } catch (NoSuchFieldException ignored) {
         }
 
         for (Field field : clazz.getDeclaredFields()) {
@@ -319,6 +318,67 @@ public final class Reflection {
             if (field.getName().equals(name)) {
                 return field;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find a field by its type and its {@link Modifier modifiers}
+     * specified in the given {@link FieldMatcher} parameters.
+     * <p>
+     * Note that this method will <i>not</i> include any fields from
+     * any super classes of the given class to search; it will only
+     * include fields of all access from within the class itself.
+     *
+     * @param clazz The class that should be searched for the field.
+     * @param matcher The {@link FieldMatcher} to use to match fields
+     *                in the class.
+     * @return The first field found that matches all the required parameters
+     *         or {@code null} if no field was found that matched.
+     */
+    public static Field findField(Class<?> clazz, FieldMatcher matcher) {
+        return findField(clazz, 0, matcher);
+    }
+
+    /**
+     * Find a field by its type and its {@link Modifier modifiers}
+     * specified in the given {@link FieldMatcher} parameters.
+     * <p>
+     * If there are multiple fields that successfully match the
+     * {@link FieldMatcher} given, then the index can be used to
+     * retrieve the desired field.
+     * <p>
+     * Note that this method will <i>not</i> include any fields from
+     * any super classes of the given class to search; it will only
+     * include fields of all access from within the class itself.
+     *
+     * @param clazz The class that should be searched for the field.
+     * @param index The index of field to retrieve. For example,
+     *              {@code 0} should be given to retrieve the first
+     *              field that matches the parameters.
+     * @param matcher The {@link FieldMatcher} to use to match fields
+     *                in the class.
+     * @return The field found that matches all the required parameters
+     *         or {@code null} if no field was found that matched.
+     * @throws IndexOutOfBoundsException If there are not enough fields
+     *                                   that match the parameters in order
+     *                                   to reach the required index.
+     */
+    public static Field findField(Class<?> clazz, int index, FieldMatcher matcher) throws IndexOutOfBoundsException {
+
+        int found = 0;
+        Field[] fields = clazz.getDeclaredFields();
+        for (Field field : fields) {
+
+            if (matcher.match(field) && found++ == index) {
+                return field;
+            }
+        }
+
+        if (found < index) {
+            throw new IndexOutOfBoundsException("Too few matching fields to reach " +
+                    index + " in " + clazz.getSimpleName());
         }
 
         return null;
@@ -440,14 +500,19 @@ public final class Reflection {
 
         try {
             return clazz.getDeclaredMethod(name, paramTypes);
-        } catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException ignored) {
+        }
 
-            try {
-                // No class only methods can be found so search public super class
-                return clazz.getSuperclass().getMethod(name, paramTypes);
-            } catch (NoSuchMethodException e1) {
-                // Do nothing just continue
-            }
+
+        Class<?> superClazz = clazz.getSuperclass();
+        if (superClazz == null) {
+            return null;
+        }
+
+        try {
+            // No class only methods can be found so search public super class
+            return superClazz.getMethod(name, paramTypes);
+        } catch (NoSuchMethodException ignored) {
         }
 
         for (Method method : clazz.getDeclaredMethods()) {
@@ -458,17 +523,75 @@ public final class Reflection {
             }
         }
 
-        Class<?> superClazz = clazz.getSuperclass();
-        if (superClazz == null) {
-            return null;
-        }
-
         for (Method method : superClazz.getMethods()) {
 
             if (method.getName().equals(name) && method.getParameterCount() == paramTypes.length
                     && compare(method.getParameterTypes(), paramTypes, false)) {
                 return method;
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * Find the first method by the types of its parameters, its return
+     * type and its {@link Modifier modifiers} specified in the given
+     * {@link MethodMatcher} parameters.
+     * <p>
+     * Note that this method will <i>not</i> include any methods from
+     * any super classes of the given class to search; it will only
+     * include methods of all access from within the class itself.
+     *
+     * @param clazz The class that should be searched for the method.
+     * @param matcher The {@link MethodMatcher} to use to match methods
+     *                in the class.
+     * @return The first method found that matches all the required parameters
+     *         or {@code null} if no method was found that matched.
+     */
+    public static Method findMethod(Class<?> clazz, MethodMatcher matcher) {
+        return findMethod(clazz, 0, matcher);
+    }
+
+    /**
+     * Find a method by the types of its parameters, its return type
+     * and its {@link Modifier modifiers} specified in the given
+     * {@link MethodMatcher} parameters.
+     * <p>
+     * If there are multiple methods that successfully match the
+     * {@link MethodMatcher} given, then the index can be used to
+     * retrieve the desired method.
+     * <p>
+     * Note that this method will <i>not</i> include any methods from
+     * any super classes of the given class to search; it will only
+     * include methods of all access from within the class itself.
+     *
+     * @param clazz The class that should be searched for the method.
+     * @param index The index of method to retrieve. For example,
+     *              {@code 0} should be given to retrieve the first
+     *              method that matches the parameters.
+     * @param matcher The {@link MethodMatcher} to use to match methods
+     *                in the class.
+     * @return The method found that matches all the required parameters
+     *         or {@code null} if no method was found that matched.
+     * @throws IndexOutOfBoundsException If there are not enough methods
+     *                                   that match the parameters in order
+     *                                   to reach the required index.
+     */
+    public static Method findMethod(Class<?> clazz, int index, MethodMatcher matcher) throws IndexOutOfBoundsException {
+
+        int found = 0;
+        Method[] methods = clazz.getDeclaredMethods();
+        for (Method method : methods) {
+
+            if (matcher.match(method) && found++ == index) {
+                return method;
+            }
+        }
+
+        if (found < index) {
+            throw new IndexOutOfBoundsException("Too few matching methods to reach " +
+                    index + " in " + clazz.getSimpleName());
         }
 
         return null;
@@ -702,7 +825,15 @@ public final class Reflection {
      *              considered when comparing Java primitive types.
      * @return Whether the parameters match or not.
      */
-    private static boolean compare(Class<?>[] primary, Class<?>[] secondary, boolean exact) {
+    static boolean compare(Class<?>[] primary, Class<?>[] secondary, boolean exact) {
+
+        if (primary.length != secondary.length) {
+            return false;
+        }
+
+        if (primary.length == 0) {
+            return true;
+        }
 
         for (int i = 0; i < primary.length; ++i) {
 

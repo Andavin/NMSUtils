@@ -25,7 +25,6 @@
 package com.andavin;
 
 import com.andavin.nbt.wrapper.*;
-import com.andavin.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -56,7 +55,6 @@ public final class NMSUtils extends JavaPlugin {
     @Override
     public void onEnable() {
         fastAsyncSupport = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit") != null;
-        System.out.println(Reflection.getCallerClass());
     }
 
     /**

@@ -26,7 +26,6 @@ package com.andavin.util;
 
 import com.andavin.NMSUtils;
 import com.andavin.reflect.Reflection;
-import com.google.common.collect.Sets;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
@@ -36,7 +35,6 @@ import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -46,7 +44,6 @@ import java.util.logging.Logger;
 public final class PluginRegistry {
 
     private static final Map<String, WeakReference<Plugin>> PLUGINS = new HashMap<>();
-    private static final Set<String> EXCLUDED = Sets.newHashSet(com.andavin.util.Logger.class.getName());
 
     static {
         // A least one plugin should be loaded at the point
