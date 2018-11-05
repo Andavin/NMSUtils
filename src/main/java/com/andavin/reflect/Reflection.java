@@ -25,6 +25,7 @@
 package com.andavin.reflect;
 
 import com.andavin.util.Logger;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -67,7 +68,7 @@ public final class Reflection {
     /**
      * The version string that makes up part of CraftBukkit or MinecraftServer imports.
      */
-    public static final String VERSION_STRING = "v1_12_R1";//Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+    public static final String VERSION_STRING = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 
     /**
      * The version number. 170 for 1_7_R0, 181 for 1_8_R1, etc.
