@@ -43,6 +43,7 @@ import java.util.logging.Logger;
  */
 public final class PluginRegistry {
 
+    private static final int LOGGER_ATTEMPTS = 5;
     private static final Map<String, WeakReference<Plugin>> PLUGINS = new HashMap<>();
 
     static {
@@ -89,7 +90,7 @@ public final class PluginRegistry {
     static Logger getLogger() {
 
         Plugin plugin = getPlugin(Reflection.getCallerClass(1));
-        for (int tries = 2; plugin == null && tries <= 10; tries++) {
+        for (int tries = 2; plugin == null && tries <= LOGGER_ATTEMPTS; tries++) {
             plugin = getPlugin(Reflection.getCallerClass(tries));
         }
 
