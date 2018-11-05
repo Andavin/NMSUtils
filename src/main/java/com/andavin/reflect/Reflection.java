@@ -424,18 +424,18 @@ public final class Reflection {
     /**
      * Invoke a method from the given class with the given name
      * and matching the types of the parameters given returning
-     * the type given. If the type given is not the type of the
-     * return value of the method found then a {@link ClassCastException}
-     * will be thrown.
+     * the type given.
      *
      * @param clazz The class that the method belong to.
      * @param instance The instance to invoke the method on.
      * @param name The name of the method to invoke.
      * @param params The parameters to pass to the method.
-     * @param <T> The method return type (if different an exception will be thrown).
+     * @param <T> The method return type.
      * @return The value that the method returned.
+     * @throws ClassCastException If the type given is not the type
+     *                            of the return value of the method
      */
-    public static <T> T invoke(Class<?> clazz, Object instance, String name, Object... params) {
+    public static <T> T invoke(Class<?> clazz, Object instance, String name, Object... params) throws ClassCastException {
         return invoke(findMethod(clazz, name, getClassesForObjects(params)), instance, params);
     }
 
@@ -446,11 +446,13 @@ public final class Reflection {
      * @param method The method to invoke.
      * @param instance The instance to invoke the method on.
      * @param params The parameters to pass to the method.
-     * @param <T> The method return type (if different an exception will be thrown).
+     * @param <T> The method return type.
      * @return The value that the method returned.
+     * @throws ClassCastException If the type given is not the type
+     *                            of the return value of the method
      */
     // May need to validate the generic return type T by taking a Class<T> as parameter
-    public static <T> T invoke(Method method, Object instance, Object... params) {
+    public static <T> T invoke(Method method, Object instance, Object... params) throws ClassCastException {
 
         if (method == null) {
             return null;
@@ -462,8 +464,7 @@ public final class Reflection {
 
         try {
             return (T) method.invoke(instance, params);
-            // For now catch the ClassCastException
-        } catch (ClassCastException | IllegalAccessException | InvocationTargetException e) {
+        } catch (IllegalAccessException | InvocationTargetException e) {
             Logger.severe(e);
             return null;
         }
@@ -755,7 +756,7 @@ public final class Reflection {
     public static String getCallerClass() {
         // Start at 1 to get the class that called
         // the method that called this method :P
-        return getCallerClass(1);
+        return getCallerClass(1, Collections.emptySet());
     }
 
     /**

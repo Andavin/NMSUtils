@@ -37,10 +37,8 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
 
     private static final int SYNTHETIC = 0x1000;
 
-    final Class<?> mainType;
-    final int availableModifiers;
-
-    boolean requireExactMatch;
+    private final Class<?> mainType;
+    private final int availableModifiers;
     int requiredModifiers, disallowedModifiers;
 
     AttributeMatcher(Class<?> mainType, int availableModifiers) {
@@ -48,6 +46,14 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
         this.availableModifiers = availableModifiers | SYNTHETIC;
     }
 
+    /**
+     * Require that the matched attribute have the given modifiers.
+     * The {@link java.lang.reflect.Modifier} class should be used
+     * to specify these using the constants provided in that class.
+     *
+     * @param modifiers The modifiers to require on the matched attribute.
+     * @return This attribute matcher.
+     */
     public C require(int... modifiers) {
 
         for (int modifier : modifiers) {
@@ -62,6 +68,14 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
         return (C) this;
     }
 
+    /**
+     * Require that the matched attribute <i>not</i> have the given
+     * modifiers. The {@link java.lang.reflect.Modifier} class should
+     * be used to specify these using the constants provided in that class.
+     *
+     * @param modifiers The modifiers to disallow on the matched attribute.
+     * @return This attribute matcher.
+     */
     public C disallow(int... modifiers) {
 
         for (int modifier : modifiers) {
@@ -76,11 +90,12 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
         return (C) this;
     }
 
-    public C requireExactMatch() {
-        this.requireExactMatch = true;
-        return (C) this;
-    }
-
+    /**
+     * Require that the attribute be a {@code synthetic} member
+     * that was created by the compiler.
+     *
+     * @return This attribute matcher.
+     */
     public C requireSynthetic() {
 
         this.requiredModifiers |= SYNTHETIC;
@@ -91,6 +106,12 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
         return (C) this;
     }
 
+    /**
+     * Disallow that the attribute may be a {@code synthetic} member
+     * that was created by the compiler.
+     *
+     * @return This attribute matcher.
+     */
     public C disallowSynthetic() {
 
         this.disallowedModifiers |= SYNTHETIC;
@@ -101,8 +122,24 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
         return (C) this;
     }
 
+    /**
+     * Match the given attribute to the parameters required
+     * in this matcher.
+     *
+     * @param t The attribute to match to.
+     * @return If the attribute did match the parameters.
+     */
     abstract boolean match(T t);
 
+    /**
+     * Match the given modifiers against the modifiers required
+     * and/or disallowed via this matcher while also checking
+     * the main type against the main type of the attribute.
+     *
+     * @param modifiers The modifiers to match against.
+     * @param mainType The main type to match exactly.
+     * @return If the type and modifiers successfully matched.
+     */
     boolean match(int modifiers, Class<?> mainType) {
 
         // Make sure that it doesn't have any extra bits we don't know about
