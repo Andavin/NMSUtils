@@ -65,13 +65,17 @@ public final class PluginRegistry {
     public static void register(Plugin plugin) {
 
         Class<? extends Plugin> clazz = plugin.getClass();
-        Package pack = clazz.getPackage();
-        if (pack == null) {
+        WeakReference<Plugin> reference = new WeakReference<>(plugin);
+        String name = clazz.getName();
+        PLUGINS.put(name, reference);
+        int first = name.indexOf('.');
+        if (first == -1) {
             return;
         }
 
-        String name = pack.getName();
-        PLUGINS.put(name, new WeakReference<>(plugin));
+        for (int dot = name.lastIndexOf('.'); first < dot; dot = name.lastIndexOf('.')) {
+            PLUGINS.put(name = name.substring(0, dot), reference);
+        }
     }
 
     /**
@@ -83,12 +87,7 @@ public final class PluginRegistry {
      */
     @Nonnull
     static Logger getLogger() {
-
         Plugin plugin = getPlugin(Reflection.getCallerClass(1));
-        for (int tries = 2; plugin == null && tries <= 10; tries++) {
-            plugin = getPlugin(Reflection.getCallerClass(tries));
-        }
-
         return plugin != null ? plugin.getLogger() : Bukkit.getLogger();
     }
 
