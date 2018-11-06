@@ -29,11 +29,14 @@ import com.andavin.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
+import org.bukkit.plugin.SimplePluginManager;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -45,6 +48,7 @@ public final class PluginRegistry {
 
     private static final int LOGGER_ATTEMPTS = 5;
     private static final Map<String, WeakReference<Plugin>> PLUGINS = new HashMap<>();
+    private static final Field PLUGINS_FIELD = Reflection.findField(SimplePluginManager.class, "plugins");
 
     static {
         // A least one plugin should be loaded at the point
@@ -144,9 +148,15 @@ public final class PluginRegistry {
     }
 
     private static void refresh() {
+        // Use reflection to bypass the synchronization of Bukkit.getPluginManager().getPlugins()
+        // This should avoid deadlocks and getting exact lists isn't super important here
+        List<Plugin> plugins = Reflection.getValue(PLUGINS_FIELD, Bukkit.getPluginManager());
+        //noinspection ConstantConditions
+        for (Plugin plugin : plugins.toArray(new Plugin[0])) { // No ConcurrentModifications with toArray
 
-        for (Plugin plugin : Bukkit.getPluginManager().getPlugins()) {
-            register(plugin);
+            if (plugin != null) { // Null check just in case async issues
+                register(plugin);
+            }
         }
     }
 }
