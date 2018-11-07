@@ -91,10 +91,13 @@ public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
     }
 
     /**
-     * Require that the method match all parameters provided
-     * here exactly. For example, if {@link Byte} is provided
-     * as a parameter type, then a method that takes a parameter
-     * of type {@code byte} will not be a match.
+     * Require that the method match all parameters provided exactly.
+     * For example, if {@link Byte} is provided as a parameter type,
+     * then a method that takes a parameter of type {@code byte} will
+     * not be a match.
+     * <p>
+     * In addition, there will be no hierarchy comparison as described
+     * in the {@link Reflection#findMethod(Class, String, Class[])} method.
      *
      * @return This attribute matcher.
      */

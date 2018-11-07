@@ -24,6 +24,7 @@
 
 package com.andavin.nbt;
 
+import com.andavin.inventory.ItemHelper;
 import com.andavin.nbt.wrapper.NBTBase;
 import com.andavin.nbt.wrapper.NBTHelper;
 import com.andavin.nbt.wrapper.NBTTagCompound;
@@ -42,34 +43,24 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
+ * A basic utility class that fully encompasses all
+ * the needs of NBT when it comes to {@link ItemStack}
+ * and holding NBT data on an item.
+ *
  * @author Andavin
  * @since May 15, 2018
+ * @see ItemHelper
  */
 public final class ItemNBT {
 
-    private static final Class<?> CRAFT_ITEM = Reflection.findCraftClass("inventory.CraftItemStack");
-    private static final Field HANDLE = Reflection.findField(CRAFT_ITEM, "handle");
     private static final Field TAG, MAP = Reflection.getValue(NBTTagCompound.class, null, "DATA");
-
-    private static final Method CRAFT_COPY = Reflection.findMethod(CRAFT_ITEM, "asCraftCopy", ItemStack.class);
-    private static final Method NMS_COPY = Reflection.findMethod(CRAFT_ITEM, "asNMSCopy", ItemStack.class);
     private static final Method CRAFT_MIRROR;
 
     static {
+        Class<?> craftItemClass = Reflection.findCraftClass("inventory.CraftItemStack");
         Class<?> itemClass = Reflection.findMcClass("ItemStack");
         TAG = Reflection.findField(itemClass, "tag");
-        CRAFT_MIRROR = Reflection.findMethod(CRAFT_ITEM, "asCraftMirror", itemClass);
-    }
-
-    /**
-     * Check if the given {@link ItemStack item} is empty in that
-     * if it is {@code null} or {@link Material#AIR air} it is empty.
-     *
-     * @param item The item in question.
-     * @return If the item is empty.
-     */
-    public static boolean isEmpty(ItemStack item) {
-        return item == null || item.getType() == Material.AIR;
+        CRAFT_MIRROR = Reflection.findMethod(craftItemClass, "asCraftMirror", itemClass);
     }
 
     /**
@@ -81,11 +72,11 @@ public final class ItemNBT {
      */
     public static boolean hasTag(ItemStack item, String... keys) {
 
-        if (isEmpty(item) || keys.length == 0 || !CRAFT_ITEM.isInstance(item)) {
+        if (ItemHelper.isEmpty(item) || keys.length == 0 || !ItemHelper.isCraftItem(item)) {
             return false;
         }
 
-        Object nms = getNmsItemStack(item);
+        Object nms = ItemHelper.getNmsItemStack(item);
         Object nbt = Reflection.getValue(TAG, nms);
         if (nbt == null) {
             return false;
@@ -108,21 +99,21 @@ public final class ItemNBT {
      * <p>
      * Note that if the given ItemStack is not an instance of
      * {@code CraftItemStack}, then {@code null} will be returned.
-     * {@link #ensureCraftItem(ItemStack)} may be used to ensure
+     * {@link ItemHelper#ensureCraftItem(ItemStack)} may be used to ensure
      * the instance of the ItemStack.
      *
      * @param item The item to get the NBT tag for.
      * @return The NBT tag on the item or {@code null} if there was none.
-     * @see #ensureCraftItem(ItemStack) Ensure CraftItemStack instance
+     * @see ItemHelper#ensureCraftItem(ItemStack) Ensure CraftItemStack instance
      */
     @Nullable
     public static NBTTagCompound getTag(ItemStack item) {
 
-        if (isEmpty(item) || !CRAFT_ITEM.isInstance(item)) {
+        if (ItemHelper.isEmpty(item) || !ItemHelper.isCraftItem(item)) {
             return null;
         }
 
-        Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
+        Object nbt = Reflection.getValue(TAG, ItemHelper.getNmsItemStack(item));
         return nbt != null ? NBTHelper.wrap(NBTType.COMPOUND, nbt) : null;
     }
 
@@ -137,23 +128,23 @@ public final class ItemNBT {
      * instance of {@code CraftItemStack}. If this is not so,
      * then this method will fail with an exception.
      * <p>
-     * {@link #ensureCraftItem(ItemStack)} may be used to ensure
+     * {@link ItemHelper#ensureCraftItem(ItemStack)} may be used to ensure
      * the instance of the ItemStack.
      *
      * @param item The item to get the NBT tag for.
      * @return The NBT tag on the item or create one and set it on the
      *         item if there was none.
      * @throws IllegalArgumentException If the item is not an {@code CraftItemStack}.
-     * @see #ensureCraftItem(ItemStack) Ensure CraftItemStack instance helper
+     * @see ItemHelper#ensureCraftItem(ItemStack) Ensure CraftItemStack instance helper
      */
     public static NBTTagCompound getOrCreateTag(ItemStack item) throws IllegalArgumentException {
 
-        checkArgument(CRAFT_ITEM.isInstance(item), "must be CraftItemStack");
-        if (isEmpty(item)) {
+        checkArgument(ItemHelper.isCraftItem(item), "must be CraftItemStack");
+        if (ItemHelper.isEmpty(item)) {
             return null;
         }
 
-        Object nms = getNmsItemStack(item);
+        Object nms = ItemHelper.getNmsItemStack(item);
         Object nbt = Reflection.getValue(TAG, nms);
         if (nbt == null) {
             NBTTagCompound tag = new NBTTagCompound();
@@ -176,11 +167,11 @@ public final class ItemNBT {
      */
     public static <T extends NBTBase> T getTag(ItemStack item, String key) {
 
-        if (isEmpty(item) || key == null || key.isEmpty() || !CRAFT_ITEM.isInstance(item)) {
+        if (ItemHelper.isEmpty(item) || key == null || key.isEmpty() || !ItemHelper.isCraftItem(item)) {
             return null;
         }
 
-        Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
+        Object nbt = Reflection.getValue(TAG, ItemHelper.getNmsItemStack(item));
         if (nbt == null) {
             return null;
         }
@@ -200,14 +191,14 @@ public final class ItemNBT {
     public static ItemStack setTag(ItemStack item, String key, NBTBase tag) {
 
         checkNotNull(tag, "tag cannot be null");
-        if (isEmpty(item) || key == null || key.isEmpty()) {
+        if (ItemHelper.isEmpty(item) || key == null || key.isEmpty()) {
             return item;
         }
 
         // Get the NMS ItemStack ... If the ItemStack was already
         // an instance of CraftItemStack then the matching NMS ItemStack
         // will be returned else there will be a copy given
-        Object nms = getNmsItemStack(item);
+        Object nms = ItemHelper.getNmsItemStack(item);
         Object nbt = Reflection.getValue(TAG, nms);
         if (nbt != null) {
             // If the tag already exists pull it. If it doesn't, create a new one.
@@ -222,7 +213,7 @@ public final class ItemNBT {
         // If the item was instanceof CraftItemStack then we just edited
         // the basic object so we can just pass itself back.
         // Otherwise, we need to create a Bukkit mirror of the new NMS ItemStack.
-        return CRAFT_ITEM.isInstance(item) ? item : Reflection.invoke(CRAFT_MIRROR, null, nms);
+        return ItemHelper.isCraftItem(item) ? item : Reflection.invoke(CRAFT_MIRROR, null, nms);
     }
 
     /**
@@ -234,11 +225,11 @@ public final class ItemNBT {
      */
     public static ItemStack setTags(ItemStack item, Map<String, NBTBase> nbtTags) {
 
-        if (isEmpty(item) || nbtTags == null || nbtTags.isEmpty()) {
+        if (ItemHelper.isEmpty(item) || nbtTags == null || nbtTags.isEmpty()) {
             return item;
         }
 
-        Object nms = getNmsItemStack(item);
+        Object nms = ItemHelper.getNmsItemStack(item);
         Object nbt = Reflection.getValue(TAG, nms);
         if (nbt != null) {
             Map<String, Object> map = Reflection.getValue(MAP, nbt);
@@ -260,42 +251,14 @@ public final class ItemNBT {
      */
     public static boolean removeTag(ItemStack item, String key) {
 
-        if (!isEmpty(item) && key != null && !key.isEmpty() && CRAFT_ITEM.isInstance(item)) {
+        if (!ItemHelper.isEmpty(item) && key != null && !key.isEmpty() && ItemHelper.isCraftItem(item)) {
 
-            Object nbt = Reflection.getValue(TAG, getNmsItemStack(item));
+            Object nbt = Reflection.getValue(TAG, ItemHelper.getNmsItemStack(item));
             if (nbt != null) {
                 return Reflection.<Map<String, Object>>getValue(MAP, nbt).remove(key) != null;
             }
         }
 
         return false;
-    }
-
-    /**
-     * Ensure that the given {@link ItemStack} is an instance of
-     * {@code CraftItemStack} and, if not, then return a new one.
-     *
-     * @param item The ItemStack to ensure.
-     * @return The ItemStack that is an instance of {@code CraftItemStack}.
-     */
-    public static ItemStack ensureCraftItem(ItemStack item) {
-        return CRAFT_ITEM.isInstance(item) ? item : Reflection.invoke(CRAFT_COPY, null, item);
-    }
-
-    /**
-     * Get the {@code NMS ItemStack} equivalent of the Bukkit
-     * version of the given {@link ItemStack item}.
-     * <p>
-     * Note that if the given Bukkit ItemStack was not an instance
-     * of {@code CraftItemStack}, then the returned stack will not
-     * be the one that is attached to the parameter and therefore
-     * edits made to it may not be directly applicable to the parameter.
-     *
-     * @param item The item to get the NMS version for.
-     * @return The NMS item stack.
-     */
-    public static Object getNmsItemStack(ItemStack item) {
-        return CRAFT_ITEM.isInstance(item) ? Reflection.getValue(HANDLE, item) :
-                Reflection.invoke(NMS_COPY, null, item);
     }
 }
