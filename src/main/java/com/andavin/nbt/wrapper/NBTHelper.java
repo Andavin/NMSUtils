@@ -25,6 +25,7 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.reflect.Reflection;
+import com.andavin.reflect.exception.UncheckedInvocationTargetException;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 import java.io.*;
@@ -33,7 +34,8 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A basic helper class to store wrapped and wrapping class
@@ -106,7 +108,7 @@ public final class NBTHelper {
                                          ") to " + clazz.getSimpleName() + " (" + typeId + ')');
         }
 
-        return (T) clazz.cast(tag);
+        return (T) tag;
     }
 
     /**
@@ -165,32 +167,122 @@ public final class NBTHelper {
 
     /**
      * Read the given {@link File} into an {@link NBTTagCompound}.
-     * The file must be an NBT file ending in {@code .dat}.
+     * <p>
+     * Behavior is undefined if the given file does not contain
+     * data in NBT format.
      *
      * @param file The file to read the NBT data from.
      * @return The {@link NBTTagCompound} read from the file.
-     * @throws IOException If something goes wrong while reading the file.
-     * @throws IllegalArgumentException If the file is not an NBT file ending in {@code .dat}.
+     * @throws UncheckedIOException If something goes wrong while
+     *                              reading the file.
      */
-    public static NBTTagCompound read(File file) throws IOException, IllegalArgumentException {
-        checkArgument(file.getPath().endsWith(".dat"), "can only read NBT files with the extension 'dat'.");
-        InputStream stream = new BufferedInputStream(new FileInputStream(file));
-        return Reflection.invoke(READ, null, stream);
+    public static NBTTagCompound read(File file) throws UncheckedIOException {
+
+        try (InputStream stream = new FileInputStream(file)) {
+            return read(stream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Read all of the data from the given stream and create
+     * a new {@link NBTTagCompound} from it.
+     * <p>
+     * Behavior is undefined if the given stream does not contain
+     * data in NBT format.
+     *
+     * @param stream The stream to read the data from.
+     * @return A newly create NBTTagCompound containing the data
+     *         from the stream.
+     * @throws UncheckedIOException If something goes wrong while
+     *                              reading from the the stream.
+     */
+    public static NBTTagCompound read(InputStream stream) throws UncheckedIOException {
+        return wrap(readNMS(stream));
+    }
+
+    /**
+     * Read all of the data from the given stream and create
+     * a new NMS {@code NBTTagCompound} from it.
+     * <p>
+     * Behavior is undefined if the given stream does not contain
+     * data in NBT format.
+     *
+     * @param stream The stream to read the data from.
+     * @return A newly create NBTTagCompound containing the data
+     *         from the stream.
+     * @throws UncheckedIOException If something goes wrong while
+     *                              reading from the the stream.
+     */
+    public static Object readNMS(InputStream stream) throws UncheckedIOException {
+
+        try {
+            return Reflection.invoke(READ, null, stream);
+        } catch (UncheckedInvocationTargetException e) {
+
+            Throwable cause = e.getCause();
+            if (cause instanceof IOException) {
+                throw new UncheckedIOException((IOException) cause);
+            }
+
+            throw cause instanceof RuntimeException ? (RuntimeException) cause : new RuntimeException(cause);
+        }
     }
 
     /**
      * Write the given {@link NBTTagCompound} to the given {@link File}.
-     * The file must be an NBT file ending in {@code .dat}.
      *
      * @param file The file to write the NBT data to.
      * @param tag The {@link NBTTagCompound} to write to the file.
-     * @throws IOException If something goes wrong while writing to the file.
-     * @throws IllegalArgumentException If the file is not an NBT file ending in {@code .dat}.
+     * @throws UncheckedIOException If something goes wrong while
+     *                              writing to the file.
      */
-    public static void write(File file, NBTTagCompound tag) throws IOException, IllegalArgumentException {
-        checkArgument(file.getPath().endsWith(".dat"), "can only write to NBT files with the extension 'dat'.");
-        OutputStream stream = new BufferedOutputStream(new FileOutputStream(file));
-        Reflection.invoke(WRITE, null, tag.getWrapped(), stream);
+    public static void write(File file, NBTTagCompound tag) throws UncheckedIOException {
+
+        try (OutputStream stream = new FileOutputStream(file)) {
+            write(stream, tag);
+            stream.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Write the given {@link NBTTagCompound} to the
+     * given {@link OutputStream}.
+     *
+     * @param stream The stream to write to.
+     * @param tag The NBTTagCompound to write to the stream.
+     * @throws UncheckedIOException If something goes wrong while
+     *                              writing to the the stream.
+     */
+    public static void write(OutputStream stream, NBTTagCompound tag) throws UncheckedIOException {
+        write(stream, tag.getWrapped());
+    }
+
+    /**
+     * Write the given NMS {@code NBTTagCompound} to the
+     * given {@link OutputStream}.
+     *
+     * @param stream The stream to write to.
+     * @param tag The NBTTagCompound to write to the stream.
+     * @throws UncheckedIOException If something goes wrong while
+     *                              writing to the the stream.
+     */
+    public static void write(OutputStream stream, Object tag) throws UncheckedIOException {
+
+        try {
+            Reflection.invoke(WRITE, null, tag, stream);
+        } catch (UncheckedInvocationTargetException e) {
+
+            Throwable cause = e.getCause();
+            if (cause instanceof IOException) {
+                throw new UncheckedIOException((IOException) cause);
+            }
+
+            throw cause instanceof RuntimeException ? (RuntimeException) cause : new RuntimeException(cause);
+        }
     }
 
     private static void supportCheck(Constructor<?> con, Object support) {

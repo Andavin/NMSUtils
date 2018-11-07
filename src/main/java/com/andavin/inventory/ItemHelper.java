@@ -1,11 +1,21 @@
 package com.andavin.inventory;
 
+import com.andavin.nbt.wrapper.NBTHelper;
+import com.andavin.nbt.wrapper.NBTTagCompound;
 import com.andavin.reflect.Reflection;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * @since November 07, 2018
@@ -13,11 +23,24 @@ import java.lang.reflect.Method;
  */
 public final class ItemHelper {
 
-    private static final Class<?> CRAFT_ITEM = Reflection.findCraftClass("inventory.CraftItemStack");
-    private static final Field HANDLE = Reflection.findField(CRAFT_ITEM, "handle");
+    private static final Class<?> CRAFT_ITEM = findCraftClass("inventory.CraftItemStack");
+    private static final Field HANDLE = findField(CRAFT_ITEM, "handle");
 
-    private static final Method CRAFT_COPY = Reflection.findMethod(CRAFT_ITEM, "asCraftCopy", ItemStack.class);
-    private static final Method NMS_COPY = Reflection.findMethod(CRAFT_ITEM, "asNMSCopy", ItemStack.class);
+    private static final Method CRAFT_COPY = findMethod(CRAFT_ITEM, "asCraftCopy", ItemStack.class);
+    private static final Method NMS_COPY = findMethod(CRAFT_ITEM, "asNMSCopy", ItemStack.class);
+
+    private static final Executable CREATE_ITEM;
+    private static final Method SAVE, CRAFT_MIRROR;
+
+    static {
+        Class<?> itemStack = findMcClass("ItemStack");
+        Class<?> compound = findMcClass("NBTTagCompound");
+        SAVE = findMethod(itemStack, "save", compound);
+        CRAFT_MIRROR = findMethod(CRAFT_ITEM, "asCraftMirror", itemStack);
+        CREATE_ITEM = Reflection.VERSION_NUMBER >= 1100 ?
+                Reflection.findConstructor(itemStack, false, compound) :
+                findMethod(itemStack, "createStack", false, compound);
+    }
 
     /**
      * Check if the given {@link ItemStack item} is empty in that
@@ -50,7 +73,7 @@ public final class ItemHelper {
      * @return The ItemStack that is an instance of {@code CraftItemStack}.
      */
     public static ItemStack ensureCraftItem(ItemStack item) {
-        return CRAFT_ITEM.isInstance(item) ? item : Reflection.invoke(CRAFT_COPY, null, item);
+        return CRAFT_ITEM.isInstance(item) ? item : invoke(CRAFT_COPY, null, item);
     }
 
     /**
@@ -66,34 +89,51 @@ public final class ItemHelper {
      * @return The NMS item stack.
      */
     public static Object getNmsItemStack(ItemStack item) {
-        return CRAFT_ITEM.isInstance(item) ? Reflection.getValue(HANDLE, item) :
-                Reflection.invoke(NMS_COPY, null, item);
+        //noinspection ConstantConditions
+        return CRAFT_ITEM.isInstance(item) ? getValue(HANDLE, item) :
+                invoke(NMS_COPY, null, item);
     }
 
-//    public static byte[] serialize(ItemStack item) throws UncheckedIOException {
-//
-//        Object nmsItem = getNmsItemStack(item);
-//        NBTTagCompound tag = ((net.minecraft.server.v1_8_R3.ItemStack) nmsItem).save(new NBTTagCompound());
-//        ByteArrayOutputStream stream = new ByteArrayOutputStream();
-//        try {
-//            NBTCompressedStreamTools.a(tag, stream);
-//        } catch (IOException e) {
-//            throw new UncheckedIOException(e);
-//        }
-//
-//        return stream.toByteArray();
-//    }
-//
-//    public static ItemStack deserialize(byte[] bytes) {
-//
-//        ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-//        NBTTagCompound tag;
-//        try {
-//            tag = NBTCompressedStreamTools.a(stream);
-//        } catch (IOException e) {
-//            throw new UncheckedIOException(e);
-//        }
-//
-//        return CraftItemStack.asCraftMirror(new net.minecraft.server.v1_11_R1.ItemStack(tag));
-//    }
+    /**
+     * Serialize the given {@link ItemStack} into a byte array
+     * that can be used to fully reconstruct the ItemStack later on.
+     *
+     * @param item The item to serialize.
+     * @return The byte array for the serialized item.
+     * @throws UncheckedIOException If something goes wrong during serialization.
+     * @see #deserialize(byte[])
+     */
+    public static byte[] serialize(ItemStack item) throws UncheckedIOException {
+
+        Object nmsItem = getNmsItemStack(item);
+        Object tag = invoke(SAVE, nmsItem, NBTHelper.createTag(NBTTagCompound.class));
+        try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
+            NBTHelper.write(stream, tag);
+            return stream.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Deserialize the given byte array back into an {@link ItemStack}.
+     * Ideally, the array should come from the {@link #serialize(ItemStack)}
+     * method, but any form of NBT serialized item should technically work here.
+     *
+     * @param bytes The bytes to deserialize.
+     * @return The newly created ItemStack for the bytes.
+     * @throws UncheckedIOException If something goes wrong during deserialization.
+     * @see #serialize(ItemStack)
+     */
+    public static ItemStack deserialize(byte[] bytes) throws UncheckedIOException {
+
+        try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
+            NBTTagCompound tag = NBTHelper.read(stream);
+            return invoke(CRAFT_MIRROR, null, CREATE_ITEM.getClass() == Constructor.class ?
+                    newInstance((Constructor) CREATE_ITEM, tag.getWrapped()) :
+                    invoke((Method) CREATE_ITEM, null, tag.getWrapped()));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 }
