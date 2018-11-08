@@ -25,7 +25,6 @@
 package com.andavin.reflect;
 
 import com.andavin.reflect.exception.*;
-import com.andavin.util.Logger;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.*;
@@ -233,8 +232,7 @@ public final class Reflection {
         try {
             return con.newInstance(params);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            Logger.severe(e);
-            return null;
+            throw wrapException(e);
         }
     }
 
