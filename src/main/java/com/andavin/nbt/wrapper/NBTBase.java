@@ -47,7 +47,7 @@ public abstract class NBTBase implements ConfigurationSerializable {
      * Changes made to this object will be reflected in the
      * actual NBT object.
      */
-    Object wrapped;
+    transient Object wrapped;
     private final byte typeId;
 
     /**

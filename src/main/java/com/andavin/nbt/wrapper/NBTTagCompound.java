@@ -37,6 +37,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 
+import static com.andavin.reflect.Reflection.findField;
+import static com.andavin.reflect.Reflection.findMcClass;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -59,9 +61,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @NBTTag(typeId = NBTType.COMPOUND)
 public final class NBTTagCompound extends NBTBase implements DataHolder<Map<String, NBTBase>> {
 
-    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagCompound"), "map");
-    private final Map<String, Object> map;
+    private static final Field DATA = findField(findMcClass("NBTTagCompound"), "map");
     private final Map<String, NBTBase> wrapped;
+    private transient final Map<String, Object> map;
 
     /**
      * Create a new, empty compound tag.
@@ -326,15 +328,15 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
 
     /**
      * Get the {@link NBTBase} value stored under the given key.
-     * If a the instance check to {@code T} needs to be omitted,
-     * then the type {@linkplain NBTBase} should be used for {@code T}.
+     * If a the instance check to {@link T} needs to be omitted,
+     * then the type {@linkplain NBTBase} should be used for {@link T}.
      *
      * @param key The {@link String} to retrieve the mapped value from.
      * @param <T> The {@linkplain NBTBase type} of key expected to be stored
      *            under the key.
      * @return The {@link NBTBase value} stored under the key or {@code null}
      *         if either the key does not exist or the value type does is not
-     *         an instance of {@code T}.
+     *         an instance of {@link T}.
      */
     @Nullable
     public <T extends NBTBase> T get(String key) {
@@ -383,7 +385,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * {@code 0} will be returned otherwise.
      *
      * @param key The key to retrieve the value mapping from.
-     * @return The {@code int} value stored or {@code 0} if there was 
+     * @return The {@code int} value stored or {@code 0} if there was
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
     public int getInteger(String key) {
@@ -398,7 +400,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * {@code 0} will be returned otherwise.
      *
      * @param key The key to retrieve the value mapping from.
-     * @return The {@code long} value stored or {@code 0} if there was 
+     * @return The {@code long} value stored or {@code 0} if there was
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
     public long getLong(String key) {
@@ -413,7 +415,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * {@code 0} will be returned otherwise.
      *
      * @param key The key to retrieve the value mapping from.
-     * @return The {@code float} value stored or {@code 0} if there was 
+     * @return The {@code float} value stored or {@code 0} if there was
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
     public float getFloat(String key) {
@@ -428,7 +430,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * {@code 0} will be returned otherwise.
      *
      * @param key The key to retrieve the value mapping from.
-     * @return The {@code double} value stored or {@code 0} if there was 
+     * @return The {@code double} value stored or {@code 0} if there was
      *         no mapping or if a non-{@linkplain NBTNumber} was stored there.
      */
     public double getDouble(String key) {

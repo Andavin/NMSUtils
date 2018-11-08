@@ -39,6 +39,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 
+import static com.andavin.reflect.Reflection.*;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -53,14 +54,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public final class ItemNBT {
 
-    private static final Field TAG, MAP = Reflection.getValue(NBTTagCompound.class, null, "DATA");
+    private static final Field TAG, MAP = getValue(NBTTagCompound.class, null, "DATA");
     private static final Method CRAFT_MIRROR;
 
     static {
-        Class<?> craftItemClass = Reflection.findCraftClass("inventory.CraftItemStack");
-        Class<?> itemClass = Reflection.findMcClass("ItemStack");
-        TAG = Reflection.findField(itemClass, "tag");
-        CRAFT_MIRROR = Reflection.findMethod(craftItemClass, "asCraftMirror", itemClass);
+        Class<?> craftItemClass = findCraftClass("inventory.CraftItemStack");
+        Class<?> itemClass = findMcClass("ItemStack");
+        TAG = findField(itemClass, "tag");
+        CRAFT_MIRROR = findMethod(craftItemClass, "asCraftMirror", itemClass);
     }
 
     /**
@@ -77,12 +78,12 @@ public final class ItemNBT {
         }
 
         Object nms = ItemHelper.getNmsItemStack(item);
-        Object nbt = Reflection.getValue(TAG, nms);
+        Object nbt = getValue(TAG, nms);
         if (nbt == null) {
             return false;
         }
 
-        Map<String, Object> map = Reflection.getValue(MAP, nbt);
+        Map<String, Object> map = getValue(MAP, nbt);
         for (String key : keys) {
 
             if (map.containsKey(key)) {
@@ -113,7 +114,7 @@ public final class ItemNBT {
             return null;
         }
 
-        Object nbt = Reflection.getValue(TAG, ItemHelper.getNmsItemStack(item));
+        Object nbt = getValue(TAG, ItemHelper.getNmsItemStack(item));
         return nbt != null ? NBTHelper.wrap(NBTType.COMPOUND, nbt) : null;
     }
 
@@ -145,10 +146,10 @@ public final class ItemNBT {
         }
 
         Object nms = ItemHelper.getNmsItemStack(item);
-        Object nbt = Reflection.getValue(TAG, nms);
+        Object nbt = getValue(TAG, nms);
         if (nbt == null) {
             NBTTagCompound tag = new NBTTagCompound();
-            Reflection.setValue(TAG, nms, tag.getWrapped());
+            setValue(TAG, nms, tag.getWrapped());
             return tag;
         }
 
@@ -171,7 +172,7 @@ public final class ItemNBT {
             return null;
         }
 
-        Object nbt = Reflection.getValue(TAG, ItemHelper.getNmsItemStack(item));
+        Object nbt = getValue(TAG, ItemHelper.getNmsItemStack(item));
         if (nbt == null) {
             return null;
         }
@@ -199,21 +200,21 @@ public final class ItemNBT {
         // an instance of CraftItemStack then the matching NMS ItemStack
         // will be returned else there will be a copy given
         Object nms = ItemHelper.getNmsItemStack(item);
-        Object nbt = Reflection.getValue(TAG, nms);
+        Object nbt = getValue(TAG, nms);
         if (nbt != null) {
             // If the tag already exists pull it. If it doesn't, create a new one.
-            Map<String, Object> map = Reflection.getValue(MAP, nbt);
+            Map<String, Object> map = getValue(MAP, nbt);
             map.put(key, tag.getWrapped()); // Set our value under the key
         } else {
             // No need to pull current info because there isn't any.
-            Reflection.setValue(TAG, nms, new NBTTagCompound(          // If they item didn't exist above,
+            setValue(TAG, nms, new NBTTagCompound(          // If they item didn't exist above,
                     Collections.singletonMap(key, tag)).getWrapped()); // then set the new tag onto the item
         }
 
         // If the item was instanceof CraftItemStack then we just edited
         // the basic object so we can just pass itself back.
         // Otherwise, we need to create a Bukkit mirror of the new NMS ItemStack.
-        return ItemHelper.isCraftItem(item) ? item : Reflection.invoke(CRAFT_MIRROR, null, nms);
+        return ItemHelper.isCraftItem(item) ? item : invoke(CRAFT_MIRROR, null, nms);
     }
 
     /**
@@ -230,15 +231,15 @@ public final class ItemNBT {
         }
 
         Object nms = ItemHelper.getNmsItemStack(item);
-        Object nbt = Reflection.getValue(TAG, nms);
+        Object nbt = getValue(TAG, nms);
         if (nbt != null) {
-            Map<String, Object> map = Reflection.getValue(MAP, nbt);
+            Map<String, Object> map = getValue(MAP, nbt);
             nbtTags.forEach((key, tag) -> map.put(key, tag.getWrapped()));
             return item;
         }
 
-        Reflection.setValue(TAG, nms, new NBTTagCompound(nbtTags).getWrapped());
-        return Reflection.invoke(CRAFT_MIRROR, null, nms);
+        setValue(TAG, nms, new NBTTagCompound(nbtTags).getWrapped());
+        return invoke(CRAFT_MIRROR, null, nms);
     }
 
     /**
@@ -253,7 +254,7 @@ public final class ItemNBT {
 
         if (!ItemHelper.isEmpty(item) && key != null && !key.isEmpty() && ItemHelper.isCraftItem(item)) {
 
-            Object nbt = Reflection.getValue(TAG, ItemHelper.getNmsItemStack(item));
+            Object nbt = getValue(TAG, ItemHelper.getNmsItemStack(item));
             if (nbt != null) {
                 return Reflection.<Map<String, Object>>getValue(MAP, nbt).remove(key) != null;
             }

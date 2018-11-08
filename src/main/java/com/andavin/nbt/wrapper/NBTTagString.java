@@ -31,6 +31,9 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import java.lang.reflect.Field;
 import java.util.Map;
 
+import static com.andavin.reflect.Reflection.findField;
+import static com.andavin.reflect.Reflection.findMcClass;
+
 /**
  * An NBT wrapper for the {@link String}. This simply holds
  * the value and the wrapped NMS object.
@@ -41,7 +44,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.STRING, params = String.class)
 public final class NBTTagString extends NBTBase implements DataHolder<String> {
 
-    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagString"), "data");
+    private static final Field DATA = findField(findMcClass("NBTTagString"), "data");
     private final String data;
 
     public NBTTagString(String data) {

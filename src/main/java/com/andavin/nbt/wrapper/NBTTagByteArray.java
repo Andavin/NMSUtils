@@ -32,6 +32,8 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import static com.andavin.reflect.Reflection.findMcClass;
+
 /**
  * An NBT number wrapper for the primitive array type {@code byte}.
  * This simply holds the value and the wrapped NMS object.
@@ -42,7 +44,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.BYTE_ARRAY, params = byte[].class)
 public final class NBTTagByteArray extends NBTBase implements DataHolder<byte[]> {
 
-    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagByteArray"), "data");
+    private static final Field DATA = Reflection.findField(findMcClass("NBTTagByteArray"), "data");
     private final byte[] data;
 
     public NBTTagByteArray(byte... data) {

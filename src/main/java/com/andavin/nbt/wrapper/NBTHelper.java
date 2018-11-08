@@ -34,6 +34,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import static com.andavin.reflect.Reflection.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -53,10 +54,10 @@ public final class NBTHelper {
     private static final Map<Class<?>, Constructor<? extends NBTBase>> WRAPPERS = new HashMap<>();
 
     static {
-        Class<?> compoundTag = Reflection.findMcClass("NBTTagCompound");
-        Class<?> streamTools = Reflection.findMcClass("NBTCompressedStreamTools");
-        READ = Reflection.findMethod(streamTools, "a", InputStream.class);
-        WRITE = Reflection.findMethod(streamTools, "a", compoundTag, OutputStream.class);
+        Class<?> compoundTag = findMcClass("NBTTagCompound");
+        Class<?> streamTools = findMcClass("NBTCompressedStreamTools");
+        READ = findMethod(streamTools, "a", InputStream.class);
+        WRITE = findMethod(streamTools, "a", compoundTag, OutputStream.class);
     }
 
     /**
@@ -70,12 +71,12 @@ public final class NBTHelper {
         for (Class<? extends NBTBase> clazz : classes) {
 
             String name = clazz.getSimpleName();
-            Class<?> nmsType = Reflection.findMcClass(name);
+            Class<?> nmsType = findMcClass(name);
             NBTTag type = clazz.getDeclaredAnnotation(NBTTag.class);
             if (type != null && nmsType != null) {
                 ConfigurationSerialization.registerClass(clazz);
-                Constructor<?> wrap = Reflection.findConstructor(nmsType, type.params());
-                Constructor<? extends NBTBase> wrapper = Reflection.findConstructor(clazz, Object.class);
+                Constructor<?> wrap = findConstructor(nmsType, type.params());
+                Constructor<? extends NBTBase> wrapper = findConstructor(clazz, Object.class);
                 checkState(wrapper != null, "%s missing constructor", name);
                 checkState(wrap != null, "%s incorrect annotation types", name);
                 WRAPPERS.put(nmsType, wrapper);
@@ -124,9 +125,10 @@ public final class NBTHelper {
      */
     public static <T extends NBTBase> T wrap(Object nbt) {
         checkNotNull(nbt, "NBT object cannot be null");
-        Constructor<? extends NBTBase> wrapper = WRAPPERS.get(nbt.getClass());
-        supportCheck(wrapper, nbt.getClass().getSimpleName());
-        return (T) Reflection.newInstance(wrapper, nbt);
+        Class<?> clazz = nbt.getClass();
+        Constructor<? extends NBTBase> wrapper = WRAPPERS.get(clazz);
+        supportCheck(wrapper, clazz.getSimpleName());
+        return (T) newInstance(wrapper, nbt);
     }
 
     /**
@@ -148,7 +150,7 @@ public final class NBTHelper {
         checkNotNull(nbt, "NBT object cannot be null");
         Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
         supportCheck(con, nbt.getClass().getSimpleName());
-        return (T) Reflection.newInstance(con, nbt);
+        return (T) newInstance(con, nbt);
     }
 
     /**
@@ -162,7 +164,7 @@ public final class NBTHelper {
     public static Object createTag(Class<? extends NBTBase> clazz, Object... args) {
         Constructor<?> con = WRAPPED.get(clazz);
         supportCheck(con, clazz.getSimpleName());
-        return Reflection.newInstance(con, args);
+        return newInstance(con, args);
     }
 
     /**
@@ -241,7 +243,7 @@ public final class NBTHelper {
     public static void write(File file, NBTTagCompound tag) throws UncheckedIOException {
 
         try (OutputStream stream = new FileOutputStream(file)) {
-            write(stream, tag);
+            write(stream, tag.getWrapped());
             stream.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);

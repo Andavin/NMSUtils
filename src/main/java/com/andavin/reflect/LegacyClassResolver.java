@@ -29,6 +29,9 @@ import org.bukkit.Bukkit;
 import java.lang.reflect.Method;
 import java.util.logging.Level;
 
+import static com.andavin.reflect.Reflection.findMethod;
+import static com.andavin.reflect.Reflection.invoke;
+
 /**
  * @since October 31, 2018
  * @author Andavin
@@ -83,8 +86,8 @@ public class LegacyClassResolver implements ClassResolver {
 
     @SuppressWarnings("ConstantConditions")
     private static Method getStackTraceMethod() {
-        Method method = Reflection.findMethod(Throwable.class, "getStackTraceElement", int.class);
-        StackTraceElement element = Reflection.invoke(method, new Throwable(), 0);
+        Method method = findMethod(Throwable.class, "getStackTraceElement", int.class);
+        StackTraceElement element = invoke(method, new Throwable(), 0);
         return LegacyClassResolver.class.getName().equals(element.getClassName()) ? method : null;
     }
 }

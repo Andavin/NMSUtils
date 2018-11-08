@@ -24,8 +24,6 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
-
 /**
  * An NBT number corresponding and wrapping the
  * {@code NBTNumber} version in NMS. This will
@@ -34,10 +32,10 @@ import com.andavin.DataHolder;
  * @author Andavin
  * @since May 12, 2018
  */
-public abstract class NBTNumber extends NBTBase implements DataHolder<Number> {
+public abstract class NBTNumber extends NBTBase {
 
-    NBTNumber(Object handle) {
-        super(handle);
+    NBTNumber(Object wrapped) {
+        super(wrapped);
     }
 
     /**

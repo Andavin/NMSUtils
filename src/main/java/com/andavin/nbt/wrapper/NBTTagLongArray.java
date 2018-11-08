@@ -32,6 +32,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import static com.andavin.reflect.Reflection.findField;
+import static com.andavin.reflect.Reflection.findMcClass;
+
 /**
  * An NBT number wrapper for the primitive array type {@code long}.
  * This simply holds the value and the wrapped NMS object.
@@ -44,7 +47,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.LONG_ARRAY, params = long[].class)
 public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]> {
 
-    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagLongArray"), "b");
+    private static final Field DATA = findField(findMcClass("NBTTagLongArray"), "b");
     private final long[] data;
 
     public NBTTagLongArray(long... data) {

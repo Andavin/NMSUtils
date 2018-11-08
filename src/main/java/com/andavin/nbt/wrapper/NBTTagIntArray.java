@@ -32,6 +32,9 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import static com.andavin.reflect.Reflection.findField;
+import static com.andavin.reflect.Reflection.findMcClass;
+
 /**
  * An NBT number wrapper for the primitive array type {@code int}.
  * This simply holds the value and the wrapped NMS object.
@@ -42,7 +45,7 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.INT_ARRAY, params = int[].class)
 public final class NBTTagIntArray extends NBTBase implements DataHolder<int[]> {
 
-    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagIntArray"), "data");
+    private static final Field DATA = findField(findMcClass("NBTTagIntArray"), "data");
     private final int[] data;
 
     public NBTTagIntArray(int... data) {

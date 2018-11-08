@@ -34,6 +34,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static com.andavin.reflect.Reflection.findField;
+import static com.andavin.reflect.Reflection.findMcClass;
+
 /**
  * An NBT wrapper for the {@code NBTTagList} NMS class. This is
  * very similar to a {@link List} and is, in fact, backed by a {@code List}.
@@ -47,11 +50,11 @@ import java.util.Map;
 @NBTTag(typeId = NBTType.LIST)
 public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase>>, Iterable<NBTBase> {
 
-    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagList"), "list");
+    private static final Field DATA = findField(findMcClass("NBTTagList"), "list");
 
     private byte tagType = -1;
-    private final List<Object> list;
     private final List<NBTBase> wrapped;
+    private transient final List<Object> list;
 
     /**
      * Create a new, empty list tag.

@@ -24,11 +24,15 @@
 
 package com.andavin.nbt.wrapper;
 
+import com.andavin.DataHolder;
 import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
 import java.util.Map;
+
+import static com.andavin.reflect.Reflection.findField;
+import static com.andavin.reflect.Reflection.findMcClass;
 
 /**
  * An NBT number wrapper for the primitive type {@code float}.
@@ -38,9 +42,9 @@ import java.util.Map;
  * @since May 12, 2018
  */
 @NBTTag(typeId = NBTType.FLOAT, params = float.class)
-public final class NBTTagFloat extends NBTNumber {
+public final class NBTTagFloat extends NBTNumber implements DataHolder<Float> {
 
-    private static final Field DATA = Reflection.findField(Reflection.findMcClass("NBTTagFloat"), "data");
+    private static final Field DATA = findField(findMcClass("NBTTagFloat"), "data");
     private final float data;
 
     public NBTTagFloat(double data) {
