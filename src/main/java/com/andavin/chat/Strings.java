@@ -100,7 +100,7 @@ public final class Strings {
     public static List<String> splitForLore(String str, ChatColor... linePrefix) {
 
         String prefix = linePrefix.length == 0 ? ChatColor.WHITE.toString() : StringUtils.join(linePrefix);
-        String[] strings = str.split("%n");
+        String[] strings = StringUtils.split(str, "%n");
         List<String> lines = new LinkedList<>();
         for (String string : strings) {
 
@@ -177,14 +177,8 @@ public final class Strings {
                 }
 
                 if (length >= BOOK_LENGTH && lastSpace != -1) {
-
                     lines.add(string.substring(0, lastSpace));
-                    if (lastSpace + 1 < string.length()) {
-                        string = string.substring(lastSpace + 1);
-                    } else {
-                        string = "";
-                    }
-
+                    string = lastSpace + 1 < string.length() ? string.substring(lastSpace + 1) : "";
                     // Then reset everything to start at the beginning
                     // of the new string
                     lastSpace = -1;

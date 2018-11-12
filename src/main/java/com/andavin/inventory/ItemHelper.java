@@ -1,5 +1,6 @@
 package com.andavin.inventory;
 
+import com.andavin.nbt.ItemNBT;
 import com.andavin.nbt.wrapper.NBTHelper;
 import com.andavin.nbt.wrapper.NBTTagCompound;
 import com.andavin.reflect.Reflection;
@@ -18,8 +19,14 @@ import java.lang.reflect.Method;
 import static com.andavin.reflect.Reflection.*;
 
 /**
+ * A basic helper class to do common tasks that have to do
+ * with {@link ItemStack} such as checking if the
+ * {@link #isEmpty(ItemStack) item is nothing} or
+ * {@link #serialize(ItemStack) serializing} the item.
+ *
  * @since November 07, 2018
  * @author Andavin
+ * @see ItemNBT
  */
 public final class ItemHelper {
 
@@ -38,7 +45,7 @@ public final class ItemHelper {
         SAVE = findMethod(itemStack, "save", compound);
         CRAFT_MIRROR = findMethod(CRAFT_ITEM, "asCraftMirror", itemStack);
         CREATE_ITEM = Reflection.VERSION_NUMBER >= 1100 ?
-                Reflection.findConstructor(itemStack, false, compound) :
+                findConstructor(itemStack, false, compound) :
                 findMethod(itemStack, "createStack", false, compound);
     }
 
@@ -108,7 +115,7 @@ public final class ItemHelper {
         Object nmsItem = getNmsItemStack(item);
         Object tag = invoke(SAVE, nmsItem, NBTHelper.createTag(NBTTagCompound.class));
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
-            NBTHelper.write(stream, tag);
+            NBTHelper.serialize(stream, tag);
             return stream.toByteArray();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -128,10 +135,9 @@ public final class ItemHelper {
     public static ItemStack deserialize(byte[] bytes) throws UncheckedIOException {
 
         try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
-            NBTTagCompound tag = NBTHelper.read(stream);
+            Object tag = NBTHelper.deserializeNMS(stream);
             return invoke(CRAFT_MIRROR, null, CREATE_ITEM.getClass() == Constructor.class ?
-                    newInstance((Constructor) CREATE_ITEM, tag.getWrapped()) :
-                    invoke((Method) CREATE_ITEM, null, tag.getWrapped()));
+                    newInstance((Constructor) CREATE_ITEM, tag) : invoke((Method) CREATE_ITEM, null, tag));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

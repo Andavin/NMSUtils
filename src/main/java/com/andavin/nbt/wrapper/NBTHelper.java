@@ -24,7 +24,6 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.reflect.Reflection;
 import com.andavin.reflect.exception.UncheckedInvocationTargetException;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
@@ -181,15 +180,15 @@ public final class NBTHelper {
     public static NBTTagCompound read(File file) throws UncheckedIOException {
 
         try (InputStream stream = new FileInputStream(file)) {
-            return read(stream);
+            return deserialize(stream);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     /**
-     * Read all of the data from the given stream and create
-     * a new {@link NBTTagCompound} from it.
+     * Deserialize an {@link NBTTagCompound} from the data read
+     * from the given stream.
      * <p>
      * Behavior is undefined if the given stream does not contain
      * data in NBT format.
@@ -200,13 +199,13 @@ public final class NBTHelper {
      * @throws UncheckedIOException If something goes wrong while
      *                              reading from the the stream.
      */
-    public static NBTTagCompound read(InputStream stream) throws UncheckedIOException {
-        return wrap(readNMS(stream));
+    public static NBTTagCompound deserialize(InputStream stream) throws UncheckedIOException {
+        return wrap(deserializeNMS(stream));
     }
 
     /**
-     * Read all of the data from the given stream and create
-     * a new NMS {@code NBTTagCompound} from it.
+     * Deserialize an NMS {@code NBTTagCompound} from the data
+     * read from the given stream.
      * <p>
      * Behavior is undefined if the given stream does not contain
      * data in NBT format.
@@ -217,10 +216,10 @@ public final class NBTHelper {
      * @throws UncheckedIOException If something goes wrong while
      *                              reading from the the stream.
      */
-    public static Object readNMS(InputStream stream) throws UncheckedIOException {
+    public static Object deserializeNMS(InputStream stream) throws UncheckedIOException {
 
         try {
-            return Reflection.invoke(READ, null, stream);
+            return invoke(READ, null, stream);
         } catch (UncheckedInvocationTargetException e) {
 
             Throwable cause = e.getCause();
@@ -243,7 +242,7 @@ public final class NBTHelper {
     public static void write(File file, NBTTagCompound tag) throws UncheckedIOException {
 
         try (OutputStream stream = new FileOutputStream(file)) {
-            write(stream, tag.getWrapped());
+            serialize(stream, tag.getWrapped());
             stream.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -251,7 +250,7 @@ public final class NBTHelper {
     }
 
     /**
-     * Write the given {@link NBTTagCompound} to the
+     * Serialize the given {@link NBTTagCompound} to the
      * given {@link OutputStream}.
      *
      * @param stream The stream to write to.
@@ -259,12 +258,12 @@ public final class NBTHelper {
      * @throws UncheckedIOException If something goes wrong while
      *                              writing to the the stream.
      */
-    public static void write(OutputStream stream, NBTTagCompound tag) throws UncheckedIOException {
-        write(stream, tag.getWrapped());
+    public static void serialize(OutputStream stream, NBTTagCompound tag) throws UncheckedIOException {
+        serialize(stream, tag.getWrapped());
     }
 
     /**
-     * Write the given NMS {@code NBTTagCompound} to the
+     * Serialize the given NMS {@code NBTTagCompound} to the
      * given {@link OutputStream}.
      *
      * @param stream The stream to write to.
@@ -272,10 +271,10 @@ public final class NBTHelper {
      * @throws UncheckedIOException If something goes wrong while
      *                              writing to the the stream.
      */
-    public static void write(OutputStream stream, Object tag) throws UncheckedIOException {
+    public static void serialize(OutputStream stream, Object tag) throws UncheckedIOException {
 
         try {
-            Reflection.invoke(WRITE, null, tag, stream);
+            invoke(WRITE, null, tag, stream);
         } catch (UncheckedInvocationTargetException e) {
 
             Throwable cause = e.getCause();

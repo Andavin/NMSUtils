@@ -30,11 +30,11 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
 import static com.andavin.reflect.Reflection.findField;
@@ -54,14 +54,29 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * </ul>
  * There are also performance improvements in the map interactions
  * while having a better type conformation with the retrieval methods.
+ * <p>
+ * Note that this class is <i>not</i> built for concurrency of any
+ * kind and is even more susceptible to concurrent modification issues
+ * than a regular {@link HashMap}.
  *
  * @author Andavin
  * @since May 12, 2018
+ * @see NBTHelper
+ * @see NBTHelper#serialize(OutputStream, NBTTagCompound)
+ * @see NBTHelper#deserialize(InputStream)
  */
 @NBTTag(typeId = NBTType.COMPOUND)
 public final class NBTTagCompound extends NBTBase implements DataHolder<Map<String, NBTBase>> {
 
     private static final Field DATA = findField(findMcClass("NBTTagCompound"), "map");
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    private static final int[] EMPTY_INT_ARRAY = new int[0];
+    private static final long[] EMPTY_LONG_ARRAY = new long[0];
+
+    private Set<String> keySet;
+    private Collection<NBTBase> values;
+    private Set<Entry<String, NBTBase>> entrySet;
+
     private final Map<String, NBTBase> wrapped;
     private transient final Map<String, Object> map;
 
@@ -95,19 +110,47 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
     }
 
     /**
-     * Get the {@link Set} of all of the keys for the
-     * backing {@link Map} of this compound tag.
+     * Get the current {@link Set} of keys that are mapped to
+     * values in this compound tag.
      * <p>
      * This is equivalent to {@link Map#keySet()}.
      *
-     * @return The Set of keys for this compound tag.
+     * @return The set of keys for this tag.
      */
     public Set<String> keySet() {
-        return this.map.keySet();
+        return this.keySet != null ? this.keySet :
+                (this.keySet = new DualSetDelegate(this.wrapped.keySet(), this.map.keySet()));
     }
 
     /**
-     * Get the number of mappings currently present in this
+     * Get the current {@link Collection} of values that are
+     * mapped to keys in this compound tag.
+     * <p>
+     * This is equivalent to {@link Map#values()}.
+     *
+     * @return The tag value collection for this tag.
+     */
+    public Collection<NBTBase> values() {
+        return this.values != null ? this.values :
+                (this.values = new DualCollectionDelegate(this.wrapped.values(), this.map.values()));
+    }
+
+    /**
+     * Get the current {@link Set} of the entries in this
+     * compound tag. Each entry will contain its key and
+     * the tag value that it is mapped to.
+     * <p>
+     * This is equivalent to {@link Map#entrySet()}.
+     *
+     * @return The set of entries for this tag.
+     */
+    public Set<Entry<String, NBTBase>> entrySet() {
+        return this.entrySet != null ? this.entrySet :
+                (this.entrySet = new DualSetDelegate(this.wrapped.entrySet(), this.map.entrySet()));
+    }
+
+    /**
+     * Get the number of entries currently present in this
      * compound tag.
      * <p>
      * This is equivalent to {@link Map#size()}.
@@ -120,12 +163,23 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
 
     @Override
     public Map<String, NBTBase> getData() {
-        return this.wrapped;
+        return Collections.unmodifiableMap(this.wrapped);
     }
 
     @Override
     public boolean isEmpty() {
         return this.map.isEmpty();
+    }
+
+    /**
+     * Clear all of the entries from this compound tag
+     * so that it contains no tags.
+     * <p>
+     * This is equivalent to {@link Map#clear()}.
+     */
+    public void clear() {
+        this.map.clear();
+        this.wrapped.clear();
     }
 
     /**
@@ -143,9 +197,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
     public NBTBase set(String key, NBTBase value) {
         checkNotNull(key, "null keys not permitted");
         checkNotNull(value, "null values not permitted");
-        NBTBase old = this.wrapped.put(key, value);
         this.map.put(key, value.wrapped); // Will be the wrapped object of old
-        return old;
+        return this.wrapped.put(key, value);
     }
 
     /**
@@ -330,6 +383,8 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * Get the {@link NBTBase} value stored under the given key.
      * If a the instance check to {@link T} needs to be omitted,
      * then the type {@linkplain NBTBase} should be used for {@link T}.
+     * <p>
+     * This is very similar to a {@link Map#get(Object)}.
      *
      * @param key The {@link String} to retrieve the mapped value from.
      * @param <T> The {@linkplain NBTBase type} of key expected to be stored
@@ -476,7 +531,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
     @Nonnull
     public byte[] getByteArray(String key) {
         NBTTagByteArray tag = this.get(key);
-        return tag != null ? tag.getData() : new byte[0];
+        return tag != null ? tag.getData() : EMPTY_BYTE_ARRAY;
     }
 
     /**
@@ -490,7 +545,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
     @Nonnull
     public int[] getIntArray(String key) {
         NBTTagIntArray tag = this.get(key);
-        return tag != null ? tag.getData() : new int[0];
+        return tag != null ? tag.getData() : EMPTY_INT_ARRAY;
     }
 
     /**
@@ -507,7 +562,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
     @Nonnull
     public long[] getLongArray(String key) {
         NBTTagLongArray tag = this.get(key);
-        return tag != null ? tag.getData() : new long[0];
+        return tag != null ? tag.getData() : EMPTY_LONG_ARRAY;
     }
 
     /**
@@ -630,5 +685,108 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      */
     public static NBTTagCompound deserialize(Map<String, Object> map) {
         return new NBTTagCompound((Map<String, NBTBase>) map.get("data"));
+    }
+
+    private class DualSetDelegate<T> extends AbstractSet<T> {
+
+        private final Set<T> set, alt;
+
+        DualSetDelegate(Set<T> set, Set<T> alt) {
+            this.set = set;
+            this.alt = alt;
+        }
+
+        @Override
+        public void clear() {
+            this.alt.clear();
+            this.set.clear();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return this.set.contains(o);
+        }
+
+        @Override
+        @Nonnull
+        public Iterator<T> iterator() {
+            return new DualIteratorDelegate<>(this.set.iterator(), this.alt.iterator());
+        }
+
+        @Override
+        public Spliterator<T> spliterator() {
+            return this.set.spliterator();
+        }
+
+        @Override
+        public int size() {
+            return this.set.size();
+        }
+    }
+
+    private class DualCollectionDelegate extends AbstractCollection<NBTBase> {
+
+        private final Collection<?> alt;
+        private final Collection<NBTBase> collection;
+
+        DualCollectionDelegate(Collection<NBTBase> collection, Collection<?> alt) {
+            this.collection = collection;
+            this.alt = alt;
+        }
+
+        @Override
+        public void clear() {
+            this.alt.clear();
+            this.collection.clear();
+        }
+
+        @Override
+        public boolean contains(Object o) {
+            return this.collection.contains(o);
+        }
+
+        @Override
+        @Nonnull
+        public Iterator<NBTBase> iterator() {
+            return new DualIteratorDelegate<>(this.collection.iterator(), this.alt.iterator());
+        }
+
+        @Override
+        public Spliterator<NBTBase> spliterator() {
+            return this.collection.spliterator();
+        }
+
+        @Override
+        public int size() {
+            return this.collection.size();
+        }
+    }
+
+    private class DualIteratorDelegate<T> implements Iterator<T> {
+
+        private final Iterator<?> alt;
+        private final Iterator<T> iterator;
+
+        DualIteratorDelegate(Iterator<T> iterator, Iterator<?> alt) {
+            this.iterator = iterator;
+            this.alt = alt;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return this.iterator.hasNext();
+        }
+
+        @Override
+        public T next() {
+            this.alt.next();
+            return this.iterator.next();
+        }
+
+        @Override
+        public void remove() {
+            this.alt.remove();
+            this.iterator.remove();
+        }
     }
 }
