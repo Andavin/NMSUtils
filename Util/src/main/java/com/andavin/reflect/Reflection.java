@@ -24,8 +24,8 @@
 
 package com.andavin.reflect;
 
+import com.andavin.MinecraftVersion;
 import com.andavin.reflect.exception.*;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -63,28 +63,43 @@ public final class Reflection {
      *         // Is 1.12
      *     }
      * </pre>
+     *
+     * @deprecated Use {@link MinecraftVersion#compareTo(Enum)}
      */
+    @Deprecated
     public static final int v1_13 = 1130, v1_12 = 1120, v1_11 = 1110, v1_10 = 1100, v1_9 = 190, v1_8_8 = 183, v1_8 = 180;
 
     /**
      * The version string that makes up part of CraftBukkit or MinecraftServer imports.
+     *
+     * @deprecated Use {@link MinecraftVersion#CURRENT_SERVER_VERSION}
      */
-    public static final String VERSION_STRING = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+    @Deprecated
+    public static final String VERSION_STRING = MinecraftVersion.CURRENT_SERVER_VERSION.name();
 
     /**
      * The version number. 170 for 1_7_R0, 181 for 1_8_R1, etc.
+     *
+     * @deprecated Use {@link MinecraftVersion#compareTo(Enum)}
      */
+    @Deprecated
     public static final int VERSION_NUMBER = Integer.parseInt(VERSION_STRING.replaceAll("[v_R]", ""));
 
     /**
      * The prefix for all NMS packages (e.g. net.minecraft.server.version.).
+     *
+     * @deprecated Use {@link MinecraftVersion#MINECRAFT_PREFIX}
      */
-    public static final String NMS_PREFIX = "net.minecraft.server." + VERSION_STRING + '.';
+    @Deprecated
+    public static final String NMS_PREFIX = MinecraftVersion.MINECRAFT_PREFIX;
 
     /**
      * The prefix for all Craftbukkit packages (e.g. org.bukkit.craftbukkit.version.).
+     *
+     * @deprecated Use {@link MinecraftVersion#CRAFTBUKKIT_PREFIX}
      */
-    public static final String CRAFT_PREFIX = "org.bukkit.craftbukkit." + VERSION_STRING + '.';
+    @Deprecated
+    public static final String CRAFT_PREFIX = MinecraftVersion.CRAFTBUKKIT_PREFIX;
 
     private static final ClassResolver CLASS_RESOLVER = /*isAtLeastJava9() ?
             new ModernClassResolver() :*/ new LegacyClassResolver();
@@ -996,7 +1011,7 @@ public final class Reflection {
      * @return The Minecraft class for the given name or null if class was not found.
      */
     public static Class<?> findMcClass(String name) {
-        return findClass(NMS_PREFIX + name);
+        return findClass(MinecraftVersion.MINECRAFT_PREFIX + name);
     }
 
     /**
@@ -1014,7 +1029,7 @@ public final class Reflection {
      * @return The Craftbukkit class for the given name or null if class was not found.
      */
     public static Class<?> findCraftClass(String name) {
-        return findClass(CRAFT_PREFIX + name);
+        return findClass(MinecraftVersion.CRAFTBUKKIT_PREFIX + name);
     }
 
     /**

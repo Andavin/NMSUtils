@@ -1,5 +1,6 @@
 package com.andavin.inventory;
 
+import com.andavin.MinecraftVersion;
 import com.andavin.nbt.ItemNBT;
 import com.andavin.nbt.wrapper.NBTHelper;
 import com.andavin.nbt.wrapper.NBTTagCompound;
@@ -15,6 +16,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import static com.andavin.MinecraftVersion.v1_11_R1;
 import static com.andavin.reflect.Reflection.*;
 
 /**
@@ -43,7 +45,7 @@ public final class ItemHelper {
         Class<?> compound = findMcClass("NBTTagCompound");
         SAVE = findMethod(itemStack, "save", compound);
         CRAFT_MIRROR = findMethod(CRAFT_ITEM, "asCraftMirror", itemStack);
-        CREATE_ITEM = VERSION_NUMBER >= 1100 ?
+        CREATE_ITEM = MinecraftVersion.greaterThanOrEqual(v1_11_R1) ?
                 findConstructor(itemStack, false, compound) :
                 findMethod(itemStack, "createStack", false, compound);
     }

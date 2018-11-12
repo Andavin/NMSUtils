@@ -33,14 +33,24 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>Util</name>
-    <artifactId>nms-utils-util</artifactId>
+    <name>1.11.2</name>
+    <artifactId>nms-utils-v1_11_R1</artifactId>
 
     <dependencies>
         <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>nms-utils</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>nms-utils-util</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.7.10-R0.1-SNAPSHOT</version>
+            <version>1.11.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
