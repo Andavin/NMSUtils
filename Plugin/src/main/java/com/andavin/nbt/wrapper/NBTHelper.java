@@ -105,7 +105,7 @@ public final class NBTHelper {
         Class<? extends NBTBase> clazz = con.getDeclaringClass();
         if (!clazz.isInstance(tag)) {
             throw new ClassCastException("Cannot cast " + tag.getClass().getSimpleName() + " (" + tag.getTypeId() +
-                                         ") to " + clazz.getSimpleName() + " (" + typeId + ')');
+                    ") to " + clazz.getSimpleName() + " (" + typeId + ')');
         }
 
         return (T) tag;

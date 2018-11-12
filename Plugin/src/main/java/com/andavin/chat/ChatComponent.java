@@ -24,7 +24,6 @@
 
 package com.andavin.chat;
 
-import com.andavin.reflect.Reflection;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.minecraft.server.v1_12_R1.ChatClickable.EnumClickAction;
@@ -41,6 +40,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import static com.andavin.reflect.Reflection.*;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -51,33 +51,33 @@ public class ChatComponent {
 
     private static final Field CHAT, MESSAGE, SIBLINGS;
     private static final Method ADD_SIBLING;
-    private static final Method FROM_STRING = Reflection.findMethod(Reflection.findCraftClass(
+    private static final Method FROM_STRING = findMethod(findCraftClass(
             "util.CraftChatMessage"), "fromString", String.class);
     private static final Map<ChatColor, Object> NMS_COLORS = new EnumMap<>(ChatColor.class);
 
     static {
 
-        Class<?> format = Reflection.findMcClass("EnumChatFormat");
+        Class<?> format = findMcClass("EnumChatFormat");
         for (ChatColor color : ChatColor.values()) {
-            NMS_COLORS.put(color, Reflection.getValue(format, null, color.name()));
+            NMS_COLORS.put(color, getValue(format, null, color.name()));
         }
 
-        Class<?> iBaseClass = Reflection.findMcClass("IChatBaseComponent");
-        Class<?> baseClass = Reflection.findMcClass("ChatBaseComponent");
-        Class<?> chatClass = Reflection.findMcClass("ChatComponentText");
-        Class<?> messageClass = Reflection.findMcClass("ChatMessage");
+        Class<?> iBaseClass = findMcClass("IChatBaseComponent");
+        Class<?> baseClass = findMcClass("ChatBaseComponent");
+        Class<?> chatClass = findMcClass("ChatComponentText");
+        Class<?> messageClass = findMcClass("ChatMessage");
 
-        CHAT = Reflection.findField(chatClass, "b");
-        MESSAGE = Reflection.findField(messageClass, "d");
-        SIBLINGS = Reflection.findField(baseClass, "a");
-        ADD_SIBLING = Reflection.findMethod(iBaseClass, "addSibling", iBaseClass);
+        CHAT = findField(chatClass, "b");
+        MESSAGE = findField(messageClass, "d");
+        SIBLINGS = findField(baseClass, "a");
+        ADD_SIBLING = findMethod(iBaseClass, "addSibling", iBaseClass);
         if (CHAT == null || MESSAGE == null) {
             throw new NullPointerException("Classes for ChatComponentText and/or ChatMessage could not be found!");
         }
 
-        Field mods = Reflection.findField(Field.class, "modifiers");
-        Reflection.setValue(mods, CHAT, CHAT.getModifiers() & ~Modifier.FINAL);
-        Reflection.setValue(mods, MESSAGE, MESSAGE.getModifiers() & ~Modifier.FINAL);
+        Field mods = findField(Field.class, "modifiers");
+        setValue(mods, CHAT, CHAT.getModifiers() & ~Modifier.FINAL);
+        setValue(mods, MESSAGE, MESSAGE.getModifiers() & ~Modifier.FINAL);
     }
 
     /**
@@ -100,7 +100,7 @@ public class ChatComponent {
      */
     public static ChatComponent fromString(String str) {
 
-        Object[] comps = Reflection.invoke(FROM_STRING, null, str);
+        Object[] comps = invoke(FROM_STRING, null, str);
         if (comps != null) {
             return ChatComponent.wrap(comps[0]);
         }
@@ -124,12 +124,12 @@ public class ChatComponent {
 
     private ChatComponent(String text) {
         this.base = new ChatComponentText(text);
-        this.siblings = Reflection.getValue(SIBLINGS, this.base);
+        this.siblings = getValue(SIBLINGS, this.base);
     }
 
     private ChatComponent(Object baseComponent) {
         this.base = baseComponent;
-        this.siblings = Reflection.getValue(SIBLINGS, this.base);
+        this.siblings = getValue(SIBLINGS, this.base);
     }
 
     /**
@@ -151,7 +151,7 @@ public class ChatComponent {
      * @return A reference to the new ChatComponent sibling.
      */
     public ChatComponent addSibling(ChatComponent component) {
-        Reflection.invoke(ADD_SIBLING, this.base, component.base);
+        invoke(ADD_SIBLING, this.base, component.base);
         this.current = component;
         return component;
     }
@@ -490,7 +490,7 @@ public class ChatComponent {
     @Override
     public final boolean equals(Object o) {
         return o == this || o instanceof ChatComponent &&
-                            ((ChatComponent) o).getBaseComponent().equals(this.getBaseComponent());
+                ((ChatComponent) o).getBaseComponent().equals(this.getBaseComponent());
     }
 
     @Override
@@ -507,9 +507,9 @@ public class ChatComponent {
     private void setText(String text) {
 
         if (this.base instanceof ChatComponentText) {
-            Reflection.setValue(CHAT, this.base, text);
+            setValue(CHAT, this.base, text);
         } else {
-            Reflection.setValue(MESSAGE, this.base, text);
+            setValue(MESSAGE, this.base, text);
         }
     }
 

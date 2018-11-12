@@ -25,14 +25,12 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
-import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.findMcClass;
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * An NBT number wrapper for the primitive type {@code byte}.
@@ -58,7 +56,7 @@ public final class NBTTagByte extends NBTNumber implements DataHolder<Byte> {
 
     NBTTagByte(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = getValue(DATA, wrapped);
     }
 
     @Override

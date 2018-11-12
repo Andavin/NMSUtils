@@ -24,7 +24,6 @@
 
 package com.andavin.util;
 
-import com.andavin.NMSUtils;
 import com.andavin.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
@@ -47,8 +46,10 @@ import static com.andavin.reflect.Reflection.getValue;
  * @author Andavin
  * @since May 16, 2018
  */
+@SuppressWarnings("ConstantConditions")
 public final class PluginRegistry {
 
+    private static WeakReference<Plugin> defPlugin;
     private static final int LOGGER_ATTEMPTS = 5;
     private static final Map<String, WeakReference<Plugin>> PLUGINS = new HashMap<>();
     private static final Field PLUGINS_FIELD = findField(SimplePluginManager.class, "plugins");
@@ -74,6 +75,10 @@ public final class PluginRegistry {
 
         Class<? extends Plugin> clazz = plugin.getClass();
         WeakReference<Plugin> reference = new WeakReference<>(plugin);
+        if (defPlugin == null) {
+            defPlugin = reference;
+        }
+
         String name = clazz.getName();
         PLUGINS.put(name, reference);
         int first = name.indexOf('.');
@@ -106,8 +111,8 @@ public final class PluginRegistry {
 
     /**
      * Get the {@link Plugin} that called the method calling this
-     * method. This will return the default {@link NMSUtils plugin}
-     * if no other plugin can be found within the attempts allotted.
+     * method. This will return the default plugin if no other
+     * plugin can be found within the attempts allotted.
      *
      * @param attempts The attempts to (calls to go back) to try to
      *                 find the plugin within.
@@ -122,7 +127,7 @@ public final class PluginRegistry {
             plugin = getPlugin(Reflection.getCallerClass(tries));
         }
 
-        return plugin != null ? plugin : NMSUtils.getInstance();
+        return plugin != null ? plugin : defPlugin.get();
     }
 
     /**

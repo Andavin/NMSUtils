@@ -24,7 +24,6 @@
 
 package com.andavin.visual;
 
-import com.andavin.reflect.Reflection;
 import com.andavin.util.LongHash;
 import com.andavin.util.PacketSender;
 import org.bukkit.ChunkSnapshot;
@@ -43,6 +42,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.andavin.reflect.Reflection.*;
+
 /**
  * @since May 28, 2018
  * @author Andavin
@@ -54,19 +55,19 @@ public final class ChunkVisual {
     private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR;
 
     static {
-        Class<?> blockData = Reflection.findMcClass("IBlockData");
-        Class<?> singlePacket = Reflection.findMcClass("PacketPlayOutBlockChange");
-        Class<?> multiPacket = Reflection.findMcClass("PacketPlayOutMultiBlockChange");
-        Class<?> multiBlock = Reflection.findMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
-        BLOCK_POS = Reflection.findConstructor(Reflection.findMcClass("BlockPosition"), int.class, int.class, int.class);
-        CHUNK_PAIR = Reflection.findConstructor(Reflection.findMcClass("ChunkCoordIntPair"), int.class, int.class);
-        M_PACKET = Reflection.findConstructor(multiPacket);
-        MULTI_BLOCK = Reflection.findConstructor(multiBlock, multiPacket, short.class, blockData);
-        S_PACKET = Reflection.findConstructor(singlePacket);
-        CHUNK = Reflection.findField(multiPacket, "a");
-        M_BLOCK_DATA = Reflection.findField(multiPacket, "b");
-        POSITION = Reflection.findField(singlePacket, "a");
-        S_BLOCK_DATA = Reflection.findField(singlePacket, "block");
+        Class<?> blockData = findMcClass("IBlockData");
+        Class<?> singlePacket = findMcClass("PacketPlayOutBlockChange");
+        Class<?> multiPacket = findMcClass("PacketPlayOutMultiBlockChange");
+        Class<?> multiBlock = findMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
+        BLOCK_POS = findConstructor(findMcClass("BlockPosition"), int.class, int.class, int.class);
+        CHUNK_PAIR = findConstructor(findMcClass("ChunkCoordIntPair"), int.class, int.class);
+        M_PACKET = findConstructor(multiPacket);
+        MULTI_BLOCK = findConstructor(multiBlock, multiPacket, short.class, blockData);
+        S_PACKET = findConstructor(singlePacket);
+        CHUNK = findField(multiPacket, "a");
+        M_BLOCK_DATA = findField(multiPacket, "b");
+        POSITION = findField(singlePacket, "a");
+        S_BLOCK_DATA = findField(singlePacket, "block");
     }
 
     private final int x, z;
@@ -79,7 +80,7 @@ public final class ChunkVisual {
         this.chunk = chunk;
         this.x = LongHash.msw(chunk);
         this.z = LongHash.lsw(chunk);
-        this.chunkPair = Reflection.newInstance(CHUNK_PAIR, this.x, this.z);
+        this.chunkPair = newInstance(CHUNK_PAIR, this.x, this.z);
     }
 
     /**
@@ -783,7 +784,7 @@ public final class ChunkVisual {
     @Override
     public boolean equals(Object obj) {
         return this == obj || obj != null && obj.getClass() == ChunkVisual.class
-                              && ((ChunkVisual) obj).chunk == chunk;
+                && ((ChunkVisual) obj).chunk == chunk;
     }
 
     @Override
@@ -813,24 +814,24 @@ public final class ChunkVisual {
         // a single PacketPlayOutBlockChange packet
         if (blocks.size() == 1) {
             VisualBlock block = blocks.get(0);
-            Object packet = Reflection.newInstance(S_PACKET);
-            Reflection.setValue(POSITION, packet, Reflection.newInstance(BLOCK_POS,
+            Object packet = newInstance(S_PACKET);
+            setValue(POSITION, packet, newInstance(BLOCK_POS,
                     block.getX(), block.getY(), block.getZ())); // Set the position
-            Reflection.setValue(S_BLOCK_DATA, packet, block.getBlockData()); // And the data
+            setValue(S_BLOCK_DATA, packet, block.getBlockData()); // And the data
             PacketSender.sendPacket(player, packet);
             return;
         }
 
         // There are multiple here so send a PacketPlayOutMultiBlockChange packet
-        Object packet = Reflection.newInstance(M_PACKET);
+        Object packet = newInstance(M_PACKET);
         Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(), blocks.size());
-        Reflection.setValue(CHUNK, packet, this.chunkPair); // Set the chunk that it is in
-        Reflection.setValue(M_BLOCK_DATA, packet, blockData); // Place the array into the packet
+        setValue(CHUNK, packet, this.chunkPair); // Set the chunk that it is in
+        setValue(M_BLOCK_DATA, packet, blockData); // Place the array into the packet
 
         // Then update the array with all of the data and positions
         int i = 0;
         for (VisualBlock block : blocks) {
-            blockData[i++] = Reflection.newInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
+            blockData[i++] = newInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
         }
 
         // Send the packet to the player

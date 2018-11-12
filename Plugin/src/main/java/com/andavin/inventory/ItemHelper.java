@@ -3,7 +3,6 @@ package com.andavin.inventory;
 import com.andavin.nbt.ItemNBT;
 import com.andavin.nbt.wrapper.NBTHelper;
 import com.andavin.nbt.wrapper.NBTTagCompound;
-import com.andavin.reflect.Reflection;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -44,7 +43,7 @@ public final class ItemHelper {
         Class<?> compound = findMcClass("NBTTagCompound");
         SAVE = findMethod(itemStack, "save", compound);
         CRAFT_MIRROR = findMethod(CRAFT_ITEM, "asCraftMirror", itemStack);
-        CREATE_ITEM = Reflection.VERSION_NUMBER >= 1100 ?
+        CREATE_ITEM = VERSION_NUMBER >= 1100 ?
                 findConstructor(itemStack, false, compound) :
                 findMethod(itemStack, "createStack", false, compound);
     }

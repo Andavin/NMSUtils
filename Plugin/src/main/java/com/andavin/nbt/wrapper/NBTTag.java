@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@interface NBTTag {
+public @interface NBTTag {
 
     /**
      * The integer identifier for the type of NBT tag that

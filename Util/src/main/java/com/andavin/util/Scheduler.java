@@ -30,11 +30,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.function.Supplier;
 
 /**
@@ -409,7 +405,7 @@ public final class Scheduler {
         @Override
         public boolean equals(Object obj) {
             return obj != null && obj.getClass() == Task.class &&
-                   this.task.getTaskId() == ((Task) obj).task.getTaskId();
+                    this.task.getTaskId() == ((Task) obj).task.getTaskId();
         }
     }
 }
