@@ -1,23 +1,40 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2018 Andavin
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package com.andavin.inventory;
 
-import com.andavin.MinecraftVersion;
+import com.andavin.NMSUtils;
 import com.andavin.nbt.ItemNBT;
 import com.andavin.nbt.wrapper.NBTHelper;
-import com.andavin.nbt.wrapper.NBTTagCompound;
 import org.bukkit.Material;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-
-import static com.andavin.MinecraftVersion.v1_11_R1;
-import static com.andavin.reflect.Reflection.*;
 
 /**
  * A basic helper class to do common tasks that have to do
@@ -31,24 +48,7 @@ import static com.andavin.reflect.Reflection.*;
  */
 public final class ItemHelper {
 
-    private static final Class<?> CRAFT_ITEM = findCraftClass("inventory.CraftItemStack");
-    private static final Field HANDLE = findField(CRAFT_ITEM, "handle");
-
-    private static final Method CRAFT_COPY = findMethod(CRAFT_ITEM, "asCraftCopy", ItemStack.class);
-    private static final Method NMS_COPY = findMethod(CRAFT_ITEM, "asNMSCopy", ItemStack.class);
-
-    private static final Executable CREATE_ITEM;
-    private static final Method SAVE, CRAFT_MIRROR;
-
-    static {
-        Class<?> itemStack = findMcClass("ItemStack");
-        Class<?> compound = findMcClass("NBTTagCompound");
-        SAVE = findMethod(itemStack, "save", compound);
-        CRAFT_MIRROR = findMethod(CRAFT_ITEM, "asCraftMirror", itemStack);
-        CREATE_ITEM = MinecraftVersion.greaterThanOrEqual(v1_11_R1) ?
-                findConstructor(itemStack, false, compound) :
-                findMethod(itemStack, "createStack", false, compound);
-    }
+    private static final ItemBridge INSTANCE = NMSUtils.getVersionedInstance(ItemBridge.class);
 
     /**
      * Check if the given {@link ItemStack item} is empty in that
@@ -70,7 +70,7 @@ public final class ItemHelper {
      * @return If the ItemStack is an instance of {@code CraftItemStack.}
      */
     public static boolean isCraftItem(ItemStack item) {
-        return CRAFT_ITEM.isInstance(item);
+        return INSTANCE.isCraftItem(item);
     }
 
     /**
@@ -81,7 +81,7 @@ public final class ItemHelper {
      * @return The ItemStack that is an instance of {@code CraftItemStack}.
      */
     public static ItemStack ensureCraftItem(ItemStack item) {
-        return CRAFT_ITEM.isInstance(item) ? item : invoke(CRAFT_COPY, null, item);
+        return INSTANCE.ensureCraftItem(item);
     }
 
     /**
@@ -97,9 +97,20 @@ public final class ItemHelper {
      * @return The NMS item stack.
      */
     public static Object getNmsItemStack(ItemStack item) {
-        //noinspection ConstantConditions
-        return CRAFT_ITEM.isInstance(item) ? getValue(HANDLE, item) :
-                invoke(NMS_COPY, null, item);
+        return INSTANCE.getNmsItemStack(item);
+    }
+
+    /**
+     * Damage the given item (do durability calculation) just as it would
+     * be with a vanilla Minecraft item.
+     *
+     * @param item The item to damage.
+     * @param amount The amount of damage to do to the item.
+     * @param livingEntity The {@link LivingEntity} that is using the item
+     *                     and causing it to be damaged.
+     */
+    public static void damageItem(ItemStack item, int amount, LivingEntity livingEntity) {
+        INSTANCE.damageItem(item, amount, livingEntity);
     }
 
     /**
@@ -113,8 +124,7 @@ public final class ItemHelper {
      */
     public static byte[] serialize(ItemStack item) throws UncheckedIOException {
 
-        Object nmsItem = getNmsItemStack(item);
-        Object tag = invoke(SAVE, nmsItem, NBTHelper.createTag(NBTTagCompound.class));
+        Object tag = INSTANCE.saveToNBT(item);
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             NBTHelper.serialize(stream, tag);
             return stream.toByteArray();
@@ -136,9 +146,7 @@ public final class ItemHelper {
     public static ItemStack deserialize(byte[] bytes) throws UncheckedIOException {
 
         try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
-            Object tag = NBTHelper.deserializeNMS(stream);
-            return invoke(CRAFT_MIRROR, null, CREATE_ITEM.getClass() == Constructor.class ?
-                    newInstance((Constructor) CREATE_ITEM, tag) : invoke((Method) CREATE_ITEM, null, tag));
+            return INSTANCE.createStack(NBTHelper.deserializeNMS(stream));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

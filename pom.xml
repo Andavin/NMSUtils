@@ -6,7 +6,7 @@
 
     <groupId>com.andavin</groupId>
     <artifactId>nms-utils-parent</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
+    <version>0.4.1-SNAPSHOT</version>
     <modules>
         <module>Util</module>
         <module>Plugin</module>
@@ -16,7 +16,8 @@
         <module>v1_10_R1</module>
         <module>v1_11_R1</module>
         <module>v1_12_R1</module>
-        <module>v1_13_R1</module>
+        <module>v1_13_R2</module>
+        <module>Bridge</module>
     </modules>
     <packaging>pom</packaging>
 
