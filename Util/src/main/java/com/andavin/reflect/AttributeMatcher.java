@@ -24,6 +24,7 @@
 
 package com.andavin.reflect;
 
+import com.andavin.reflect.exception.UncheckedReflectiveOperationException;
 import com.andavin.util.Logger;
 
 import java.lang.reflect.AccessibleObject;
@@ -37,7 +38,7 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
 
     private static final int SYNTHETIC = 0x1000;
 
-    private final Class<?> mainType;
+    final Class<?> mainType;
     private final int availableModifiers;
     int requiredModifiers, disallowedModifiers;
 
@@ -153,4 +154,13 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
         // If main types do not match exactly, then it does not match
         return mainType == this.mainType;
     }
+
+    /**
+     * Build an {@link UncheckedReflectiveOperationException} that
+     * details that this attribute could not be found given the
+     * current parameters.
+     *
+     * @return The built exception.
+     */
+    abstract UncheckedReflectiveOperationException buildException();
 }

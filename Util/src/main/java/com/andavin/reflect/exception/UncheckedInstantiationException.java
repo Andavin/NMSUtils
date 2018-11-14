@@ -32,7 +32,7 @@ package com.andavin.reflect.exception;
  * @since November 07, 2018
  * @author Andavin
  */
-public class UncheckedInstantiationException extends RuntimeException {
+public class UncheckedInstantiationException extends UncheckedReflectiveOperationException {
 
     public UncheckedInstantiationException(String s) {
         super(s);

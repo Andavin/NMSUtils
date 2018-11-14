@@ -34,7 +34,7 @@ import java.lang.reflect.InvocationTargetException;
  * @since November 07, 2018
  * @author Andavin
  */
-public class UncheckedInvocationTargetException extends RuntimeException {
+public class UncheckedInvocationTargetException extends UncheckedReflectiveOperationException {
 
     private final Throwable target;
 

@@ -24,6 +24,9 @@
 
 package com.andavin.reflect;
 
+import com.andavin.reflect.exception.UncheckedNoSuchFieldException;
+import com.andavin.reflect.exception.UncheckedReflectiveOperationException;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
@@ -40,5 +43,12 @@ public class FieldMatcher extends AttributeMatcher<Field, FieldMatcher> {
     @Override
     boolean match(Field field) {
         return this.match(field.getModifiers(), field.getType());
+    }
+
+    @Override
+    UncheckedReflectiveOperationException buildException() {
+        return new UncheckedNoSuchFieldException("Could not find field with type " + this.mainType.getSimpleName() +
+                " requiring " + Integer.toBinaryString(this.requiredModifiers) + " and disallowing " +
+                Integer.toBinaryString(this.disallowedModifiers));
     }
 }

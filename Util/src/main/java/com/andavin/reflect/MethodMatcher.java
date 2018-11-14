@@ -24,10 +24,14 @@
 
 package com.andavin.reflect;
 
+import com.andavin.reflect.exception.UncheckedNoSuchMethodException;
+import com.andavin.reflect.exception.UncheckedReflectiveOperationException;
 import com.andavin.util.Logger;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 import static com.andavin.reflect.Reflection.compare;
 
@@ -110,5 +114,13 @@ public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
     boolean match(Method method) {
         return this.match(method.getModifiers(), method.getReturnType()) &&
                 compare(method.getParameterTypes(), this.parametersTypes, this.requireExactMatch);
+    }
+
+    @Override
+    UncheckedReflectiveOperationException buildException() {
+        return new UncheckedNoSuchMethodException("Could not find method " + this.mainType.getSimpleName() + " anyMethod(" +
+                Arrays.stream(this.parametersTypes).map(Class::getSimpleName).collect(Collectors.joining(", ")) +
+                ") requiring " + Integer.toBinaryString(this.requiredModifiers) + " and disallowing " +
+                Integer.toBinaryString(this.disallowedModifiers));
     }
 }

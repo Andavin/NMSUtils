@@ -25,16 +25,31 @@
 package com.andavin.reflect.exception;
 
 /**
- * An uncheck version of the Java {@link IllegalAccessException}.
+ * An uncheck version of the Java {@link ClassNotFoundException}.
  * Almost identical implementation, except that this is an unchecked
  * {@link RuntimeException}.
  *
- * @since November 07, 2018
+ * @since November 13, 2018
  * @author Andavin
  */
-public class UncheckedIllegalAccessException extends UncheckedReflectiveOperationException {
+public class UncheckedClassNotFoundException extends UncheckedReflectiveOperationException {
 
-    public UncheckedIllegalAccessException(String s) {
-        super(s);
+    private final Throwable cause;
+
+    public UncheckedClassNotFoundException(String s, Throwable cause) {
+        super(s, null);  //  Disallow initCause
+        this.cause = cause;
+    }
+
+    /**
+     * Returns the cause of this exception (the exception that was raised
+     * if an error occurred while attempting to load the class; otherwise
+     * <tt>null</tt>).
+     *
+     * @return The cause of this exception.
+     */
+    @Override
+    public Throwable getCause() {
+        return cause;
     }
 }

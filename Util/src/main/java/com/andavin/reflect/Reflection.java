@@ -403,18 +403,21 @@ public final class Reflection {
      *
      * @param clazz The class to get the field from.
      * @param name The name of the field to find.
-     * @return The field that matches the name or {@code null}
-     *         if no matching field is found.
+     * @return The field that matches the name.
+     * @throws UncheckedNoSuchFieldException If no fields matching the search
+     *                                       parameters are found.
      */
-    public static Field findField(Class<?> clazz, String name) {
+    public static Field findField(Class<?> clazz, String name) throws UncheckedNoSuchFieldException {
 
+        NoSuchFieldException exception;
         try {
             return clazz.getDeclaredField(name);
-        } catch (NoSuchFieldException ignored) {
+        } catch (NoSuchFieldException e) {
+            exception = e;
         }
 
         Class<?> superClazz = clazz.getSuperclass();
-        if (superClazz != null) {
+        if (superClazz != null && superClazz != Object.class) {
 
             try {
                 return superClazz.getField(name);
@@ -422,7 +425,7 @@ public final class Reflection {
             }
         }
 
-        return null;
+        throw wrapException(exception);
     }
 
     /**
@@ -438,8 +441,10 @@ public final class Reflection {
      *                in the class.
      * @return The first field found that matches all the required parameters
      *         or {@code null} if no field was found that matched.
+     * @throws UncheckedNoSuchFieldException If no fields matching the search
+     *                                       parameters are found.
      */
-    public static Field findField(Class<?> clazz, FieldMatcher matcher) {
+    public static Field findField(Class<?> clazz, FieldMatcher matcher) throws UncheckedNoSuchFieldException {
         return findField(clazz, 0, matcher);
     }
 
@@ -461,13 +466,15 @@ public final class Reflection {
      *              field that matches the parameters.
      * @param matcher The {@link FieldMatcher} to use to match fields
      *                in the class.
-     * @return The field found that matches all the required parameters
-     *         or {@code null} if no field was found that matched.
+     * @return The field found that matches all the required parameters.
      * @throws IndexOutOfBoundsException If there are not enough fields
      *                                   that match the parameters in order
      *                                   to reach the required index.
+     * @throws UncheckedNoSuchFieldException If no fields matching the search
+     *                                       parameters are found.
      */
-    public static Field findField(Class<?> clazz, int index, FieldMatcher matcher) throws IndexOutOfBoundsException {
+    public static Field findField(Class<?> clazz, int index, FieldMatcher matcher)
+            throws IndexOutOfBoundsException, UncheckedNoSuchFieldException {
 
         int found = 0;
         Field[] fields = clazz.getDeclaredFields();
@@ -483,7 +490,7 @@ public final class Reflection {
                     index + " in " + clazz.getSimpleName());
         }
 
-        return null;
+        throw matcher.buildException();
     }
 
     /**
@@ -664,8 +671,8 @@ public final class Reflection {
      *     Reflection.findMethod(Foo.class, "bar", A.class);
      * </pre>
      * Note that if there is still no method match even with
-     * the type conversions, then {@code null} will be returned
-     * rather than throwing an exception.
+     * the type conversions, then an unchecked exception will
+     * still be thrown.
      * <p>
      * In addition to declared methods, super class methods will
      * also be searched for a match using the {@link Class#getMethod(String, Class[])}
@@ -674,8 +681,9 @@ public final class Reflection {
      * @param clazz The class to get the method from.
      * @param name The name of the method to find.
      * @param paramTypes The parameters types to match to.
-     * @return The method that matches the requested or {@code null}
-     *         if no matching method is found.
+     * @return The method that matches the requested.
+     * @throws UncheckedNoSuchMethodException If no methods matching the name and
+     *                                        parameters is found.
      */
     public static Method findMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
         return findMethod(clazz, name, true, paramTypes);
@@ -709,8 +717,8 @@ public final class Reflection {
      *     Reflection.findMethod(Foo.class, "bar", A.class);
      * </pre>
      * Note that if there is still no method match even with
-     * the type conversions, then {@code null} will be returned
-     * rather than throwing an exception.
+     * the type conversions, then an unchecked exception will
+     * still be thrown.
      * <p>
      * In addition to declared methods, super class methods will
      * also be searched for a match using the {@link Class#getMethod(String, Class[])}
@@ -723,14 +731,17 @@ public final class Reflection {
      *                       {@link Class#getDeclaredMethod(String, Class[])}
      *                       will be used.
      * @param paramTypes The parameters types to match to.
-     * @return The method that matches the requested or {@code null}
-     *         if no matching method is found.
+     * @return The method that matches the requested.
+     * @throws UncheckedNoSuchMethodException If no methods matching the name and
+     *                                        parameters is found.
      */
-    public static Method findMethod(Class<?> clazz, String name, boolean hierarchyMatch, Class<?>... paramTypes) {
+    public static Method findMethod(Class<?> clazz, String name, boolean hierarchyMatch, Class<?>... paramTypes)
+            throws UncheckedNoSuchMethodException {
 
+        NoSuchMethodException exception;
         try {
             return clazz.getDeclaredMethod(name, paramTypes);
-        } catch (NoSuchMethodException ignored) {
+        } catch (NoSuchMethodException e) {
 
             if (hierarchyMatch) {
 
@@ -742,11 +753,13 @@ public final class Reflection {
                     }
                 }
             }
+
+            exception = e;
         }
 
         Class<?> superClazz = clazz.getSuperclass();
         if (superClazz == null) {
-            return null;
+            throw wrapException(exception);
         }
 
         try {
@@ -766,7 +779,7 @@ public final class Reflection {
             }
         }
 
-        return null;
+        throw wrapException(exception);
     }
 
     /**
@@ -781,10 +794,11 @@ public final class Reflection {
      * @param clazz The class that should be searched for the method.
      * @param matcher The {@link MethodMatcher} to use to match methods
      *                in the class.
-     * @return The first method found that matches all the required parameters
-     *         or {@code null} if no method was found that matched.
+     * @return The first method found that matches all the required parameters.
+     * @throws UncheckedNoSuchMethodException If no methods matching the search
+     *                                        parameters are found.
      */
-    public static Method findMethod(Class<?> clazz, MethodMatcher matcher) {
+    public static Method findMethod(Class<?> clazz, MethodMatcher matcher) throws UncheckedNoSuchMethodException {
         return findMethod(clazz, 0, matcher);
     }
 
@@ -807,13 +821,15 @@ public final class Reflection {
      *              method that matches the parameters.
      * @param matcher The {@link MethodMatcher} to use to match methods
      *                in the class.
-     * @return The method found that matches all the required parameters
-     *         or {@code null} if no method was found that matched.
+     * @return The method found that matches all the required parameters.
      * @throws IndexOutOfBoundsException If there are not enough methods
      *                                   that match the parameters in order
      *                                   to reach the required index.
+     * @throws UncheckedNoSuchMethodException If no methods matching the search
+     *                                        parameters are found.
      */
-    public static Method findMethod(Class<?> clazz, int index, MethodMatcher matcher) throws IndexOutOfBoundsException {
+    public static Method findMethod(Class<?> clazz, int index, MethodMatcher matcher)
+            throws IndexOutOfBoundsException, UncheckedNoSuchMethodException {
 
         int found = 0;
         Method[] methods = clazz.getDeclaredMethods();
@@ -829,7 +845,7 @@ public final class Reflection {
                     index + " in " + clazz.getSimpleName());
         }
 
-        return null;
+        throw matcher.buildException();
     }
 
     /**
@@ -875,16 +891,17 @@ public final class Reflection {
      *     Reflection.findConstructor(Foo.class, A.class);
      * </pre>
      * Note that if there is still no constructor match even with
-     * the type conversions, then {@code null} will be returned
-     * rather than throwing an exception.
+     * the type conversions, then an unchecked exception will still
+     * be thrown.
      *
      * @param clazz The class to get the constructor from.
      * @param paramTypes The parameters types to match to.
      * @param <T> The type of the class to retrieve the constructor for.
-     * @return The constructor that matches the requested or {@code null}
-     *         if no matching constructor is found.
+     * @return The constructor that matches the requested;
+     * @throws UncheckedNoSuchMethodException If the constructor with the
+     *                                        parameters was not found.
      */
-    public static <T> Constructor<T> findConstructor(Class<T> clazz, Class<?>... paramTypes) {
+    public static <T> Constructor<T> findConstructor(Class<T> clazz, Class<?>... paramTypes) throws UncheckedNoSuchMethodException {
         return findConstructor(clazz, true, paramTypes);
     }
 
@@ -916,8 +933,8 @@ public final class Reflection {
      *     Reflection.findConstructor(Foo.class, A.class);
      * </pre>
      * Note that if there is still no constructor match even with
-     * the type conversions, then {@code null} will be returned
-     * rather than throwing an exception.
+     * the type conversions, then an unchecked exception will still
+     * be thrown.
      *
      * @param clazz The class to get the constructor from.
      * @param hierarchyMatch If the hierarchy should be matched to as well.
@@ -926,18 +943,23 @@ public final class Reflection {
      *                       will be used.
      * @param paramTypes The parameters types to match to.
      * @param <T> The type of the class to retrieve the constructor for.
-     * @return The constructor that matches the requested or {@code null}
-     *         if no matching constructor is found.
+     * @return The constructor that matches the requested.
+     * @throws UncheckedNoSuchMethodException If the constructor with the
+     *                                        parameters was not found.
      */
-    public static <T> Constructor<T> findConstructor(Class<T> clazz, boolean hierarchyMatch, Class<?>... paramTypes) {
+    public static <T> Constructor<T> findConstructor(Class<T> clazz, boolean hierarchyMatch, Class<?>... paramTypes)
+            throws UncheckedNoSuchMethodException {
 
+        NoSuchMethodException exception;
         try {
             return clazz.getDeclaredConstructor(paramTypes);
         } catch (NoSuchMethodException e) {
 
             if (!hierarchyMatch) {
-                return null;
+                throw wrapException(e);
             }
+
+            exception = e;
         }
 
         // Sometimes we fail to find the constructor due to a type
@@ -957,7 +979,7 @@ public final class Reflection {
             }
         }
 
-        return null;
+        throw wrapException(exception);
     }
 
     /**
@@ -1008,9 +1030,12 @@ public final class Reflection {
      * <b>net.minecraft.server.version</b>.
      *
      * @param name The name of the class to retrieve.
-     * @return The Minecraft class for the given name or null if class was not found.
+     * @return The Minecraft class for the given name.
+     * @throws UncheckedClassNotFoundException If the class was not found
+     *                                         or an exception occurred while
+     *                                         loading the class.
      */
-    public static Class<?> findMcClass(String name) {
+    public static Class<?> findMcClass(String name) throws UncheckedClassNotFoundException {
         return findClass(MinecraftVersion.MINECRAFT_PREFIX + name);
     }
 
@@ -1026,30 +1051,36 @@ public final class Reflection {
      * simply input <b>entity.CraftPlayer</b>.
      *
      * @param name The name of the class to retrieve.
-     * @return The Craftbukkit class for the given name or null if class was not found.
+     * @return The Craftbukkit class for the given name.
+     * @throws UncheckedClassNotFoundException If the class was not found
+     *                                         or an exception occurred while
+     *                                         loading the class.
      */
-    public static Class<?> findCraftClass(String name) {
+    public static Class<?> findCraftClass(String name) throws UncheckedClassNotFoundException {
         return findClass(MinecraftVersion.CRAFTBUKKIT_PREFIX + name);
     }
 
     /**
-     * Get a class of a specific type using a generic type
-     * using the exact canonical name of a class.
-     * If the class is not the type that is given by the generic,
-     * then a {@link ClassCastException} will be thrown.
+     * Get a class of a specific type using a generic type using the
+     * exact canonical name of a class. If the class is not the type
+     * that is given by the generic, then a {@link ClassCastException}
+     * will be thrown.
      *
      * @param name The canonical name of the class to retrieve.
      * @param <T> The type of the class.
-     * @return The class with the name or null if the class is not found.
+     * @return The class with the name;
      * @throws ClassCastException If the class is not the type that
      *                            is given by the generic type.
+     * @throws UncheckedClassNotFoundException If the class was not found
+     *                                         or an exception occurred while
+     *                                         loading the class.
      */
-    public static <T> Class<T> findClass(String name) {
+    public static <T> Class<T> findClass(String name) throws UncheckedClassNotFoundException {
 
         try {
             return (Class<T>) Class.forName(name);
         } catch (ClassNotFoundException e) {
-            return null;
+            throw wrapException(e);
         }
     }
 
@@ -1205,6 +1236,18 @@ public final class Reflection {
 
         if (e instanceof InstantiationException) {
             return new UncheckedInstantiationException(e.getMessage());
+        }
+
+        if (e instanceof NoSuchMethodException) {
+            throw new UncheckedNoSuchMethodException(e.getMessage());
+        }
+
+        if (e instanceof NoSuchFieldException) {
+            throw new UncheckedNoSuchFieldException(e.getMessage());
+        }
+
+        if (e instanceof ClassNotFoundException) {
+            throw new UncheckedClassNotFoundException(e.getMessage(), e.getCause());
         }
 
         return e instanceof RuntimeException ? (RuntimeException) e : new RuntimeException(e);

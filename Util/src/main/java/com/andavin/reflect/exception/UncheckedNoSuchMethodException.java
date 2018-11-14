@@ -32,7 +32,7 @@ package com.andavin.reflect.exception;
  * @since November 07, 2018
  * @author Andavin
  */
-public class UncheckedNoSuchMethodException extends RuntimeException {
+public class UncheckedNoSuchMethodException extends UncheckedReflectiveOperationException {
 
     public UncheckedNoSuchMethodException(String s) {
         super(s);

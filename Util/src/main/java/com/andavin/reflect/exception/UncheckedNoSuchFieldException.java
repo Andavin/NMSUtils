@@ -32,7 +32,7 @@ package com.andavin.reflect.exception;
  * @since November 07, 2018
  * @author Andavin
  */
-public class UncheckedNoSuchFieldException extends RuntimeException {
+public class UncheckedNoSuchFieldException extends UncheckedReflectiveOperationException {
 
     public UncheckedNoSuchFieldException(String s) {
         super(s);
