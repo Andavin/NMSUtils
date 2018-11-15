@@ -25,17 +25,14 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
-import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.findMcClass;
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * An NBT wrapper for the {@code NBTTagList} NMS class. This is
@@ -48,13 +45,13 @@ import static com.andavin.reflect.Reflection.findMcClass;
  * @since May 12, 2018
  */
 @NBTTag(typeId = NBTType.LIST)
-public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase>>, Iterable<NBTBase> {
+public final class NBTTagList<E extends NBTBase & DataHolder> extends NBTBase implements DataHolder<List<E>>, Iterable<E> {
 
     private static final Field DATA = findField(findMcClass("NBTTagList"), "list");
 
     private byte tagType = -1;
-    private final List<NBTBase> wrapped;
-    private transient final List<Object> list;
+    private final List<E> wrapped;
+    private transient List<Object> list;
 
     /**
      * Create a new, empty list tag.
@@ -70,14 +67,14 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      *
      * @param list The List to create the tag from.
      */
-    public NBTTagList(List<NBTBase> list) {
+    public NBTTagList(List<E> list) {
         this();
         list.forEach(this::add);
     }
 
     NBTTagList(Object wrapped) {
         super(wrapped);
-        this.list = Reflection.getValue(DATA, wrapped);
+        this.list = getValue(DATA, wrapped);
         if (!this.list.isEmpty()) {
             this.wrapped = new ArrayList<>(this.list.size());
             this.list.forEach(nbt -> this.wrapped.add(NBTHelper.wrap(nbt)));
@@ -111,8 +108,8 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
     }
 
     @Override
-    public List<NBTBase> getData() {
-        return this.wrapped;
+    public List<E> getData() {
+        return Collections.unmodifiableList(this.wrapped);
     }
 
     @Override
@@ -130,7 +127,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param tag The tag to add to this list.
      * @return If the tag was successfully added.
      */
-    public boolean add(NBTBase tag) {
+    public boolean add(E tag) {
 
         if (this.isType(tag)) {
             this.wrapped.add(tag);
@@ -152,7 +149,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param index The index to add the tag at.
      * @param tag The tag to add to this list.
      */
-    public void add(int index, NBTBase tag) {
+    public void add(int index, E tag) {
 
         if (this.isInRange(index) && this.isType(tag)) {
             this.wrapped.add(index, tag);
@@ -173,7 +170,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param tag The tag to replace the index with.
      * @return The {@link NBTBase tag} that was previously at the index.
      */
-    public NBTBase set(int index, NBTBase tag) {
+    public NBTBase set(int index, E tag) {
 
         if (this.isInRange(index) && this.isType(tag)) {
             this.list.set(index, tag);
@@ -191,7 +188,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param index The index to get the tag at.
      * @return The tag at the given index.
      */
-    public NBTBase get(int index) {
+    public E get(int index) {
         return this.wrapped.get(index);
     }
 
@@ -202,7 +199,7 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
      * @param tag The tag to remove the equivalents.
      * @return If any tag was successfully removed.
      */
-    public boolean remove(NBTBase tag) {
+    public boolean remove(E tag) {
         this.list.remove(tag.wrapped);
         return this.wrapped.remove(tag);
     }
@@ -220,21 +217,9 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
         return this.wrapped.remove(index);
     }
 
-    /**
-     * Deserialize the map into a new NBTBase object as
-     * specified by {@link ConfigurationSerializable}.
-     *
-     * @param map The map that was serialized with
-     *        {@link ConfigurationSerializable#serialize()}.
-     * @return The newly created, deserialized object.
-     */
-    public static NBTTagList deserialize(Map<String, Object> map) {
-        return new NBTTagList((List<NBTBase>) map.get("data"));
-    }
-
     @Override
-    public Iterator<NBTBase> iterator() {
-        return this.wrapped.iterator();
+    public Iterator<E> iterator() {
+        return new DualIteratorDelegate<>(this.wrapped.iterator(), this.list.iterator());
     }
 
     private boolean isInRange(int index) {
@@ -251,8 +236,29 @@ public final class NBTTagList extends NBTBase implements DataHolder<List<NBTBase
         if (this.tagType == -1) {
             this.tagType = id;
             return true;
-        } else {
-            return this.tagType == id;
         }
+
+        return this.tagType == id;
+    }
+
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+
+        stream.defaultReadObject();
+        this.list = getValue(DATA, this.wrapped);
+        if (!this.wrapped.isEmpty()) {
+            this.wrapped.stream().map(NBTBase::getWrapped).forEach(this.list::add);
+        }
+    }
+
+    /**
+     * Deserialize the map into a new NBTBase object as
+     * specified by {@link ConfigurationSerializable}.
+     *
+     * @param map The map that was serialized with
+     *        {@link ConfigurationSerializable#serialize()}.
+     * @return The newly created, deserialized object.
+     */
+    public static NBTTagList deserialize(Map<String, Object> map) {
+        return new NBTTagList((List<NBTBase>) map.get("data"));
     }
 }

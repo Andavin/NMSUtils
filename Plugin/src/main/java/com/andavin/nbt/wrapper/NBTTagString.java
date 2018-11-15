@@ -58,6 +58,11 @@ public final class NBTTagString extends NBTBase implements DataHolder<String> {
     }
 
     @Override
+    public boolean isEmpty() {
+        return this.data == null || this.data.isEmpty();
+    }
+
+    @Override
     public String getData() {
         return data;
     }

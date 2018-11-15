@@ -27,6 +27,9 @@ package com.andavin.nbt.wrapper;
 import com.andavin.DataHolder;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 import java.util.Collections;
 import java.util.Map;
 
@@ -40,7 +43,7 @@ import static com.google.common.base.Preconditions.checkState;
  * @author Andavin
  * @since May 12, 2018
  */
-public abstract class NBTBase implements ConfigurationSerializable {
+public abstract class NBTBase implements ConfigurationSerializable, Serializable {
 
     /**
      * This is the actual reference to the NMS NBT object.
@@ -119,5 +122,19 @@ public abstract class NBTBase implements ConfigurationSerializable {
         return this instanceof DataHolder ?
                 Collections.singletonMap("data", ((DataHolder) this).getData()) :
                 Collections.emptyMap();
+    }
+
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+
+        stream.defaultReadObject();
+        NBTTag type = this.getClass().getAnnotation(NBTTag.class);
+        switch (type.params().length) {
+            case 0:
+                this.wrapped = NBTHelper.createTag(this.getClass());
+                break;
+            case 1:
+                this.wrapped = NBTHelper.createTag(this.getClass(), ((DataHolder) this).getData());
+                break;
+        }
     }
 }

@@ -30,15 +30,16 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiConsumer;
 
-import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.findMcClass;
+import static com.andavin.reflect.Reflection.*;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
@@ -73,12 +74,12 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
     private static final int[] EMPTY_INT_ARRAY = new int[0];
     private static final long[] EMPTY_LONG_ARRAY = new long[0];
 
-    private Set<String> keySet;
-    private Collection<NBTBase> values;
-    private Set<Entry<String, NBTBase>> entrySet;
+    private transient Set<String> keySet;
+    private transient Collection<NBTBase> values;
+    private transient Set<Entry<String, NBTBase>> entrySet;
 
     private final Map<String, NBTBase> wrapped;
-    private transient final Map<String, Object> map;
+    private transient Map<String, Object> map;
 
     /**
      * Create a new, empty compound tag.
@@ -687,6 +688,15 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         return new NBTTagCompound((Map<String, NBTBase>) map.get("data"));
     }
 
+    private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
+
+        stream.defaultReadObject();
+        this.map = getValue(DATA, this.wrapped);
+        if (!this.wrapped.isEmpty()) {
+            this.wrapped.forEach((key, value) -> this.map.put(key, value.wrapped));
+        }
+    }
+
     private class DualSetDelegate<T> extends AbstractSet<T> {
 
         private final Set<T> set, alt;
@@ -762,31 +772,4 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         }
     }
 
-    private class DualIteratorDelegate<T> implements Iterator<T> {
-
-        private final Iterator<?> alt;
-        private final Iterator<T> iterator;
-
-        DualIteratorDelegate(Iterator<T> iterator, Iterator<?> alt) {
-            this.iterator = iterator;
-            this.alt = alt;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return this.iterator.hasNext();
-        }
-
-        @Override
-        public T next() {
-            this.alt.next();
-            return this.iterator.next();
-        }
-
-        @Override
-        public void remove() {
-            this.alt.remove();
-            this.iterator.remove();
-        }
-    }
 }

@@ -35,7 +35,6 @@ import java.util.Map;
 
 import static com.andavin.reflect.Reflection.*;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A basic helper class to store wrapped and wrapping class
@@ -70,18 +69,16 @@ public final class NBTHelper {
         for (Class<? extends NBTBase> clazz : classes) {
 
             String name = clazz.getSimpleName();
-            Class<?> nmsType = findMcClass(name);
             NBTTag type = clazz.getDeclaredAnnotation(NBTTag.class);
-            if (type != null && nmsType != null) {
-                ConfigurationSerialization.registerClass(clazz);
-                Constructor<?> wrap = findConstructor(nmsType, type.params());
-                Constructor<? extends NBTBase> wrapper = findConstructor(clazz, Object.class);
-                checkState(wrapper != null, "%s missing constructor", name);
-                checkState(wrap != null, "%s incorrect annotation types", name);
-                WRAPPERS.put(nmsType, wrapper);
-                TYPE_IDS.put(type.typeId(), wrapper);
-                WRAPPED.put(clazz, wrap);
-            }
+            checkNotNull(type, "[NBT] Type %s is not annotated with NBTTag", name);
+            ConfigurationSerialization.registerClass(clazz);
+
+            Class<?> nmsType = findMcClass(name);
+            Constructor<?> wrap = findConstructor(nmsType, type.params());
+            Constructor<? extends NBTBase> wrapper = findConstructor(clazz, Object.class);
+            WRAPPERS.put(nmsType, wrapper);
+            TYPE_IDS.put(type.typeId(), wrapper);
+            WRAPPED.put(clazz, wrap);
         }
     }
 
