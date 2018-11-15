@@ -25,8 +25,8 @@
 package com.andavin.chat;
 
 import com.andavin.MinecraftVersion;
+import com.andavin.protocol.PacketSender;
 import com.andavin.reflect.Reflection;
-import com.andavin.util.PacketSender;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;

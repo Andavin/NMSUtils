@@ -26,13 +26,15 @@ package com.andavin.inventory;
 
 import com.andavin.Versioned;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.player.PlayerItemBreakEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 /**
  * @since November 13, 2018
  * @author Andavin
  */
-public abstract class ItemBridge implements Versioned {
+public abstract class ItemBridge extends Versioned {
 
     protected ItemBridge() {
     }
@@ -89,6 +91,9 @@ public abstract class ItemBridge implements Versioned {
     /**
      * Damage the given item (do durability calculation) just as it would
      * be with a vanilla Minecraft item.
+     * <p>
+     * Note that calling this method will call events to do with damaging
+     * items such as {@link PlayerItemDamageEvent} and {@link PlayerItemBreakEvent}.
      *
      * @param item The item to damage.
      * @param amount The amount of damage to do to the item.

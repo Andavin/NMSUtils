@@ -28,14 +28,7 @@ import com.andavin.nbt.wrapper.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import static com.andavin.MinecraftVersion.CURRENT_SERVER_VERSION;
-import static com.andavin.reflect.Reflection.findClass;
-import static com.andavin.reflect.Reflection.newInstance;
-
 public final class NMSUtils extends JavaPlugin {
-
-    private static final String PACKAGE = NMSUtils.class.getPackage().getName();
-    private static final String VERSION_PREFIX = PACKAGE + '.' + CURRENT_SERVER_VERSION;
 
     private static NMSUtils instance;
     private static boolean fastAsyncSupport;
@@ -80,26 +73,5 @@ public final class NMSUtils extends JavaPlugin {
      */
     public static boolean fastAsyncSupport() {
         return fastAsyncSupport;
-    }
-
-    /**
-     * Get an instance of an NMS Utils versioned class.
-     *
-     * @param clazz The class to get the versioned counterpart for.
-     * @param args The arguments to pass to the constructor (non can be null).
-     * @param <T> The type of class to retrieve.
-     * @return The instance of the versioned type.
-     * @throws UnsupportedOperationException If the class is not found (no supported).
-     */
-    public static <T extends Versioned> T getVersionedInstance(Class<T> clazz, Object... args) throws UnsupportedOperationException {
-
-        String name = clazz.getName().substring(PACKAGE.length());
-        Class<T> found = findClass(VERSION_PREFIX + name);
-        if (found == null) {
-            throw new UnsupportedOperationException("Class " + clazz +
-                    " is not currently supported for version " + CURRENT_SERVER_VERSION);
-        }
-
-        return newInstance(found, args);
     }
 }

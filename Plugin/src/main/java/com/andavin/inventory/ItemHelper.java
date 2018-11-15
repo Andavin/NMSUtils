@@ -24,11 +24,13 @@
 
 package com.andavin.inventory;
 
-import com.andavin.NMSUtils;
+import com.andavin.Versioned;
 import com.andavin.nbt.ItemNBT;
 import com.andavin.nbt.wrapper.NBTHelper;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.player.PlayerItemBreakEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.ByteArrayInputStream;
@@ -48,7 +50,7 @@ import java.io.UncheckedIOException;
  */
 public final class ItemHelper {
 
-    private static final ItemBridge INSTANCE = NMSUtils.getVersionedInstance(ItemBridge.class);
+    private static final ItemBridge INSTANCE = Versioned.getInstance(ItemBridge.class);
 
     /**
      * Check if the given {@link ItemStack item} is empty in that
@@ -103,6 +105,9 @@ public final class ItemHelper {
     /**
      * Damage the given item (do durability calculation) just as it would
      * be with a vanilla Minecraft item.
+     * <p>
+     * Note that calling this method will call events to do with damaging
+     * items such as {@link PlayerItemDamageEvent} and {@link PlayerItemBreakEvent}.
      *
      * @param item The item to damage.
      * @param amount The amount of damage to do to the item.

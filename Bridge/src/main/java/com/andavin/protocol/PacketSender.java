@@ -22,13 +22,12 @@
  * SOFTWARE.
  */
 
-package com.andavin.util;
+package com.andavin.protocol;
 
+import com.andavin.Versioned;
 import com.andavin.reflect.Reflection;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -43,17 +42,9 @@ import java.util.List;
  * @since May 29, 2018
  * @author Andavin
  */
-public final class PacketSender {
+public abstract class PacketSender extends Versioned {
 
-    private static final Field CONNECTION;
-    private static final Method SEND_PACKET, HANDLE;
-
-    static {
-        CONNECTION = Reflection.findField(Reflection.findMcClass("EntityPlayer"), "playerConnection");
-        SEND_PACKET = Reflection.findMethod(Reflection.findMcClass("PlayerConnection"),
-                "sendPacket", Reflection.findMcClass("Packet"));
-        HANDLE = Reflection.findMethod(Reflection.findCraftClass("entity.CraftPlayer"), "getHandle");
-    }
+    private static final PacketSender INSTANCE = Versioned.getInstance(PacketSender.class);
 
     /**
      * Send the given packet to the given {@link Player}'s client.
@@ -66,12 +57,11 @@ public final class PacketSender {
      * can be used to create an instance.
      *
      * @param player The player to send the packet to.
-     * @param packet The packet instance to send.
+     * @param packet The packet to send.
      * @see Reflection
      */
     public static void sendPacket(Player player, Object packet) {
-        Object conn = Reflection.getValue(CONNECTION, Reflection.invoke(HANDLE, player));
-        Reflection.invoke(SEND_PACKET, conn, packet);
+        INSTANCE.send(player, packet);
     }
 
     /**
@@ -85,11 +75,42 @@ public final class PacketSender {
      * can be used to create an instance.
      *
      * @param player The player to send the packet to.
-     * @param packets The list of packet instances to send.
+     * @param packets The list of packets to send.
      * @see Reflection
      */
     public static void sendPackets(Player player, List<Object> packets) {
-        Object conn = Reflection.getValue(CONNECTION, Reflection.invoke(HANDLE, player));
-        packets.forEach(packet -> Reflection.invoke(SEND_PACKET, conn, packet));
+        INSTANCE.send(player, packets);
     }
+
+    /**
+     * Send the given packet to the given {@link Player}'s client.
+     * The packet will be sent through the player's connection.
+     * <p>
+     * The packet must be a Minecraft packet that extends the NMS
+     * {@code Packet}. If a direct instantiation of a packet needs
+     * to be avoided, the {@link Reflection#newInstance(Class, Object...)}
+     * and {@link Reflection#findMcClass(String)} or similar methods
+     * can be used to create an instance.
+     *
+     * @param player The player to send the packet to.
+     * @param packet The packet to send.
+     * @see Reflection
+     */
+    protected abstract void send(Player player, Object packet);
+
+    /**
+     * Send the given packets to the given {@link Player}'s client.
+     * The packets will be sent through the player's connection.
+     * <p>
+     * The packet must be a Minecraft packet that extends the NMS
+     * {@code Packet}. If a direct instantiation of a packet needs
+     * to be avoided, the {@link Reflection#newInstance(Class, Object...)}
+     * and {@link Reflection#findMcClass(String)} or similar methods
+     * can be used to create an instance.
+     *
+     * @param player The player to send the packet to.
+     * @param packets The list of packets to send.
+     * @see Reflection
+     */
+    protected abstract void send(Player player, List<Object> packets);
 }

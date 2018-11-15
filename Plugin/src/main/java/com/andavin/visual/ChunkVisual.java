@@ -24,8 +24,8 @@
 
 package com.andavin.visual;
 
+import com.andavin.protocol.PacketSender;
 import com.andavin.util.LongHash;
-import com.andavin.util.PacketSender;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.World;

@@ -29,43 +29,17 @@
     <parent>
         <artifactId>nms-utils-parent</artifactId>
         <groupId>com.andavin</groupId>
-        <version>0.4.2-SNAPSHOT</version>
+        <version>0.5.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>Bridge</name>
     <artifactId>nms-utils-bridge</artifactId>
 
-
-    <repositories>
-        <repository>
-            <id>spigotmc-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>sonatype</id>
-            <url>https://oss.sonatype.org/content/groups/public/</url>
-        </repository>
-        <repository>
-            <id>sk89q-repo</id>
-            <url>http://maven.sk89q.com/repo/</url>
-        </repository>
-        <repository>
-            <id>fawe-repo</id>
-            <url>http://ci.athion.net/job/FastAsyncWorldEdit/ws/mvn/</url>
-        </repository>
-    </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.12.2-R0.1-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
             <version>1.12.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>

@@ -24,12 +24,40 @@
 
 package com.andavin;
 
+import static com.andavin.MinecraftVersion.CURRENT_SERVER_VERSION;
+import static com.andavin.reflect.Reflection.findClass;
+import static com.andavin.reflect.Reflection.newInstance;
+
 /**
- * A simple marker interface to mark a class
+ * A simple marker abstract class to mark a class
  * as a versioned type.
  *
  * @since November 13, 2018
  * @author Andavin
  */
-public interface Versioned {
+public abstract class Versioned {
+
+    private static final String PACKAGE = Versioned.class.getPackage().getName();
+    private static final String VERSION_PREFIX = PACKAGE + '.' + CURRENT_SERVER_VERSION;
+
+    /**
+     * Get an instance of an NMS Utils versioned class.
+     *
+     * @param clazz The class to get the versioned counterpart for.
+     * @param args The arguments to pass to the constructor (non can be null).
+     * @param <T> The type of class to retrieve.
+     * @return The instance of the versioned type.
+     * @throws UnsupportedOperationException If the class is not found (no supported).
+     */
+    public static <T extends Versioned> T getInstance(Class<T> clazz, Object... args) throws UnsupportedOperationException {
+
+        String name = clazz.getName().substring(PACKAGE.length());
+        Class<T> found = findClass(VERSION_PREFIX + name);
+        if (found == null) {
+            throw new UnsupportedOperationException("Class " + clazz +
+                    " is not currently supported for version " + CURRENT_SERVER_VERSION);
+        }
+
+        return newInstance(found, args);
+    }
 }
