@@ -30,8 +30,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
 import org.bukkit.plugin.SimplePluginManager;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -98,7 +96,6 @@ public final class PluginRegistry {
      * @return The {@link Logger} for the class or {@link Bukkit#getLogger()}
      *         if none was registered to the class name.
      */
-    @Nonnull
     static Logger getLogger() {
 
         Plugin plugin = getPlugin(Reflection.getCallerClass(1));
@@ -118,7 +115,6 @@ public final class PluginRegistry {
      *                 find the plugin within.
      * @return The plugin that called the method.
      */
-    @Nonnull
     public static Plugin getPlugin(int attempts) {
 
         String className = Reflection.getCallerClass(1); // Exclude the class that called this
@@ -136,7 +132,6 @@ public final class PluginRegistry {
      * @param className The name of the class to get the plugin for.
      * @return The {@link Plugin} that is registered with the class name.
      */
-    @Nullable
     public static Plugin getPlugin(String className) {
 
         char[] chars = className.toCharArray();

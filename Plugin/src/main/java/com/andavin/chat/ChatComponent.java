@@ -26,15 +26,8 @@ package com.andavin.chat;
 
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
-import net.minecraft.server.v1_12_R1.ChatClickable.EnumClickAction;
-import net.minecraft.server.v1_12_R1.ChatComponentText;
-import net.minecraft.server.v1_12_R1.ChatHoverable.EnumHoverAction;
-import net.minecraft.server.v1_12_R1.ChatModifier;
-import net.minecraft.server.v1_12_R1.IChatBaseComponent;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.ChatColor;
 
-import javax.annotation.Nonnull;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -123,7 +116,8 @@ public class ChatComponent {
     private final List<Object> siblings;
 
     private ChatComponent(String text) {
-        this.base = new ChatComponentText(text);
+        this.base = null;
+//        this.base = new ChatComponentText(text);
         this.siblings = getValue(SIBLINGS, this.base);
     }
 
@@ -249,46 +243,46 @@ public class ChatComponent {
         this.siblings.clear(); // Clear all the siblings of the base component
         comps.add(0, this);
 
-        for (int i = 0; i < comps.size(); ++i) {
-
-            ChatComponent comp = comps.get(i);
-            String text = comp.getText();
-            int index = caseSensitive ? StringUtils.indexOf(text, highlight) :
-                    StringUtils.indexOfIgnoreCase(text, highlight);
-            if (index == -1) { // This component does not contain our word
-                continue;
-            }
-
-            comps.remove(i);
-            while (index != -1) {
-
-                ChatComponent begin = new ChatComponent(text.substring(0, index));  // Get the part before the word
-                begin.setChatModifier(comp.getChatModifier());                            // Set it to the same chat modifier that it was
-                comps.add(i++, begin);                                                    // Add it back in the same position
-
-                text = text.substring(index);
-                int wordEnd = highlight.length();
-
-                ChatComponent middle = new ChatComponent(text.substring(0, wordEnd));   // Get the word itself
-                highlights.add(middle);                                                       // No chat modifications
-                comps.add(i++, middle);                                                       // Add separate but after the beginning
-
-                if (!text.isEmpty()) {
-                    text = text.substring(wordEnd);                                           // Cut the word out of the string
-                }
-
-                index = caseSensitive ? StringUtils.indexOf(text, highlight) :
-                        StringUtils.indexOfIgnoreCase(text, highlight);                       // See if the end still contains the highlight
-            }
-
-            if (text.isEmpty()) {
-                continue;
-            }
-
-            ChatComponent end = new ChatComponent(text);
-            end.setChatModifier(comp.getChatModifier());                // Set the modifier to what it was
-            comps.add(i, end);                                          // Add it back in after the other two
-        }
+//        for (int i = 0; i < comps.size(); ++i) {
+//
+//            ChatComponent comp = comps.get(i);
+//            String text = comp.getText();
+//            int index = caseSensitive ? StringUtils.indexOf(text, highlight) :
+//                    StringUtils.indexOfIgnoreCase(text, highlight);
+//            if (index == -1) { // This component does not contain our word
+//                continue;
+//            }
+//
+//            comps.remove(i);
+//            while (index != -1) {
+//
+//                ChatComponent begin = new ChatComponent(text.substring(0, index));  // Get the part before the word
+//                begin.setChatModifier(comp.getChatModifier());                            // Set it to the same chat modifier that it was
+//                comps.add(i++, begin);                                                    // Add it back in the same position
+//
+//                text = text.substring(index);
+//                int wordEnd = highlight.length();
+//
+//                ChatComponent middle = new ChatComponent(text.substring(0, wordEnd));   // Get the word itself
+//                highlights.add(middle);                                                       // No chat modifications
+//                comps.add(i++, middle);                                                       // Add separate but after the beginning
+//
+//                if (!text.isEmpty()) {
+//                    text = text.substring(wordEnd);                                           // Cut the word out of the string
+//                }
+//
+//                index = caseSensitive ? StringUtils.indexOf(text, highlight) :
+//                        StringUtils.indexOfIgnoreCase(text, highlight);                       // See if the end still contains the highlight
+//            }
+//
+//            if (text.isEmpty()) {
+//                continue;
+//            }
+//
+//            ChatComponent end = new ChatComponent(text);
+//            end.setChatModifier(comp.getChatModifier());                // Set the modifier to what it was
+//            comps.add(i, end);                                          // Add it back in after the other two
+//        }
 
         this.setText(comps.get(0).getText());  // Reset this chat component to the first index's text
         comps.remove(0);                 // Remove it from the list
@@ -318,7 +312,8 @@ public class ChatComponent {
      * @return Whether this ChatComponent is bold.
      */
     public boolean isBold() {
-        return this.getChatModifier().isBold();
+        return false;
+//        return this.getChatModifier().isBold();
     }
 
     /**
@@ -329,7 +324,7 @@ public class ChatComponent {
      * @return A reference to this ChatComponent.
      */
     public ChatComponent bold(boolean set) {
-        this.getChatModifier().setBold(set);
+//        this.getChatModifier().setBold(set);
         return this;
     }
 
@@ -340,7 +335,8 @@ public class ChatComponent {
      * @return Whether this ChatComponent is italic.
      */
     public boolean isItalic() {
-        return this.getChatModifier().isItalic();
+        return false;
+//        return this.getChatModifier().isItalic();
     }
 
     /**
@@ -351,7 +347,7 @@ public class ChatComponent {
      * @return A reference to this ChatComponent.
      */
     public ChatComponent italic(boolean set) {
-        this.getChatModifier().setItalic(set);
+//        this.getChatModifier().setItalic(set);
         return this;
     }
 
@@ -362,7 +358,8 @@ public class ChatComponent {
      * @return Whether this ChatComponent is magic.
      */
     public boolean isMagic() {
-        return this.getChatModifier().isRandom();
+        return false;
+//        return this.getChatModifier().isRandom();
     }
 
     /**
@@ -373,7 +370,7 @@ public class ChatComponent {
      * @return A reference to this ChatComponent.
      */
     public ChatComponent magic(boolean set) {
-        this.getChatModifier().setRandom(set);
+//        this.getChatModifier().setRandom(set);
         return this;
     }
 
@@ -384,7 +381,8 @@ public class ChatComponent {
      * @return Whether this ChatComponent is strikethrough.
      */
     public boolean isStrikethrough() {
-        return this.getChatModifier().isStrikethrough();
+        return false;
+//        return this.getChatModifier().isStrikethrough();
     }
 
     /**
@@ -395,7 +393,7 @@ public class ChatComponent {
      * @return A reference to this ChatComponent.
      */
     public ChatComponent strikethrough(boolean set) {
-        this.getChatModifier().setStrikethrough(set);
+//        this.getChatModifier().setStrikethrough(set);
         return this;
     }
 
@@ -406,7 +404,8 @@ public class ChatComponent {
      * @return Whether this ChatComponent is underlined.
      */
     public boolean isUnderlined() {
-        return this.getChatModifier().isUnderlined();
+//        return this.getChatModifier().isUnderlined();
+        return false;
     }
 
     /**
@@ -417,7 +416,7 @@ public class ChatComponent {
      * @return A reference to this ChatComponent.
      */
     public ChatComponent underlined(boolean set) {
-        this.getChatModifier().setUnderline(set);
+//        this.getChatModifier().setUnderline(set);
         return this;
     }
 
@@ -474,7 +473,8 @@ public class ChatComponent {
      * @return The text for this ChatComponent.
      */
     public String getText() {
-        return ((IChatBaseComponent) this.base).getText();
+        return "";
+//        return ((IChatBaseComponent) this.base).getText();
     }
 
     /**
@@ -506,72 +506,72 @@ public class ChatComponent {
 
     private void setText(String text) {
 
-        if (this.base instanceof ChatComponentText) {
-            setValue(CHAT, this.base, text);
-        } else {
-            setValue(MESSAGE, this.base, text);
-        }
+//        if (this.base instanceof ChatComponentText) {
+//            setValue(CHAT, this.base, text);
+//        } else {
+//            setValue(MESSAGE, this.base, text);
+//        }
     }
 
-    @Nonnull
-    private ChatModifier getChatModifier() {
-
-//        final IChatBaseComponent base = this.current != null ? this.current.getBaseComponent() : this.base;
-//        ChatModifier modifier = base.getChatModifier();
-//        if (modifier == null) {
-//            modifier = new ChatModifier();
-//            base.setChatModifier(modifier);
+//    @Nonnull
+//    private ChatModifier getChatModifier() {
+//
+////        final IChatBaseComponent base = this.current != null ? this.current.getBaseComponent() : this.base;
+////        ChatModifier modifier = base.getChatModifier();
+////        if (modifier == null) {
+////            modifier = new ChatModifier();
+////            base.setChatModifier(modifier);
+////        }
+////
+////        return modifier;
+//        return null;
+//    }
+//
+//    private void setChatModifier(ChatModifier modifier) {
+////        final IChatBaseComponent base = this.current != null ? this.current.getBaseComponent() : this.base;
+////        base.setChatModifier(modifier);
+//    }
+//
+//    @Nonnull
+//    private EnumClickAction getAction(ClickEvent.Action action) {
+//
+//        switch (action) {
+//
+//            case RUN_COMMAND:
+//                return EnumClickAction.RUN_COMMAND;
+//
+//            case SUGGEST_COMMAND:
+//                return EnumClickAction.SUGGEST_COMMAND;
+//
+//            case OPEN_URL:
+//                return EnumClickAction.OPEN_URL;
+//
+//            case OPEN_FILE:
+//                return EnumClickAction.OPEN_FILE;
+//
+//            default:
+//                return EnumClickAction.CHANGE_PAGE;
+//        }
+//    }
+//
+//    @Nonnull
+//    private EnumHoverAction getAction(HoverEvent.Action action) {
+//
+//        switch (action) {
+//
+//            case SHOW_TEXT:
+//                return EnumHoverAction.SHOW_TEXT;
+//
+//            case SHOW_ITEM:
+//                return EnumHoverAction.SHOW_ITEM;
+//
+//            case SHOW_ACHIEVEMENT:
+////                return EnumHoverAction.SHOW_ACHIEVEMENT;
+//
+//            case SHOW_ENTITY:
+//                return EnumHoverAction.SHOW_ENTITY;
 //        }
 //
-//        return modifier;
-        return null;
-    }
-
-    private void setChatModifier(ChatModifier modifier) {
-//        final IChatBaseComponent base = this.current != null ? this.current.getBaseComponent() : this.base;
-//        base.setChatModifier(modifier);
-    }
-
-    @Nonnull
-    private EnumClickAction getAction(ClickEvent.Action action) {
-
-        switch (action) {
-
-            case RUN_COMMAND:
-                return EnumClickAction.RUN_COMMAND;
-
-            case SUGGEST_COMMAND:
-                return EnumClickAction.SUGGEST_COMMAND;
-
-            case OPEN_URL:
-                return EnumClickAction.OPEN_URL;
-
-            case OPEN_FILE:
-                return EnumClickAction.OPEN_FILE;
-
-            default:
-                return EnumClickAction.CHANGE_PAGE;
-        }
-    }
-
-    @Nonnull
-    private EnumHoverAction getAction(HoverEvent.Action action) {
-
-        switch (action) {
-
-            case SHOW_TEXT:
-                return EnumHoverAction.SHOW_TEXT;
-
-            case SHOW_ITEM:
-                return EnumHoverAction.SHOW_ITEM;
-
-            case SHOW_ACHIEVEMENT:
-//                return EnumHoverAction.SHOW_ACHIEVEMENT;
-
-            case SHOW_ENTITY:
-                return EnumHoverAction.SHOW_ENTITY;
-        }
-
-        return null;
-    }
+//        return null;
+//    }
 }

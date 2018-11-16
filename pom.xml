@@ -10,7 +10,6 @@
     <modules>
         <module>Util</module>
         <module>Plugin</module>
-        <module>v1_7_R4</module>
         <module>v1_8_R3</module>
         <module>v1_9_R2</module>
         <module>v1_10_R1</module>
@@ -31,6 +30,14 @@
             <url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
         </repository>
     </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>javax.annotation</groupId>
+            <artifactId>javax.annotation-api</artifactId>
+            <version>1.3.2</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <pluginManagement>

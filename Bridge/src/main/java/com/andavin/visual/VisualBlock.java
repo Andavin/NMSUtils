@@ -27,7 +27,6 @@ package com.andavin.visual;
 import com.andavin.Versioned;
 import com.andavin.util.LocationUtil;
 import com.andavin.util.LongHash;
-import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
@@ -68,7 +67,6 @@ import static com.google.common.base.Preconditions.checkState;
  * @since May 28, 2018
  * @author Andavin
  */
-@Immutable
 @SuppressWarnings("deprecation")
 public final class VisualBlock {
 
