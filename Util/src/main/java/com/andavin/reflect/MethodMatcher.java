@@ -31,9 +31,9 @@ import com.andavin.util.Logger;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.stream.Collectors;
 
 import static com.andavin.reflect.Reflection.compare;
+import static java.util.stream.Collectors.joining;
 
 /**
  * An attribute matcher that takes in all attributes
@@ -119,7 +119,7 @@ public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
     @Override
     UncheckedReflectiveOperationException buildException() {
         return new UncheckedNoSuchMethodException("Could not find method " + this.mainType.getSimpleName() + " anyMethod(" +
-                Arrays.stream(this.parametersTypes).map(Class::getSimpleName).collect(Collectors.joining(", ")) +
+                Arrays.stream(this.parametersTypes).map(Class::getSimpleName).collect(joining(", ")) +
                 ") requiring " + Integer.toBinaryString(this.requiredModifiers) + " and disallowing " +
                 Integer.toBinaryString(this.disallowedModifiers));
     }

@@ -24,25 +24,20 @@
 
 package com.andavin.visual;
 
-import com.andavin.protocol.PacketSender;
+import com.andavin.Versioned;
+import com.andavin.util.Logger;
 import com.andavin.util.LongHash;
-import org.bukkit.ChunkSnapshot;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Array;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-import static com.andavin.reflect.Reflection.*;
+import static java.util.stream.Collectors.toList;
 
 /**
  * @since May 28, 2018
@@ -51,24 +46,8 @@ import static com.andavin.reflect.Reflection.*;
 public final class ChunkVisual {
 
     private static final int MAX_SNAPSHOTS = 10;
-    private static final Field CHUNK, M_BLOCK_DATA, POSITION, S_BLOCK_DATA;
-    private static final Constructor<?> BLOCK_POS, M_PACKET, S_PACKET, MULTI_BLOCK, CHUNK_PAIR;
-
-    static {
-        Class<?> blockData = findMcClass("IBlockData");
-        Class<?> singlePacket = findMcClass("PacketPlayOutBlockChange");
-        Class<?> multiPacket = findMcClass("PacketPlayOutMultiBlockChange");
-        Class<?> multiBlock = findMcClass("PacketPlayOutMultiBlockChange$MultiBlockChangeInfo");
-        BLOCK_POS = findConstructor(findMcClass("BlockPosition"), int.class, int.class, int.class);
-        CHUNK_PAIR = findConstructor(findMcClass("ChunkCoordIntPair"), int.class, int.class);
-        M_PACKET = findConstructor(multiPacket);
-        MULTI_BLOCK = findConstructor(multiBlock, multiPacket, short.class, blockData);
-        S_PACKET = findConstructor(singlePacket);
-        CHUNK = findField(multiPacket, "a");
-        M_BLOCK_DATA = findField(multiPacket, "b");
-        POSITION = findField(singlePacket, "a");
-        S_BLOCK_DATA = findField(singlePacket, "block");
-    }
+    private static final int VIEW_DISTANCE = Bukkit.getViewDistance();
+    private static final VisualBridge BRIDGE = Versioned.getInstance(VisualBridge.class);
 
     private final int x, z;
     private final long chunk;
@@ -80,7 +59,7 @@ public final class ChunkVisual {
         this.chunk = chunk;
         this.x = LongHash.msw(chunk);
         this.z = LongHash.lsw(chunk);
-        this.chunkPair = newInstance(CHUNK_PAIR, this.x, this.z);
+        this.chunkPair = BRIDGE.createChunkCoordIntPair(this.x, this.z);
     }
 
     /**
@@ -765,7 +744,7 @@ public final class ChunkVisual {
 
             ChunkSnapshot chunk = player.getWorld().getChunkAt(this.x, this.z).getChunkSnapshot();
             List<VisualBlock> blocks = this.blocks.values().stream()
-                    .map(block -> block.getRealType(chunk)).collect(Collectors.toList());
+                    .map(block -> block.getRealType(chunk)).collect(toList());
             this.sendBlocks(player, blocks);
         }
     }
@@ -809,33 +788,14 @@ public final class ChunkVisual {
      */
     public void sendBlocks(Player player, List<VisualBlock> blocks) {
 
-        // TODO add a fail safe to check if the chunk is in view distance of the player and/or is loaded
-        // If there is only a single block to send then send
-        // a single PacketPlayOutBlockChange packet
-        if (blocks.size() == 1) {
-            VisualBlock block = blocks.get(0);
-            Object packet = newInstance(S_PACKET);
-            setValue(POSITION, packet, newInstance(BLOCK_POS,
-                    block.getX(), block.getY(), block.getZ())); // Set the position
-            setValue(S_BLOCK_DATA, packet, block.getBlockData()); // And the data
-            PacketSender.sendPacket(player, packet);
-            return;
+        Location location = player.getLocation();
+        if (Math.abs((location.getBlockX() >> 4) - this.x) > VIEW_DISTANCE ||
+                Math.abs((location.getBlockZ() >> 4) - this.z) > VIEW_DISTANCE) {
+            Logger.warn("[Visual] Attempting to show blocks to a player outside of their visual range.");
+            Logger.warn("[Visual] This can cause issues on the client and should be avoided.");
         }
 
-        // There are multiple here so send a PacketPlayOutMultiBlockChange packet
-        Object packet = newInstance(M_PACKET);
-        Object[] blockData = (Object[]) Array.newInstance(MULTI_BLOCK.getDeclaringClass(), blocks.size());
-        setValue(CHUNK, packet, this.chunkPair); // Set the chunk that it is in
-        setValue(M_BLOCK_DATA, packet, blockData); // Place the array into the packet
-
-        // Then update the array with all of the data and positions
-        int i = 0;
-        for (VisualBlock block : blocks) {
-            blockData[i++] = newInstance(MULTI_BLOCK, packet, block.getPackedPos(), block.getBlockData());
-        }
-
-        // Send the packet to the player
-        PacketSender.sendPacket(player, packet);
+        BRIDGE.sendBlocks(player, this.chunkPair, blocks);
     }
 
     private boolean isLoaded(World world) {

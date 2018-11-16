@@ -35,7 +35,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toSet;
 
 /**
  * An area of blocks that are simply visual. This is
@@ -62,7 +63,7 @@ public final class AreaVisual {
      */
     public Set<Player> getPlayers() {
         return this.visualized.isEmpty() ? Collections.emptySet() : this.visualized.values().stream()
-                .map(WeakReference::get).filter(Objects::nonNull).collect(Collectors.toSet());
+                .map(WeakReference::get).filter(Objects::nonNull).collect(toSet());
     }
 
     /**

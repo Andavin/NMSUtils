@@ -36,9 +36,6 @@ import org.bukkit.inventory.ItemStack;
  */
 public abstract class ItemBridge extends Versioned {
 
-    protected ItemBridge() {
-    }
-
     /**
      * Tell whether the given {@link ItemStack} is an instance
      * of {@code CraftItemStack} (the implementation of ItemStack

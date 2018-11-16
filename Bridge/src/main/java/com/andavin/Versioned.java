@@ -24,6 +24,8 @@
 
 package com.andavin;
 
+import com.andavin.reflect.exception.UncheckedClassNotFoundException;
+
 import static com.andavin.MinecraftVersion.CURRENT_SERVER_VERSION;
 import static com.andavin.reflect.Reflection.findClass;
 import static com.andavin.reflect.Reflection.newInstance;
@@ -44,20 +46,20 @@ public abstract class Versioned {
      * Get an instance of an NMS Utils versioned class.
      *
      * @param clazz The class to get the versioned counterpart for.
-     * @param args The arguments to pass to the constructor (non can be null).
      * @param <T> The type of class to retrieve.
      * @return The instance of the versioned type.
      * @throws UnsupportedOperationException If the class is not found (no supported).
      */
-    public static <T extends Versioned> T getInstance(Class<T> clazz, Object... args) throws UnsupportedOperationException {
+    public static <T extends Versioned> T getInstance(Class<T> clazz) throws UnsupportedOperationException {
 
-        String name = clazz.getName().substring(PACKAGE.length());
-        Class<T> found = findClass(VERSION_PREFIX + name);
-        if (found == null) {
+        Class<T> found;
+        try {
+            found = findClass(VERSION_PREFIX + clazz.getName().substring(PACKAGE.length()));
+        } catch (UncheckedClassNotFoundException e) {
             throw new UnsupportedOperationException("Class " + clazz +
                     " is not currently supported for version " + CURRENT_SERVER_VERSION);
         }
 
-        return newInstance(found, args);
+        return newInstance(found);
     }
 }

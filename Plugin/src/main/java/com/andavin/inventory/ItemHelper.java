@@ -50,7 +50,7 @@ import java.io.UncheckedIOException;
  */
 public final class ItemHelper {
 
-    private static final ItemBridge INSTANCE = Versioned.getInstance(ItemBridge.class);
+    private static final ItemBridge BRIDGE = Versioned.getInstance(ItemBridge.class);
 
     /**
      * Check if the given {@link ItemStack item} is empty in that
@@ -72,7 +72,7 @@ public final class ItemHelper {
      * @return If the ItemStack is an instance of {@code CraftItemStack.}
      */
     public static boolean isCraftItem(ItemStack item) {
-        return INSTANCE.isCraftItem(item);
+        return BRIDGE.isCraftItem(item);
     }
 
     /**
@@ -83,7 +83,7 @@ public final class ItemHelper {
      * @return The ItemStack that is an instance of {@code CraftItemStack}.
      */
     public static ItemStack ensureCraftItem(ItemStack item) {
-        return INSTANCE.ensureCraftItem(item);
+        return BRIDGE.ensureCraftItem(item);
     }
 
     /**
@@ -99,7 +99,7 @@ public final class ItemHelper {
      * @return The NMS item stack.
      */
     public static Object getNmsItemStack(ItemStack item) {
-        return INSTANCE.getNmsItemStack(item);
+        return BRIDGE.getNmsItemStack(item);
     }
 
     /**
@@ -115,7 +115,7 @@ public final class ItemHelper {
      *                     and causing it to be damaged.
      */
     public static void damageItem(ItemStack item, int amount, LivingEntity livingEntity) {
-        INSTANCE.damageItem(item, amount, livingEntity);
+        BRIDGE.damageItem(item, amount, livingEntity);
     }
 
     /**
@@ -129,7 +129,7 @@ public final class ItemHelper {
      */
     public static byte[] serialize(ItemStack item) throws UncheckedIOException {
 
-        Object tag = INSTANCE.saveToNBT(item);
+        Object tag = BRIDGE.saveToNBT(item);
         try (ByteArrayOutputStream stream = new ByteArrayOutputStream()) {
             NBTHelper.serialize(stream, tag);
             return stream.toByteArray();
@@ -151,7 +151,7 @@ public final class ItemHelper {
     public static ItemStack deserialize(byte[] bytes) throws UncheckedIOException {
 
         try (ByteArrayInputStream stream = new ByteArrayInputStream(bytes)) {
-            return INSTANCE.createStack(NBTHelper.deserializeNMS(stream));
+            return BRIDGE.createStack(NBTHelper.deserializeNMS(stream));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

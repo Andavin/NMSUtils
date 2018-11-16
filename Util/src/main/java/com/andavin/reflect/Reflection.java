@@ -29,7 +29,8 @@ import com.andavin.reflect.exception.*;
 
 import java.lang.reflect.*;
 import java.util.*;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.joining;
 
 public final class Reflection {
 
@@ -208,7 +209,7 @@ public final class Reflection {
         Constructor<T> con = findConstructor(clazz, classes);
         if (con == null) {
             throw new UncheckedNoSuchMethodException("Could not find constructor for " + clazz.getSimpleName() + " with parameters " +
-                    Arrays.stream(classes).map(Class::getSimpleName).collect(Collectors.joining(", ")));
+                    Arrays.stream(classes).map(Class::getSimpleName).collect(joining(", ")));
         }
 
         return newInstance(con, params);
@@ -579,7 +580,7 @@ public final class Reflection {
         Method method = findMethod(clazz, name, classes);
         if (method == null) {
             throw new UncheckedNoSuchMethodException("Could not find method " + name + " with parameters " +
-                    Arrays.stream(classes).map(Class::getSimpleName).collect(Collectors.joining(", ")));
+                    Arrays.stream(classes).map(Class::getSimpleName).collect(joining(", ")));
         }
 
         return invoke(method, instance, params);

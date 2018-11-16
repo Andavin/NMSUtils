@@ -24,9 +24,10 @@
 
 package com.andavin.visual;
 
-import com.andavin.reflect.Reflection;
+import com.andavin.Versioned;
 import com.andavin.util.LocationUtil;
 import com.andavin.util.LongHash;
+import jdk.nashorn.internal.ir.annotations.Immutable;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
@@ -67,23 +68,12 @@ import static com.google.common.base.Preconditions.checkState;
  * @since May 28, 2018
  * @author Andavin
  */
+@Immutable
 @SuppressWarnings("deprecation")
 public final class VisualBlock {
 
-    private static final List<Object> BLOCK_DATA;
     private static final AtomicLong ID = new AtomicLong();
-
-    static {
-
-        Class<?> block = Reflection.findMcClass("Block");
-        Object registry = Reflection.getValue(block, null, "REGISTRY_ID");
-        if (registry == null) {
-            registry = Reflection.getValue(block, null, "d");
-        }
-
-        checkState(registry != null, "incompatible with current server version");
-        BLOCK_DATA = Reflection.getValue(registry.getClass(), registry, "b");
-    }
+    private static final List<Object> BLOCK_DATA = Versioned.getInstance(VisualBridge.class).getRegistryList();
 
     private final long id;
     private final long chunk;
@@ -179,7 +169,7 @@ public final class VisualBlock {
      * ID in any kind of database as it will <i>not</i> maintain its
      * uniqueness.
      * <p>
-     * This is mostly meant for internal use by {@link ChunkVisual},
+     * This is mostly meant for internal use by {@code ChunkVisual},
      * but is made {@code public} for any case where an ID is needed
      * to be maintained over transformations.
      *
@@ -286,7 +276,7 @@ public final class VisualBlock {
      *
      * @return The packed position of this block.
      */
-    short getPackedPos() {
+    public short getPackedPos() {
         return packedPos;
     }
 
@@ -298,7 +288,7 @@ public final class VisualBlock {
      *
      * @return The data for this block.
      */
-    Object getBlockData() {
+    public Object getBlockData() {
         return blockData;
     }
 

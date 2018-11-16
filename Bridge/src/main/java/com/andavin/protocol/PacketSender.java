@@ -44,7 +44,7 @@ import java.util.List;
  */
 public abstract class PacketSender extends Versioned {
 
-    private static final PacketSender INSTANCE = Versioned.getInstance(PacketSender.class);
+    private static final PacketSender BRIDGE = Versioned.getInstance(PacketSender.class);
 
     /**
      * Send the given packet to the given {@link Player}'s client.
@@ -61,7 +61,7 @@ public abstract class PacketSender extends Versioned {
      * @see Reflection
      */
     public static void sendPacket(Player player, Object packet) {
-        INSTANCE.send(player, packet);
+        BRIDGE.send(player, packet);
     }
 
     /**
@@ -79,7 +79,7 @@ public abstract class PacketSender extends Versioned {
      * @see Reflection
      */
     public static void sendPackets(Player player, List<Object> packets) {
-        INSTANCE.send(player, packets);
+        BRIDGE.send(player, packets);
     }
 
     /**

@@ -120,7 +120,7 @@ public enum MinecraftVersion {
         try {
             CURRENT_SERVER_VERSION = MinecraftVersion.valueOf(versionString);
         } catch (RuntimeException e) {
-            throw new UnsupportedOperationException("Version " + versionString + " is not yet supported.", e);
+            throw new UnsupportedOperationException("Version " + versionString + " is not supported.", e);
         }
     }
 
