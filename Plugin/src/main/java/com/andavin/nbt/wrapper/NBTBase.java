@@ -36,9 +36,14 @@ import java.util.Map;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
- * A basic class that holds a wrapped NBT object
- * and that every NBT wrapper should extend to
- * give it basic NBT functionality and abstraction.
+ * A basic class that holds a wrapped NBT object and that
+ * every NBT wrapper should extend to give it basic NBT
+ * functionality and abstraction.
+ * <p>
+ * All NBT tags are both {@link ConfigurationSerializable}
+ * as well as {@link Serializable}. This means that when
+ * working with Yaml configurations or with raw I/O streams,
+ * all NBT tag objects can be written and read directly.
  *
  * @author Andavin
  * @since May 12, 2018
