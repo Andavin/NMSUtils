@@ -116,7 +116,8 @@ public enum MinecraftVersion {
 
     static {
 
-        String versionString = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+        String versionString = Bukkit.getServer().getClass().getPackage().getName()
+                .substring("org.bukkit.craftbukkit.".length());
         try {
             CURRENT_SERVER_VERSION = MinecraftVersion.valueOf(versionString);
         } catch (RuntimeException e) {

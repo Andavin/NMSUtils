@@ -30,6 +30,8 @@ import com.andavin.reflect.exception.*;
 import java.lang.reflect.*;
 import java.util.*;
 
+import static com.andavin.MinecraftVersion.*;
+
 public final class Reflection {
 
     /**
@@ -74,7 +76,7 @@ public final class Reflection {
      * @deprecated Use {@link MinecraftVersion#CURRENT_SERVER_VERSION}
      */
     @Deprecated
-    public static final String VERSION_STRING = MinecraftVersion.CURRENT_SERVER_VERSION.name();
+    public static final String VERSION_STRING = CURRENT_SERVER_VERSION.name();
 
     /**
      * The version number. 170 for 1_7_R0, 181 for 1_8_R1, etc.
@@ -90,7 +92,7 @@ public final class Reflection {
      * @deprecated Use {@link MinecraftVersion#MINECRAFT_PREFIX}
      */
     @Deprecated
-    public static final String NMS_PREFIX = MinecraftVersion.MINECRAFT_PREFIX;
+    public static final String NMS_PREFIX = MINECRAFT_PREFIX;
 
     /**
      * The prefix for all Craftbukkit packages (e.g. org.bukkit.craftbukkit.version.).
@@ -98,7 +100,7 @@ public final class Reflection {
      * @deprecated Use {@link MinecraftVersion#CRAFTBUKKIT_PREFIX}
      */
     @Deprecated
-    public static final String CRAFT_PREFIX = MinecraftVersion.CRAFTBUKKIT_PREFIX;
+    public static final String CRAFT_PREFIX = CRAFTBUKKIT_PREFIX;
 
     private static final ClassResolver CLASS_RESOLVER = /*isAtLeastJava9() ?
             new ModernClassResolver() :*/ new LegacyClassResolver();
@@ -1009,7 +1011,7 @@ public final class Reflection {
      *                                         loading the class.
      */
     public static Class<?> findMcClass(String name) throws UncheckedClassNotFoundException {
-        return findClass(MinecraftVersion.MINECRAFT_PREFIX + name);
+        return findClass(MINECRAFT_PREFIX + name);
     }
 
     /**
@@ -1030,7 +1032,7 @@ public final class Reflection {
      *                                         loading the class.
      */
     public static Class<?> findCraftClass(String name) throws UncheckedClassNotFoundException {
-        return findClass(MinecraftVersion.CRAFTBUKKIT_PREFIX + name);
+        return findClass(CRAFTBUKKIT_PREFIX + name);
     }
 
     /**
