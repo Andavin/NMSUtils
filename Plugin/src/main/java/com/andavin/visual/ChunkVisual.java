@@ -658,7 +658,6 @@ public final class ChunkVisual {
      */
     public void visualize(Player player) {
 
-        Logger.info("Visualizing {} blocks", this.blocks.size());
         if (!this.blocks.isEmpty()) {
             this.sendBlocks(player, new ArrayList<>(this.blocks.values()));
         }
