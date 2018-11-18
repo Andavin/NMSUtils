@@ -30,8 +30,6 @@ import com.andavin.reflect.exception.*;
 import java.lang.reflect.*;
 import java.util.*;
 
-import static java.util.stream.Collectors.joining;
-
 public final class Reflection {
 
     /**
@@ -206,13 +204,7 @@ public final class Reflection {
         }
 
         Class<?>[] classes = getClassesForObjects(params);
-        Constructor<T> con = findConstructor(clazz, classes);
-        if (con == null) {
-            throw new UncheckedNoSuchMethodException("Could not find constructor for " + clazz.getSimpleName() + " with parameters " +
-                    Arrays.stream(classes).map(Class::getSimpleName).collect(joining(", ")));
-        }
-
-        return newInstance(con, params);
+        return newInstance(findConstructor(clazz, classes), params);
     }
 
     /**
@@ -275,13 +267,7 @@ public final class Reflection {
      */
     public static <T> T getValue(Class<?> clazz, Object instance, String name) throws ClassCastException,
             SecurityException, UncheckedNoSuchFieldException, UncheckedIllegalAccessException {
-
-        Field field = findField(clazz, name);
-        if (field == null) {
-            throw new UncheckedNoSuchFieldException("Could not find field " + name + " in " + clazz.getSimpleName());
-        }
-
-        return getValue(field, instance);
+        return getValue(findField(clazz, name), instance);
     }
 
     /**
@@ -339,13 +325,7 @@ public final class Reflection {
      */
     public static void setValue(Class<?> clazz, Object instance, String name, Object value)
             throws SecurityException, UncheckedNoSuchFieldException, UncheckedIllegalAccessException {
-
-        Field field = findField(clazz, name);
-        if (field == null) {
-            throw new UncheckedNoSuchFieldException("Could not find field " + name + " in " + clazz.getSimpleName());
-        }
-
-        setValue(field, instance, value);
+        setValue(findField(clazz, name), instance, value);
     }
 
 
@@ -575,15 +555,7 @@ public final class Reflection {
      */
     public static <T> T invoke(Class<?> clazz, Object instance, String name, Object... params) throws ClassCastException,
             SecurityException, UncheckedNoSuchMethodException, UncheckedIllegalAccessException, UncheckedInvocationTargetException {
-
-        Class<?>[] classes = getClassesForObjects(params);
-        Method method = findMethod(clazz, name, classes);
-        if (method == null) {
-            throw new UncheckedNoSuchMethodException("Could not find method " + name + " with parameters " +
-                    Arrays.stream(classes).map(Class::getSimpleName).collect(joining(", ")));
-        }
-
-        return invoke(method, instance, params);
+        return invoke(findMethod(clazz, name, getClassesForObjects(params)), instance, params);
     }
 
     /**
