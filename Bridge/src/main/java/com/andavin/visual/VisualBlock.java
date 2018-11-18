@@ -40,6 +40,7 @@ import org.bukkit.util.Vector;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -128,6 +129,7 @@ public final class VisualBlock {
      *             this is usually for color.
      */
     VisualBlock(long id, int x, int y, int z, Material type, int data) {
+        checkArgument(type.isBlock(), type + " is not a block");
         this.id = id;
         this.x = x;
         this.y = y;
@@ -274,7 +276,7 @@ public final class VisualBlock {
      *
      * @return The packed position of this block.
      */
-    public short getPackedPos() {
+    public short getPackedPosition() {
         return packedPos;
     }
 
@@ -481,9 +483,8 @@ public final class VisualBlock {
             } else {
 
                 if (this.type == Material.ANVIL) {
-                    BlockFace direction = this.getAnvilDirection();
-                    BlockFace face = LocationUtil.rotate(direction, degrees, false, false);
-                    data = this.getDataForDirection(direction);
+                    BlockFace face = LocationUtil.rotate(this.getAnvilDirection(), degrees, false, false);
+                    data = this.getDataForDirection(face);
                 } else {
                     data = this.data;
                 }

@@ -104,6 +104,7 @@ public final class Reflection {
 
     private static final ClassResolver CLASS_RESOLVER = /*isAtLeastJava9() ?
             new ModernClassResolver() :*/ new LegacyClassResolver();
+    private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
     private static final Map<Class<?>, Class<?>> PRIMITIVES = new HashMap<>(10);
 
     static {
@@ -200,8 +201,9 @@ public final class Reflection {
 
             try {
                 return clazz.newInstance();
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (InstantiationException e) {
                 throw wrapException(e);
+            } catch (IllegalAccessException ignored) {
             }
         }
 
@@ -1189,6 +1191,10 @@ public final class Reflection {
      * @return The class types of each parameter object.
      */
     private static Class<?>[] getClassesForObjects(Object... params) {
+
+        if (params.length == 0) {
+            return EMPTY_CLASS_ARRAY;
+        }
 
         Class<?>[] paramClasses = new Class<?>[params.length];
         for (int i = 0; i < params.length; ++i) {

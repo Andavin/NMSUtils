@@ -27,7 +27,10 @@ package com.andavin.visual;
 import com.andavin.Versioned;
 import com.andavin.util.Logger;
 import com.andavin.util.LongHash;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChunkSnapshot;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -36,6 +39,7 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
 
@@ -127,7 +131,7 @@ public final class ChunkVisual {
      * @param block The {@link VisualBlock block} to add.
      */
     public void addBlock(VisualBlock block) {
-        this.blocks.put(block.getPackedPos(), block);
+        this.blocks.put(block.getPackedPosition(), block);
     }
 
     /**
@@ -316,7 +320,7 @@ public final class ChunkVisual {
                         toRevert.getX(), toRevert.getY(), toRevert.getZ(), block.getType(), block.getData());
                 if (toRevert.getChunk() == this.chunk) {
                     // Found the block in this chunk so revert it and move on
-                    this.blocks.put(toRevert.getPackedPos(), reverted);
+                    this.blocks.put(toRevert.getPackedPosition(), reverted);
                     continue;
                 }
 
@@ -333,7 +337,7 @@ public final class ChunkVisual {
                 }
 
                 // Revert the block in the alternate chunk
-                currentChunk.blocks.put(toRevert.getPackedPos(), reverted);
+                currentChunk.blocks.put(toRevert.getPackedPosition(), reverted);
             }
         }
     }
@@ -636,7 +640,7 @@ public final class ChunkVisual {
 
             VisualBlock transformed = transformer.apply(itr.next());
             if (transformed.getChunk() == this.chunk) { // Make sure it is still in this chunk
-                this.blocks.put(transformed.getPackedPos(), transformed);
+                this.blocks.put(transformed.getPackedPosition(), transformed);
                 itr.remove();
                 continue;
             }
@@ -654,7 +658,8 @@ public final class ChunkVisual {
      */
     public void visualize(Player player) {
 
-        if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
+        Logger.info("Visualizing {} blocks", this.blocks.size());
+        if (!this.blocks.isEmpty()) {
             this.sendBlocks(player, new ArrayList<>(this.blocks.values()));
         }
     }
@@ -678,17 +683,15 @@ public final class ChunkVisual {
          * 3. Blocks added
          */
 
-        World world = player.getWorld();
-        if (!this.isLoaded(world)) {
-            // No need to update if this chunk isn't loaded
+        if (this.isOutOfRange(player.getLocation())) {
             return;
         }
 
-        ChunkSnapshot chunk = world.getChunkAt(this.x, this.z).getChunkSnapshot();
+        ChunkSnapshot chunk = player.getWorld().getChunkAt(this.x, this.z).getChunkSnapshot();
         List<VisualBlock> needsUpdate = new LinkedList<>();
         snapshot.forEach(block -> {
 
-            VisualBlock current = this.blocks.get(block.getPackedPos());
+            VisualBlock current = this.blocks.get(block.getPackedPosition());
             if (current == null) {
                 // The block was removed
                 needsUpdate.add(block.getRealType(chunk));
@@ -700,7 +703,8 @@ public final class ChunkVisual {
 
         // Blocks that were added
         if (!this.blocks.isEmpty()) {
-            this.blocks.values().stream().filter(block -> !snapshot.contains(block)).forEach(needsUpdate::add);
+            this.blocks.values().stream().filter(((Predicate<VisualBlock>)
+                    snapshot::contains).negate()).forEach(needsUpdate::add);
         }
 
         if (!needsUpdate.isEmpty()) {
@@ -734,7 +738,7 @@ public final class ChunkVisual {
      */
     public void reset(Player player) {
 
-        if (!this.blocks.isEmpty() && this.isLoaded(player.getWorld())) {
+        if (!this.blocks.isEmpty()) {
 
             if (this.blocks.size() == 1) {
                 this.sendBlocks(player, Collections.singletonList(this.blocks.values()
@@ -788,17 +792,22 @@ public final class ChunkVisual {
      */
     public void sendBlocks(Player player, List<VisualBlock> blocks) {
 
-        Location location = player.getLocation();
-        if (Math.abs((location.getBlockX() >> 4) - this.x) > VIEW_DISTANCE ||
-                Math.abs((location.getBlockZ() >> 4) - this.z) > VIEW_DISTANCE) {
-            Logger.warn("[Visual] Attempting to show blocks to a player outside of their visual range.");
-            Logger.warn("[Visual] This can cause issues on the client and should be avoided.");
+        if (!this.isOutOfRange(player.getLocation())) {
+            BRIDGE.sendBlocks(player, this.chunkPair, blocks);
         }
-
-        BRIDGE.sendBlocks(player, this.chunkPair, blocks);
     }
 
-    private boolean isLoaded(World world) {
-        return world.isChunkLoaded(this.x, this.z);
+    private boolean isOutOfRange(Location location) {
+
+        int x = location.getBlockX() >> 4;
+        int z = location.getBlockZ() >> 4;
+        if (Math.abs((x) - this.x) > VIEW_DISTANCE || Math.abs((z) - this.z) > VIEW_DISTANCE) {
+            Logger.warn("[Visual] Attempting to show blocks to a player outside of their visual range.");
+            Logger.warn("[Visual] This can cause issues on the client and should be avoided.");
+            Logger.warn("[Visual] Player Chunk ({}, {}) -> This Chunk ({}, {})", x, z, this.x, this.z);
+            return true;
+        }
+
+        return false;
     }
 }

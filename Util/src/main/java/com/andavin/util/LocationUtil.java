@@ -324,7 +324,9 @@ public final class LocationUtil {
 
         if (degrees > 0) {
             return rotateRight(face, rotations);
-        } else if (degrees < 0) {
+        }
+
+        if (degrees < 0) {
             return rotateLeft(face, rotations * -1);
         }
 

@@ -70,7 +70,7 @@ public final class NBTHelper {
 
             String name = clazz.getSimpleName();
             NBTTag type = clazz.getDeclaredAnnotation(NBTTag.class);
-            checkNotNull(type, "[NBT] Type %s is not annotated with NBTTag", name);
+            checkNotNull(type, "[NBT] Type " + name + " is not annotated with NBTTag");
             ConfigurationSerialization.registerClass(clazz);
 
             Class<?> nmsType = findMcClass(name);

@@ -28,13 +28,20 @@ import com.andavin.nbt.wrapper.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import static com.andavin.MinecraftVersion.v1_11_R1;
+
 public final class NMSUtils extends JavaPlugin {
 
     private static NMSUtils instance;
     private static boolean fastAsyncSupport;
 
     public NMSUtils() {
+
         instance = this;
+        if (MinecraftVersion.greaterThan(v1_11_R1)) {
+            NBTHelper.register(NBTTagLongArray.class);
+        }
+
         NBTHelper.register(
                 NBTTagEnd.class,
                 NBTTagByte.class,
@@ -45,7 +52,6 @@ public final class NMSUtils extends JavaPlugin {
                 NBTTagDouble.class,
                 NBTTagByteArray.class,
                 NBTTagIntArray.class,
-                NBTTagLongArray.class,
                 NBTTagCompound.class,
                 NBTTagList.class,
                 NBTTagString.class

@@ -77,7 +77,7 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
         // Then update the array with all of the data and positions
         int i = 0;
         for (VisualBlock block : blocks) {
-            blockData[i++] = packet.new MultiBlockChangeInfo(block.getPackedPos(), (IBlockData) block.getBlockData());
+            blockData[i++] = packet.new MultiBlockChangeInfo(block.getPackedPosition(), (IBlockData) block.getBlockData());
         }
 
         // Send the packet to the player
