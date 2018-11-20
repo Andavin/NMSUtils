@@ -25,6 +25,10 @@
 package com.andavin.visual;
 
 import com.andavin.Versioned;
+import com.andavin.visual.block.VisualBlock;
+import org.bukkit.ChunkSnapshot;
+import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -34,18 +38,6 @@ import java.util.List;
  * @author Andavin
  */
 public abstract class VisualBridge extends Versioned {
-
-    /**
-     * Get the list of {@code IBlockData} mapped to their IDs
-     * in a list contained within the {@code RegistryBlockID}
-     * class within {@code Block}.
-     * <p>
-     * This is used to get the instance of {@code IBlockData}
-     * from block IDs.
-     *
-     * @return The ID list for blocks.
-     */
-    protected abstract List<Object> getRegistryList();
 
     /**
      * Send a block change packet to the given player for all of
@@ -70,4 +62,33 @@ public abstract class VisualBridge extends Versioned {
      * @return The newly created object.
      */
     protected abstract Object createChunkCoordIntPair(int x, int z);
+
+    /**
+     * Get a VisualBlock for the block that is actually in the
+     * {@link ChunkSnapshot} at the location of this block.
+     *
+     * @param original The block to get the real type for.
+     * @param snapshot A snapshot of the chunk that this block is contained within.
+     * @param x The X coordinate of the block relative to the chunk snapshot (0-15).
+     * @param y The Y coordinate of the block (0-255).
+     * @param z The Z coordinate of the block relative to the chunk snapshot (0-15).
+     * @return A new block of the type of the actual block at this block's location.
+     */
+    public abstract VisualBlock getRealType(VisualBlock original, ChunkSnapshot snapshot, int x, int y, int z);
+
+    /**
+     * Tell if the given {@link Material} is a directional
+     * type that can be rotated about itself to face different
+     * directions or {@link BlockFace}s.
+     *
+     * @param type The type to test for being directional.
+     * @return If the type is directional.
+     */
+    public abstract boolean isDirectional(Material type);
+
+//    protected abstract byte rotateX(float degrees, byte data, Object blockData);
+//
+//    protected abstract byte rotateY(float degrees, byte data, Object blockData);
+//
+//    protected abstract byte rotateZ(float degrees, byte data, Object blockData);
 }

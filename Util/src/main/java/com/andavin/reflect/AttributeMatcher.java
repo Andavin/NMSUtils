@@ -40,6 +40,8 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
 
     final Class<?> mainType;
     private final int availableModifiers;
+
+    boolean requireExactMatch;
     int requiredModifiers, disallowedModifiers;
 
     AttributeMatcher(Class<?> mainType, int availableModifiers) {
@@ -124,6 +126,19 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
     }
 
     /**
+     * Require that the attribute's main type match the given type exactly.
+     * If this is chosen, then the main type must match the type of the
+     * attribute exactly and cannot be an instance of the type.
+     *
+     * @return This attribute matcher.
+     * @see Class#isAssignableFrom(Class)
+     */
+    public C requireExactMatch() {
+        this.requireExactMatch = true;
+        return (C) this;
+    }
+
+    /**
      * Match the given attribute to the parameters required
      * in this matcher.
      *
@@ -151,8 +166,10 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
             return false;
         }
 
-        // If main types do not match exactly, then it does not match
-        return mainType == this.mainType;
+        // Test for exact match if it is required
+        return this.requireExactMatch ? mainType == this.mainType :
+                // A.isAssignableFrom(B) -> B instanceOf A
+                this.mainType.isAssignableFrom(mainType);
     }
 
     /**

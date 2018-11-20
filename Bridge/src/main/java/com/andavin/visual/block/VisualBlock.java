@@ -22,11 +22,13 @@
  * SOFTWARE.
  */
 
-package com.andavin.visual;
+package com.andavin.visual.block;
 
+import com.andavin.MinecraftVersion;
 import com.andavin.Versioned;
 import com.andavin.util.LocationUtil;
 import com.andavin.util.LongHash;
+import com.andavin.visual.VisualBridge;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
@@ -37,11 +39,10 @@ import org.bukkit.material.*;
 import org.bukkit.util.BlockVector;
 import org.bukkit.util.Vector;
 
-import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
+import static com.andavin.MinecraftVersion.v1_12_R1;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A data holder for blocks that simply holds their position
@@ -68,11 +69,10 @@ import static com.google.common.base.Preconditions.checkState;
  * @since May 28, 2018
  * @author Andavin
  */
-@SuppressWarnings("deprecation")
 public final class VisualBlock {
 
     private static final AtomicLong ID = new AtomicLong();
-    private static final List<Object> BLOCK_DATA = Versioned.getInstance(VisualBridge.class).getRegistryList();
+    private static final VisualBridge BRIDGE = Versioned.getInstance(VisualBridge.class);
 
     private final long id;
     private final long chunk;
@@ -81,8 +81,8 @@ public final class VisualBlock {
 
     private final byte data;
     private final Material type;
-    private final Object blockData;
     private final boolean directional;
+    private final Object blockData;
 
     /**
      * Create a new visual block at the given position and of the basic
@@ -109,7 +109,8 @@ public final class VisualBlock {
      *             this is usually for color.
      */
     public VisualBlock(int x, int y, int z, Material type, int data) {
-        this(ID.getAndIncrement(), x, y, z, type, data);
+        this(ID.getAndIncrement(), x, y, z, type, data,
+                MinecraftVersion.greaterThan(v1_12_R1) ? type.createBlockData() : null);
     }
 
     /**
@@ -128,7 +129,7 @@ public final class VisualBlock {
      * @param data The data (0-15) that sets the block apart from others of its type;
      *             this is usually for color.
      */
-    VisualBlock(long id, int x, int y, int z, Material type, int data) {
+    public VisualBlock(long id, int x, int y, int z, Material type, int data, Object blockData) {
         checkArgument(type.isBlock(), type + " is not a block");
         this.id = id;
         this.x = x;
@@ -136,17 +137,12 @@ public final class VisualBlock {
         this.z = z;
         this.type = type;
         this.data = (byte) data;
+        this.blockData = blockData;
         this.chunk = LongHash.toLong(x >> 4, z >> 4);
         // Pack the position relative to the chunk 16x16x256
         // First 4 bits are X, the next 4 bits are Z, the last 8 bits are Y
         this.packedPos = (short) ((x & 0xF) << 12 | (z & 0xF) << 8 | y & 0xFF);
-        // Pack the block type ID into a single number
-        // First 12 bits are the type ID then last 4 bits are data 0-15
-        int packedType = (short) ((type.getId() & 0xFFF) << 4 | data & 0xF);
-        checkState(0 <= packedType && packedType < BLOCK_DATA.size(),
-                "%s:%s is not a valid block type with this server version", type, data);
-        this.blockData = BLOCK_DATA.get(packedType);
-        this.directional = isDirectional(type.getData()) || type == Material.ANVIL;
+        this.directional = BRIDGE.isDirectional(type);
     }
 
     /**
@@ -226,7 +222,10 @@ public final class VisualBlock {
      * other blocks of its type.
      * <p>
      * A good example of when this is used is different
-     * colors of {@link Material#WOOL}.
+     * colors of wool.
+     * <p>
+     * Note that, in Minecraft 1.13+, this value has no
+     * effect on the block since data was done away with.
      *
      * @return The data (0-15) for this block.
      */
@@ -266,7 +265,7 @@ public final class VisualBlock {
      * @return The chunk coordinate long.
      * @see LongHash
      */
-    long getChunk() {
+    public long getChunk() {
         return chunk;
     }
 
@@ -281,10 +280,10 @@ public final class VisualBlock {
     }
 
     /**
-     * The {@code IBlockData} for this block. This is the
-     * object that compacts the {@link Material type} and
-     * the {@link #getData() data} into a single object that
-     * the server and client interpret into a block type.
+     * The {@code BlockData} for this block. This is the
+     * Minecraft 1.13+ object that specifies all details
+     * about the type of the block. If the server is an
+     * earlier version than 1.13, then this will be {@code null}.
      *
      * @return The data for this block.
      */
@@ -331,8 +330,7 @@ public final class VisualBlock {
      */
     public VisualBlock getRealType(ChunkSnapshot snapshot) {
         int x = this.x & 0xF, y = this.y & 0xFF, z = this.z & 0xF;
-        Material type = Material.getMaterial(snapshot.getBlockTypeId(x, y, z));
-        return new VisualBlock(this.x, this.y, this.z, type, snapshot.getBlockData(x, y, z));
+        return BRIDGE.getRealType(this, snapshot, x, y, z);
     }
 
     /**
@@ -362,7 +360,8 @@ public final class VisualBlock {
                 this.y + distance * direction.getModY(),
                 this.z + distance * direction.getModZ(),
                 this.type,
-                this.data
+                this.data,
+                this.blockData
         );
     }
 
@@ -384,7 +383,8 @@ public final class VisualBlock {
                 this.y + y,
                 this.z + z,
                 this.type,
-                this.data
+                this.data,
+                this.blockData
         );
     }
 
@@ -437,7 +437,8 @@ public final class VisualBlock {
                 (int) (originY + (this.y - originY) * cos - (this.z - originZ) * sin),
                 (int) (originZ + (this.z - originZ) * cos + (this.y - originY) * sin),
                 this.type,
-                data
+                data,
+                this.blockData
         );
     }
 
@@ -502,7 +503,8 @@ public final class VisualBlock {
                 this.y,
                 (int) (originZ + (this.z - originZ) * cos - (this.x - originX) * sin),
                 this.type,
-                data
+                data,
+                this.blockData
         );
     }
 
@@ -555,7 +557,8 @@ public final class VisualBlock {
                 (int) (originY + (this.y - originY) * cos + (this.x - originX) * sin),
                 this.z,
                 this.type,
-                data
+                data,
+                this.blockData
         );
     }
 
@@ -740,12 +743,5 @@ public final class VisualBlock {
         }
 
         return Math.sin(Math.toRadians(degrees));
-    }
-
-    private static boolean isDirectional(Class<? extends MaterialData> clazz) {
-        return Directional.class.isAssignableFrom(clazz) ||
-                Tree.class.isAssignableFrom(clazz) ||
-                Rails.class.isAssignableFrom(clazz) ||
-                ExtendedRails.class.isAssignableFrom(clazz);
     }
 }

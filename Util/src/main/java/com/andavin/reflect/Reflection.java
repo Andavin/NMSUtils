@@ -424,8 +424,7 @@ public final class Reflection {
      * @param clazz The class that should be searched for the field.
      * @param matcher The {@link FieldMatcher} to use to match fields
      *                in the class.
-     * @return The first field found that matches all the required parameters
-     *         or {@code null} if no field was found that matched.
+     * @return The first field found that matches all the required parameters.
      * @throws UncheckedNoSuchFieldException If no fields matching the search
      *                                       parameters are found.
      */

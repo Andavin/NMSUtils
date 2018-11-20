@@ -24,16 +24,26 @@
 
 package com.andavin.v1_13_R2.visual;
 
-import com.andavin.visual.VisualBlock;
+import com.andavin.visual.block.VisualBlock;
 import net.minecraft.server.v1_13_R2.*;
 import net.minecraft.server.v1_13_R2.PacketPlayOutMultiBlockChange.MultiBlockChangeInfo;
+import org.bukkit.ChunkSnapshot;
+import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Rail;
+import org.bukkit.craftbukkit.v1_13_R2.block.data.CraftBlockData;
 import org.bukkit.entity.Player;
+import org.bukkit.material.ExtendedRails;
+import org.bukkit.material.Rails;
+import org.bukkit.material.Tree;
 
 import java.lang.reflect.Field;
 import java.util.List;
 
 import static com.andavin.protocol.PacketSender.sendPacket;
-import static com.andavin.reflect.Reflection.*;
+import static com.andavin.reflect.Reflection.findField;
+import static com.andavin.reflect.Reflection.setValue;
 
 /**
  * @since November 15, 2018
@@ -42,13 +52,8 @@ import static com.andavin.reflect.Reflection.*;
 class VisualBridge extends com.andavin.visual.VisualBridge {
 
     private static final Field CHUNK = findField(PacketPlayOutMultiBlockChange.class, "a");
-    private static final Field BLOCK_DATA = findField(PacketPlayOutMultiBlockChange.class, "b");
+    private static final Field PACKET_BLOCK_DATA = findField(PacketPlayOutMultiBlockChange.class, "b");
     private static final Field POSITION = findField(PacketPlayOutBlockChange.class, "a");
-
-    @Override
-    protected List<Object> getRegistryList() {
-        return getValue(RegistryBlockID.class, Block.REGISTRY_ID, "c");
-    }
 
     @Override
     protected void sendBlocks(Player player, Object chunkPair, List<VisualBlock> blocks) {
@@ -63,7 +68,7 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
             VisualBlock block = blocks.get(0);
             PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange();
             setValue(POSITION, packet, new BlockPosition(block.getX(), block.getY(), block.getZ())); // Set the position
-            packet.block = (IBlockData) block.getBlockData(); // And the data
+            packet.block = toData(block); // And the data
             sendPacket(player, packet);
             return;
         }
@@ -73,11 +78,11 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
         MultiBlockChangeInfo[] blockData = new MultiBlockChangeInfo[blocks.size()];
 
         setValue(CHUNK, packet, chunkPair); // Set the chunk that it is in
-        setValue(BLOCK_DATA, packet, blockData); // Place the array into the packet
+        setValue(PACKET_BLOCK_DATA, packet, blockData); // Place the array into the packet
         // Then update the array with all of the data and positions
         int i = 0;
         for (VisualBlock block : blocks) {
-            blockData[i++] = packet.new MultiBlockChangeInfo(block.getPackedPosition(), (IBlockData) block.getBlockData());
+            blockData[i++] = packet.new MultiBlockChangeInfo(block.getPackedPosition(), toData(block));
         }
 
         // Send the packet to the player
@@ -87,5 +92,27 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
     @Override
     protected Object createChunkCoordIntPair(int x, int z) {
         return new ChunkCoordIntPair(x, z);
+    }
+
+    @Override
+    public VisualBlock getRealType(VisualBlock original, ChunkSnapshot snapshot, int x, int y, int z) {
+        BlockData data = snapshot.getBlockData(x, y, z);
+        return new VisualBlock(original.getX(), original.getY(), original.getZ(), data.getMaterial());
+    }
+
+    @Override
+    public boolean isDirectional(Material type) {
+        Class<?> data = type.data;
+        return type.isLegacy() ?
+                org.bukkit.material.Directional.class.isAssignableFrom(data) ||
+                        Tree.class.isAssignableFrom(data) ||
+                        Rails.class.isAssignableFrom(data) ||
+                        ExtendedRails.class.isAssignableFrom(data) :
+                Directional.class.isAssignableFrom(data) ||
+                        Rail.class.isAssignableFrom(data);
+    }
+
+    private IBlockData toData(VisualBlock block) {
+        return ((CraftBlockData) block.getBlockData()).getState();
     }
 }

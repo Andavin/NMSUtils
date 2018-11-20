@@ -27,6 +27,7 @@ package com.andavin.visual;
 import com.andavin.Versioned;
 import com.andavin.util.Logger;
 import com.andavin.util.LongHash;
+import com.andavin.visual.block.VisualBlock;
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Location;
@@ -316,8 +317,8 @@ public final class ChunkVisual {
                     continue;
                 }
 
-                VisualBlock reverted = new VisualBlock(toRevert.getId(),
-                        toRevert.getX(), toRevert.getY(), toRevert.getZ(), block.getType(), block.getData());
+                VisualBlock reverted = new VisualBlock(toRevert.getId(), toRevert.getX(), toRevert.getY(), toRevert.getZ(),
+                        block.getType(), block.getData(), block.getBlockData());
                 if (toRevert.getChunk() == this.chunk) {
                     // Found the block in this chunk so revert it and move on
                     this.blocks.put(toRevert.getPackedPosition(), reverted);
@@ -498,7 +499,8 @@ public final class ChunkVisual {
 
             // If type is null only match data if data is not -1
             if ((fromType == null || block.getType() == fromType) && (fromData == -1 || block.getData() == fromData)) {
-                entry.setValue(new VisualBlock(block.getId(), block.getX(), block.getY(), block.getZ(), toType, toData));
+                entry.setValue(new VisualBlock(block.getId(), block.getX(), block.getY(), block.getZ(),
+                        toType, toData, null));
                 changed.add(block);
             }
         });

@@ -25,6 +25,7 @@
 package com.andavin.visual;
 
 import com.andavin.util.LongHash;
+import com.andavin.visual.block.VisualBlock;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;

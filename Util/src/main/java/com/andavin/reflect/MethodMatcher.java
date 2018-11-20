@@ -46,7 +46,6 @@ public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
 
     private static final int BRIDGE = 0x40;
     private final Class<?>[] parametersTypes;
-    private boolean requireExactMatch;
 
     /**
      * Create a new matcher to find a method.
@@ -104,7 +103,10 @@ public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
      * in the {@link Reflection#findMethod(Class, String, Class[])} method.
      *
      * @return This attribute matcher.
+     * @see Reflection#findMethod(Class, String, Class[])
+     * @see Class#isAssignableFrom(Class)
      */
+    @Override
     public MethodMatcher requireExactMatch() {
         this.requireExactMatch = true;
         return this;
