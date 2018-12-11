@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.andavin.protocol;
+package com.andavin.protocol.listener;
 
 import org.bukkit.entity.Player;
 
@@ -64,7 +64,6 @@ public interface PacketListener<T> {
      *         the packet will stop here.
      */
     default T handleObj(Player player, Object msg) {
-        //noinspection unchecked
         return this.handle(player, (T) msg);
     }
 }

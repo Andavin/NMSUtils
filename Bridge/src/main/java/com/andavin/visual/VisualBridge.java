@@ -37,7 +37,7 @@ import java.util.List;
  * @since November 15, 2018
  * @author Andavin
  */
-public abstract class VisualBridge extends Versioned {
+public abstract class VisualBridge implements Versioned {
 
     /**
      * Send a block change packet to the given player for all of

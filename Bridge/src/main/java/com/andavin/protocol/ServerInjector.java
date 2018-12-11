@@ -24,11 +24,6 @@
 
 package com.andavin.protocol;
 
-import com.andavin.MinecraftVersion;
-import io.netty.channel.*;
-
-import java.util.List;
-
 /**
  * @since November 19, 2018
  * @author Andavin
@@ -37,47 +32,49 @@ public class ServerInjector {
 
     public synchronized void inject() {
 
-        List<Object> managers = Protocol.BRIDGE.getNetworkManagers();
+//        List<Object> managers = Protocol.BRIDGE.getNetworkManagers();
         // Handle connected channels
-        ChannelInboundHandler endInitProtocol = new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel channel) throws Exception {
-                try {
-                    synchronized (networkManagers) {
-                        // For some reason it needs to be delayed on 1.12, but the delay breaks 1.11 and below
-                        // TODO I see this more as a temporary hotfix than a permanent solution
-                        if (MinecraftVersion.getCurrentVersion().getMinor() >= 12) {
-                            channel.eventLoop().submit(() ->
-                                    injectionFactory.fromChannel(channel, ProtocolInjector.this, playerFactory).inject());
-                        } else {
-                            injectionFactory.fromChannel(channel, ProtocolInjector.this, playerFactory).inject();
-                        }
-                    }
-                } catch (Exception ex) {
-                    reporter.reportDetailed(ProtocolInjector.this, Report.newBuilder(REPORT_CANNOT_INJECT_INCOMING_CHANNEL).messageParam(channel).error(ex));
-                }
-            }
-        };
+//        ChannelInboundHandler endInitProtocol = new ChannelInitializer<Channel>() {
+//            @Override
+//            protected void initChannel(Channel channel) throws Exception {
+//                try {
+//                    synchronized (networkManagers) {
+//                        // For some reason it needs to be delayed on 1.12, but the delay breaks 1.11 and below
+//                        // TODO I see this more as a temporary hotfix than a permanent solution
+//                        if (MinecraftVersion.getCurrentVersion().getMinor() >= 12) {
+//                            channel.eventLoop().submit(() ->
+//                                    injectionFactory.fromChannel(channel, ProtocolInjector.this, playerFactory).inject());
+//                        } else {
+//                            injectionFactory.fromChannel(channel, ProtocolInjector.this, playerFactory).inject();
+//                        }
+//                    }
+//                } catch (Exception ex) {
+//                    reporter.reportDetailed(ProtocolInjector.this, Report.newBuilder(REPORT_CANNOT_INJECT_INCOMING_CHANNEL).messageParam(channel).error(ex));
+//                }
+//            }
+//        };
 
         // This is executed before Minecraft's channel handler
-        ChannelInboundHandler beginInitProtocol = new ChannelInitializer<Channel>() {
-            @Override
-            protected void initChannel(Channel channel) throws Exception {
-                // Our only job is to add init protocol
-                channel.pipeline().addLast(endInitProtocol);
-            }
-        };
-
-        // Add our handler to newly created channels
-        ChannelHandler connectionHandler = new ChannelInboundHandlerAdapter() {
-            @Override
-            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                Channel channel = (Channel) msg;
-
-                // Prepare to initialize ths channel
-                channel.pipeline().addFirst(beginInitProtocol);
-                ctx.fireChannelRead(msg);
-            }
-        };
+//        ChannelInboundHandler beginInitProtocol = new ChannelInitializer<Channel>() {
+//            @Override
+//            protected void initChannel(Channel channel) throws Exception {
+//                // Our only job is to add init protocol
+//                channel.pipeline().addLast(endInitProtocol);
+//            }
+//        };
+//
+//        // Add our handler to newly created channels
+//        ChannelHandler connectionHandler = new ChannelInboundHandlerAdapter() {
+//            @Override
+//            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+//                Channel channel = (Channel) msg;
+//
+//                // Prepare to initialize ths channel
+//                channel.pipeline().addFirst(beginInitProtocol);
+//                ctx.fireChannelRead(msg);
+//            }
+//        };
+//
+//        List<Object> fields = Protocol.BRIDGE.getBootstrapFields();
     }
 }

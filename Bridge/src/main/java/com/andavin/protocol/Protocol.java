@@ -24,10 +24,14 @@
 
 package com.andavin.protocol;
 
+import com.andavin.MinecraftVersion;
 import com.andavin.Versioned;
+import com.andavin.protocol.listener.PacketListener;
 import com.andavin.reflect.FieldMatcher;
+import io.netty.channel.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 
 import static com.andavin.reflect.Reflection.findMcClass;
@@ -36,7 +40,7 @@ import static com.andavin.reflect.Reflection.findMcClass;
  * @since November 18, 2018
  * @author Andavin
  */
-public abstract class Protocol extends Versioned {
+public abstract class Protocol implements Versioned {
 
     public static final String MINECRAFT_DECODER = "decoder";
     public static final String MINECRAFT_ENCODER = "encoder";
@@ -50,7 +54,68 @@ public abstract class Protocol extends Versioned {
     };
 
     static final FieldMatcher PACKET_FIELD_MATCHER = new FieldMatcher(findMcClass("Packet"));
-    static final Protocol BRIDGE = Versioned.getInstance(Protocol.class);
+    static Protocol BRIDGE;
+    private static final Map<Class<?>, PacketListener<?>>
 
-    abstract List<Object> getNetworkManagers();
+    public static void inject() {
+
+        if (BRIDGE != null) {
+            BRIDGE.closeInternal();
+        }
+
+        BRIDGE = Versioned.getInstance(Protocol.class);
+        // Handle connected channels
+        ChannelInboundHandler endInitProtocol = new ChannelInitializer<Channel>() {
+            @Override
+            protected void initChannel(Channel channel) throws Exception {
+                try {
+                    synchronized (networkManagers) {
+                        // For some reason it needs to be delayed on 1.12, but the delay breaks 1.11 and below
+                        // TODO I see this more as a temporary hotfix than a permanent solution
+                        if (MinecraftVersion.getCurrentVersion().getMinor() >= 12) {
+                            channel.eventLoop().submit(() ->
+                                    injectionFactory.fromChannel(channel, ProtocolInjector.this, playerFactory).inject());
+                        } else {
+                            injectionFactory.fromChannel(channel, ProtocolInjector.this, playerFactory).inject();
+                        }
+                    }
+                } catch (Exception ex) {
+                    reporter.reportDetailed(ProtocolInjector.this, Report.newBuilder(REPORT_CANNOT_INJECT_INCOMING_CHANNEL).messageParam(channel).error(ex));
+                }
+            }
+        };
+
+        // This is executed before Minecraft's channel handler
+        ChannelInboundHandler beginInitProtocol = new ChannelInitializer<Channel>() {
+            @Override
+            protected void initChannel(Channel channel) throws Exception {
+                // Our only job is to add init protocol
+                channel.pipeline().addLast(endInitProtocol);
+            }
+        };
+
+        // Add our handler to newly created channels
+        ChannelHandler connectionHandler = new ChannelInboundHandlerAdapter() {
+            @Override
+            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                Channel channel = (Channel) msg;
+                // Prepare to initialize ths channel
+                channel.pipeline().addFirst(beginInitProtocol);
+                ctx.fireChannelRead(msg);
+            }
+        };
+
+        BRIDGE.injectInternal(connectionHandler);
+    }
+
+    public static void close() {
+        BRIDGE.closeInternal();
+        BRIDGE = null;
+    }
+
+    protected abstract void injectInternal(ChannelHandler handler);
+
+    protected abstract List<Object> getNetworkManagers();
+
+    protected abstract void closeInternal();
 }

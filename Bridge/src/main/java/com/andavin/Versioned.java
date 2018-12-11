@@ -31,16 +31,16 @@ import static com.andavin.reflect.Reflection.findClass;
 import static com.andavin.reflect.Reflection.newInstance;
 
 /**
- * A simple marker abstract class to mark a class
- * as a versioned type.
+ * A simple marker interface to mark a class as a
+ * versioned type.
  *
  * @since November 13, 2018
  * @author Andavin
  */
-public abstract class Versioned {
+public interface Versioned {
 
-    private static final String PACKAGE = Versioned.class.getPackage().getName();
-    private static final String VERSION_PREFIX = PACKAGE + '.' + CURRENT_SERVER_VERSION;
+    String PACKAGE = Versioned.class.getPackage().getName();
+    String VERSION_PREFIX = PACKAGE + '.' + CURRENT_SERVER_VERSION;
 
     /**
      * Get an instance of an NMS Utils versioned class.
@@ -50,7 +50,7 @@ public abstract class Versioned {
      * @return The instance of the versioned type.
      * @throws UnsupportedOperationException If the class is not found (no supported).
      */
-    public static <T extends Versioned> T getInstance(Class<T> clazz) throws UnsupportedOperationException {
+    static <T extends Versioned> T getInstance(Class<T> clazz) throws UnsupportedOperationException {
 
         Class<T> found;
         try {

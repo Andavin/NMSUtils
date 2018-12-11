@@ -25,6 +25,7 @@
 package com.andavin;
 
 import com.andavin.nbt.wrapper.*;
+import com.andavin.protocol.Protocol;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -38,6 +39,7 @@ public final class NMSUtils extends JavaPlugin {
     public NMSUtils() {
 
         instance = this;
+        Protocol.inject();
         if (MinecraftVersion.greaterThan(v1_11_R1)) {
             NBTHelper.register(NBTTagLongArray.class);
         }

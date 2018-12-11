@@ -42,7 +42,7 @@ import java.util.List;
  * @since May 29, 2018
  * @author Andavin
  */
-public abstract class PacketSender extends Versioned {
+public abstract class PacketSender implements Versioned {
 
     private static final PacketSender BRIDGE = Versioned.getInstance(PacketSender.class);
 
