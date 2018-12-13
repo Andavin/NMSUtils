@@ -35,8 +35,7 @@ import org.bukkit.entity.Player;
  * registration methods are used to register the listener.
  *
  * @param <T> The type of packet that is being listened for.
-// * @see #registerIn(Class, PacketListener)
-// * @see #registerOut(Class, PacketListener)
+ * @see PacketManager#register(Class, PacketListener, ListenerPriority)
  * @since October 31, 2018
  * @author Andavin
  */

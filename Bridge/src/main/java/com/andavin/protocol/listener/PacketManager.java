@@ -25,7 +25,6 @@
 package com.andavin.protocol.listener;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventPriority;
 
 import java.util.*;
 
@@ -33,23 +32,53 @@ import java.util.*;
  * @since December 06, 2018
  * @author Andavin
  */
-public abstract class PacketManager {
+public class PacketManager {
 
-    private final Map<Class<?>, Map<EventPriority, List<PacketListener<?>>>> listeners = new HashMap<>();
+    private final Map<Class<?>, Map<ListenerPriority, List<PacketListener<?>>>> listeners = new HashMap<>();
+
+    protected PacketManager() { // This class is useless if it's not extended
+    }
 
     /**
-     * Add the given {@link PacketListener} to the registered
-     * map under the given priority.
+     * Register the given {@link PacketListener} to listen to
+     * the Minecraft packet that is the given packet class under
+     * the {@link ListenerPriority#NORMAL} priority.
      *
      * @param packetClass The class of the {@code Packet} that
      *                    is being listened to.
-     * @param priority The {@link EventPriority} the packet should
-     *                 be registered under.
-     * @param listener The PacketListener to add.
+     * @param listener The PacketListener to register.
      */
-    final void addListener(Class<?> packetClass, EventPriority priority, PacketListener<?> listener) {
-        this.listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(EventPriority.class))
-                .computeIfAbsent(priority, __ -> new LinkedList<>());
+    public <T> void register(Class<T> packetClass, PacketListener<T> listener) {
+        this.register(packetClass, listener, ListenerPriority.NORMAL);
+    }
+
+    /**
+     * Register the given {@link PacketListener} to listen to
+     * the Minecraft packet that is the given packet class.
+     *
+     * @param packetClass The class of the {@code Packet} that
+     *                    is being listened to.
+     * @param priority The {@link ListenerPriority} the packet should
+     *                 be registered under.
+     * @param listener The PacketListener to register.
+     */
+    public <T> void register(Class<T> packetClass, PacketListener<T> listener, ListenerPriority priority) {
+        this.listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ListenerPriority.class))
+                .computeIfAbsent(priority, __ -> new LinkedList<>()).add(listener);
+    }
+
+    /**
+     * Unregister the given {@link PacketListener} so that it
+     * no longer is called when a packet is received or sent.
+     *
+     * @param listener The PacketListener to unregister.
+     */
+    public void unregister(PacketListener<?> listener) {
+        // Remove the listener
+        // Remove the list of listeners if it contained the listener (remove it) and is now empty
+        // Remove the priority map if it removed a listener list and is now empty
+        this.listeners.values().removeIf(priorities -> priorities.values().removeIf(listeners ->
+                listeners.remove(listener) && listeners.isEmpty()) && priorities.isEmpty());
     }
 
     /**
@@ -73,12 +102,12 @@ public abstract class PacketManager {
 
         if (packet != null) {
 
-            Map<EventPriority, List<PacketListener<?>>> priorities = this.listeners.get(packet.getClass());
+            Map<ListenerPriority, List<PacketListener<?>>> priorities = this.listeners.get(packet.getClass());
             if (priorities == null) {
                 return packet;
             }
 
-            for (EventPriority priority : EventPriority.values()) {
+            for (ListenerPriority priority : ListenerPriority.values()) {
 
                 List<PacketListener<?>> listeners = priorities.get(priority);
                 if (listeners != null) {
