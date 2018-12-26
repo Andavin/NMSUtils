@@ -63,6 +63,5 @@ public class Protocol extends com.andavin.protocol.Protocol {
 
     @Override
     protected void closeInternal() {
-        getValue()
     }
 }

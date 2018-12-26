@@ -84,7 +84,6 @@ public class LegacyClassResolver implements ClassResolver {
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
     private static Method getStackTraceMethod() {
         Method method = findMethod(Throwable.class, "getStackTraceElement", int.class);
         StackTraceElement element = invoke(method, new Throwable(), 0);

@@ -44,7 +44,7 @@ import static com.andavin.reflect.Reflection.getValue;
  * @since December 06, 2018
  * @author Andavin
  */
-class ServerConnectionDelegate extends ServerConnection {
+public class ServerConnectionDelegate extends ServerConnection {
 
     private static final Logger LOGGER = LogManager.getLogger(ServerConnection.class);
 

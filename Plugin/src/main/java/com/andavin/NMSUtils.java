@@ -24,12 +24,12 @@
 
 package com.andavin;
 
+import com.andavin.inject.MinecraftInjector;
 import com.andavin.nbt.wrapper.*;
-import com.andavin.protocol.Protocol;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import static com.andavin.MinecraftVersion.v1_11_R1;
+import static com.andavin.MinecraftVersion.v1_12_R1;
 
 public final class NMSUtils extends JavaPlugin {
 
@@ -39,8 +39,7 @@ public final class NMSUtils extends JavaPlugin {
     public NMSUtils() {
 
         instance = this;
-        Protocol.inject();
-        if (MinecraftVersion.greaterThan(v1_11_R1)) {
+        if (MinecraftVersion.greaterThanOrEqual(v1_12_R1)) {
             NBTHelper.register(NBTTagLongArray.class);
         }
 
@@ -62,6 +61,7 @@ public final class NMSUtils extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        new MinecraftInjector().inject();
         fastAsyncSupport = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit") != null;
     }
 

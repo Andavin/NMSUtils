@@ -22,45 +22,31 @@
  * SOFTWARE.
  */
 
-package com.andavin.protocol;
+package com.andavin.inject;
 
 import com.andavin.Versioned;
-import com.andavin.reflect.FieldMatcher;
-import io.netty.channel.ChannelHandler;
-
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static com.andavin.reflect.Reflection.findMcClass;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.ClassNode;
 
 /**
- * @since November 18, 2018
+ * @since December 25, 2018
  * @author Andavin
  */
-public abstract class Protocol implements Versioned {
+@FunctionalInterface
+public interface Injector extends Versioned {
 
-    public static final String MINECRAFT_DECODER = "decoder";
-    public static final String MINECRAFT_ENCODER = "encoder";
-    public static final String DELEGATE_DECODER = "nms_utils_decoder";
-    public static final String DELEGATE_ENCODER = "nms_utils_encoder";
-
-    public static final Runnable EMPTY_RUNNABLE = () -> {
-    };
-    public static final Callable<?> EMPTY_CALLABLE = () -> {
-        return null;
-    };
-
-    static final FieldMatcher PACKET_FIELD_MATCHER = new FieldMatcher(findMcClass("Packet"));
-    static Protocol BRIDGE;
-
-    public static void close() {
-        BRIDGE.closeInternal();
-        BRIDGE = null;
-    }
-
-    protected abstract void injectInternal(ChannelHandler handler);
-
-    protected abstract List<Object> getNetworkManagers();
-
-    protected abstract void closeInternal();
+    /**
+     * Inject into the attribute specified by the implementation
+     * and alter it according to the implementation.
+     *
+     * @param node The {@link ClassNode} to use to receive
+     *             the information on the current state of
+     *             the attribute.
+     * @param reader The {@link ClassReader} to use to get all of
+     *               the attributes of the attribute.
+     * @return The altered {@link ClassWriter} or {@code null} if there
+     *         were no alterations.
+     */
+    ClassWriter inject(ClassNode node, ClassReader reader);
 }
