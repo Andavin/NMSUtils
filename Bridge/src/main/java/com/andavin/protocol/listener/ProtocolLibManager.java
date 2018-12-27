@@ -31,6 +31,7 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.injector.packet.PacketRegistry;
+import io.netty.channel.Channel;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
@@ -114,5 +115,10 @@ public class ProtocolLibManager extends PacketManager {
             case MONITOR:
                 return com.comphenix.protocol.events.ListenerPriority.MONITOR;
         }
+    }
+
+    @Override
+    public Object apply(Channel channel, Object o) {
+        return o;
     }
 }

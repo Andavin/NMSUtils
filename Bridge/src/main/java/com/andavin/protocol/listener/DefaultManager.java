@@ -24,11 +24,16 @@
 
 package com.andavin.protocol.listener;
 
+import io.netty.channel.Channel;
+
 /**
  * @since December 12, 2018
  * @author Andavin
  */
 public class DefaultManager extends PacketManager {
 
-
+    @Override
+    public Object apply(Channel channel, Object o) {
+        return o;
+    }
 }

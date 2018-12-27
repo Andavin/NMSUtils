@@ -24,13 +24,11 @@
 
 package com.andavin.inject;
 
-import static com.andavin.MinecraftVersion.MINECRAFT_PREFIX;
-
 /**
  * @since December 25, 2018
  * @author Andavin
  */
-public abstract class NetworkManagerInjector implements Injector {
+public abstract class MinecraftServerInjector implements Injector {
 
-    static final String CLASS_NAME = MINECRAFT_PREFIX + "NetworkManager.class";
+    static final String CLASS_NAME = MINECRAFT_PREFIX + "MinecraftServer.class";
 }

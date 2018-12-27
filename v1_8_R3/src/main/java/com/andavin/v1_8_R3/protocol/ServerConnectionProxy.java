@@ -35,31 +35,39 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.InetAddress;
 import java.util.List;
-
-import static com.andavin.reflect.Reflection.getValue;
+import java.util.function.BiFunction;
 
 /**
  * @since December 06, 2018
  * @author Andavin
  */
-public class ServerConnectionDelegate extends ServerConnection {
+public class ServerConnectionProxy extends ServerConnection {
 
     private static final Logger LOGGER = LogManager.getLogger(ServerConnection.class);
 
-    private final ServerConnection delegate;
     private final MinecraftServer server;
     private final List<ChannelFuture> futures;
     private final List<NetworkManager> networkManagers;
+    public BiFunction<String, Packet, Packet> packetListener;
 
-    public ServerConnectionDelegate(ServerConnection delegate) {
-        super(delegate.d());
-        this.server = delegate.d();
-        this.delegate = delegate;
-        this.futures = getValue(ServerConnection.class, delegate, "g");
-        this.networkManagers = getValue(ServerConnection.class, delegate, "h");
-        com.andavin.util.Logger.info("Created new proxy connection");
+    public ServerConnectionProxy(MinecraftServer server) {
+
+        super(server);
+        this.server = server;
+
+        try {
+            Field g = ServerConnection.class.getDeclaredField("g");
+            g.setAccessible(true);
+            this.futures = (List<ChannelFuture>) g.get(this);
+            Field h = ServerConnection.class.getDeclaredField("h");
+            h.setAccessible(true);
+            this.networkManagers = (List<NetworkManager>) h.get(this);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override
@@ -89,33 +97,18 @@ public class ServerConnectionDelegate extends ServerConnection {
                     }
 
                     channel.pipeline().addLast("timeout", new ReadTimeoutHandler(30))
-                            .addLast("legacy_query", new LegacyPingHandler(ServerConnectionDelegate.this))
+                            .addLast("legacy_query", new LegacyPingHandler(ServerConnectionProxy.this))
                             .addLast("splitter", new PacketSplitter())
                             .addLast("decoder", new PacketDecoder(EnumProtocolDirection.SERVERBOUND))
                             .addLast("prepender", new PacketPrepender())
                             .addLast("encoder", new PacketEncoder(EnumProtocolDirection.CLIENTBOUND));
 
-                    NetworkManager networkmanager = new NetworkManagerProxy(EnumProtocolDirection.SERVERBOUND);
+                    NetworkManager networkmanager = new NetworkManagerProxy(EnumProtocolDirection.SERVERBOUND, packetListener);
                     networkManagers.add(networkmanager);
                     channel.pipeline().addLast("packet_handler", networkmanager);
                     networkmanager.a(new HandshakeListener(server, networkmanager));
                 }
             }).group((EventLoopGroup) lazyinitvar.c()).localAddress(address, i).bind().syncUninterruptibly());
         }
-    }
-
-    @Override
-    public void b() {
-        this.delegate.b();
-    }
-
-    @Override
-    public void c() {
-        this.delegate.c();
-    }
-
-    @Override
-    public MinecraftServer d() {
-        return this.delegate.d();
     }
 }

@@ -24,7 +24,7 @@
 
 package com.andavin.v1_8_R3.protocol;
 
-import com.andavin.util.Logger;
+import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
@@ -32,33 +32,54 @@ import net.minecraft.server.v1_8_R3.EnumProtocolDirection;
 import net.minecraft.server.v1_8_R3.NetworkManager;
 import net.minecraft.server.v1_8_R3.Packet;
 
+import java.util.function.BiFunction;
+
 /**
  * @since December 06, 2018
  * @author Andavin
  */
 public class NetworkManagerProxy extends NetworkManager {
 
-    public NetworkManagerProxy(EnumProtocolDirection enumprotocoldirection) {
+    public BiFunction<String, Packet, Packet> packetListener;
+    private GameProfile profile;
+
+    public NetworkManagerProxy(EnumProtocolDirection enumprotocoldirection, BiFunction<String, Packet, Packet> packetListener) {
         super(enumprotocoldirection);
-        Logger.info("Created new network manager proxy");
+        this.packetListener = packetListener;
     }
 
     @Override
     public void handle(Packet packet) {
-        Logger.info("Sending packet {} via handle method", packet.getClass().getName());
+
+        if (this.g() && this.packetListener != null) {
+
+            packet = this.packetListener.apply("", packet);
+            if (packet == null) {
+                return;
+            }
+        }
+
         super.handle(packet);
     }
 
+    @SafeVarargs
     @Override
-    public void a(Packet packet, GenericFutureListener<? extends Future<? super Void>> genericfuturelistener,
-                  GenericFutureListener<? extends Future<? super Void>>... agenericfuturelistener) {
-        Logger.info("Sending packet {} via a method", packet.getClass().getName());
+    public final void a(Packet packet, GenericFutureListener<? extends Future<? super Void>> genericfuturelistener,
+                        GenericFutureListener<? extends Future<? super Void>>... agenericfuturelistener) {
         super.a(packet, genericfuturelistener, agenericfuturelistener);
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
-        Logger.info("Receiving packet {}", packet.getClass().getName());
+
+        if (this.channel.isOpen() && this.packetListener != null) {
+
+            packet = this.packetListener.apply("", packet);
+            if (packet == null) {
+                return;
+            }
+        }
+
         super.channelRead0(ctx, packet);
     }
 }

@@ -29,6 +29,7 @@ import com.andavin.util.Logger;
 import org.bukkit.Bukkit;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.ClassNode;
 
 import java.io.File;
@@ -36,6 +37,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -54,7 +56,7 @@ public class MinecraftInjector {
     private static final Map<String, Injector> INJECTIONS = new HashMap<>();
 
     static {
-        INJECTIONS.put(NetworkManagerInjector.CLASS_NAME, Versioned.getInstance(NetworkManagerInjector.class));
+        INJECTIONS.put(MinecraftServerInjector.CLASS_NAME, Versioned.getInstance(MinecraftServerInjector.class));
     }
 
     public void inject() {
@@ -77,93 +79,142 @@ public class MinecraftInjector {
         try (JarFile jar = new JarFile(jarFile)) {
 
             Enumeration<JarEntry> entries = jar.entries();
+            List<Class<?>> classesToAdd = new LinkedList<>();
             List<JarEntry> unchanged = new ArrayList<>(jar.size());
-            Map<JarEntry, ClassWriter> changed = new HashMap<>((int) (INJECTIONS.size() / 0.75));
+            Map<String, ClassWriter> changed = new HashMap<>((int) (INJECTIONS.size() / 0.75));
             while (entries.hasMoreElements()) {
 
                 JarEntry entry = entries.nextElement();
                 String name = entry.getName();
-                if (entry.isDirectory() && name.endsWith(".class") &&
+                if (!entry.isDirectory() && name.endsWith(".class") &&
                         (name.startsWith("org/bukkit") || name.startsWith("net/minecraft"))) {
 
                     Injector injector = INJECTIONS.get(name);
                     if (injector != null) {
 
-                        Object writer = inject(jar, entry, injector);
+                        Object writer = inject(jar, entry, injector, classesToAdd);
                         if (writer instanceof ClassWriter) {
-                            changed.put(entry, (ClassWriter) writer);
+                            changed.put(entry.getName(), (ClassWriter) writer);
                         } else {
                             unchanged.add(entry);
                         }
-                    }
 
-                    continue;
+                        continue;
+                    }
                 }
 
                 unchanged.add(entry);
             }
 
-            int size = changed.size();
-            if (size > 0) {
+            if (changed.isEmpty() && classesToAdd.isEmpty()) {
+                Logger.info("Nothing found to inject.");
+                return;
+            }
 
-                Logger.info("Found {} classes to alter. Injecting into {}...", size, jarName);
-                String parent = jarFile.getParent();
-                Logger.info("Creating temporary injection JAR.");
-                File tempJar = new File(parent, "injection-temp.jar");
-                try (JarOutputStream output = new JarOutputStream(new FileOutputStream(tempJar))) {
+            Logger.info("Found {} classes to alter, {} new classes that need to be injected and {} files left unchanged.",
+                    changed.size(), classesToAdd.size(), unchanged.size());
 
-                    for (JarEntry entry : unchanged) {
+            Path jarPath = jarFile.toPath();
+            String parent = jarFile.getParent();
+            String backupName = jarName.substring(0, jarIndex) + "-backup.jar";
+            File backup = new File(parent, backupName);
+            if (!backup.exists()) {
+                Logger.info("Making a backup of the current server JAR as {}.", backupName);
+                Logger.info("Restore to the backup at any time if there are issues.");
+                Files.copy(jarPath, backup.toPath());
+            }
 
-                        output.putNextEntry(new JarEntry(entry.getName()));
-                        InputStream input = jar.getInputStream(entry);
+            Logger.info("Creating temporary injection JAR.");
+            File tempJar = new File(parent, "injection-temp.jar");
+            Logger.info("Injecting all alterations into the temporary JAR...");
+            try (JarOutputStream output = new JarOutputStream(new FileOutputStream(tempJar))) {
+
+                for (JarEntry entry : unchanged) {
+
+                    String name = entry.getName();
+                    output.putNextEntry(new JarEntry(name));
+                    try (InputStream input = jar.getInputStream(entry)) {
+
                         byte[] buffer = new byte[4096];
                         int bytesRead;
                         while ((bytesRead = input.read(buffer)) != -1) {
                             output.write(buffer, 0, bytesRead);
                         }
-
-                        input.close();
-                        output.flush();
-                        output.closeEntry();
                     }
 
-                    for (Entry<JarEntry, ClassWriter> entry : changed.entrySet()) {
-                        output.putNextEntry(new JarEntry(entry.getKey().getName()));
-                        output.write(entry.getValue().toByteArray());
-                        output.flush();
-                        output.closeEntry();
+                    output.flush();
+                    output.closeEntry();
+                }
+
+                for (Entry<String, ClassWriter> entry : changed.entrySet()) {
+                    output.putNextEntry(new JarEntry(entry.getKey()));
+                    output.write(entry.getValue().toByteArray());
+                    output.flush();
+                    output.closeEntry();
+                }
+
+                URL lastLocation = null;
+                JarFile otherJar = null;
+                for (Class<?> clazz : classesToAdd) {
+
+                    URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
+                    if (otherJar == null || lastLocation != location) {
+
+                        lastLocation = location;
+                        try {
+                            otherJar = new JarFile(new File(location.toURI().getPath()));
+                        } catch (URISyntaxException e) {
+                            Logger.severe(e);
+                            continue;
+                        }
+                    }
+
+                    String internalName = Type.getInternalName(clazz);
+                    String clazzName = internalName + ".class";
+                    String subClassPrefix = internalName + '$';
+                    Enumeration<JarEntry> otherEntries = otherJar.entries();
+                    while (otherEntries.hasMoreElements()) {
+
+                        JarEntry entry = otherEntries.nextElement();
+                        String name = entry.getName();
+                        if (name.equals(clazzName) || name.startsWith(subClassPrefix)) { // Write the class and all subclasses
+
+                            output.putNextEntry(new JarEntry(name));
+                            try (InputStream input = otherJar.getInputStream(entry)) {
+
+                                byte[] buffer = new byte[4096];
+                                int bytesRead;
+                                while ((bytesRead = input.read(buffer)) != -1) {
+                                    output.write(buffer, 0, bytesRead);
+                                }
+                            }
+
+                            output.flush();
+                            output.closeEntry();
+                        }
                     }
                 }
-
-                Path jarPath = jarFile.toPath();
-                String backupName = jarName.substring(0, jarIndex) + "-backup.jar";
-                File backup = new File(parent, backupName);
-                if (!backup.exists()) {
-                    Logger.info("Making a backup of the current server JAR as {}.", backupName);
-                    Logger.info("Restore to the backup at any time if there are issues.");
-                    Files.copy(jarPath, backup.toPath());
-                }
-
-                Logger.info("Replacing server JAR with the injected version.");
-                Files.copy(tempJar.toPath(), jarPath, StandardCopyOption.REPLACE_EXISTING);
-                Logger.info("Deleting temporary injected JAR.");
-                tempJar.delete();
-                Logger.info("Injection completed successfully. Restarting server.");
-                Bukkit.shutdown();
             }
+
+            Logger.info("Replacing server JAR ({}) with the injected version.", jarName);
+            Files.copy(tempJar.toPath(), jarPath, StandardCopyOption.REPLACE_EXISTING);
+            Logger.info("Deleting temporary injected JAR.");
+            tempJar.delete();
+            Logger.info("Injection completed successfully. Stopping server.");
+            Bukkit.shutdown();
 
         } catch (IOException e) {
             Logger.severe(e, "Failed to inject JAR. Please inform the developer.");
         }
     }
 
-    private Object inject(JarFile jar, JarEntry entry, Injector injector) throws IOException {
+    private Object inject(JarFile jar, JarEntry entry, Injector injector, List<Class<?>> classesToAdd) throws IOException {
 
         try (InputStream stream = jar.getInputStream(entry)) {
             ClassReader reader = new ClassReader(stream);
             ClassNode node = new ClassNode();
             reader.accept(node, ClassReader.SKIP_FRAMES);
-            ClassWriter writer = injector.inject(node, reader);
+            ClassWriter writer = injector.inject(node, reader, classesToAdd);
             return writer != null ? writer : entry;
         }
     }

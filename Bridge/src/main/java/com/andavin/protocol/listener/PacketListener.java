@@ -26,6 +26,8 @@ package com.andavin.protocol.listener;
 
 import org.bukkit.entity.Player;
 
+import java.util.function.BiFunction;
+
 /**
  * A simple bi-directional packet listener that can handle
  * packets being sent to or coming from a player.
@@ -40,7 +42,7 @@ import org.bukkit.entity.Player;
  * @author Andavin
  */
 @FunctionalInterface
-public interface PacketListener<T> {
+public interface PacketListener<T> extends BiFunction<Player, T, T> {
 
     /**
      * Handle a packet being sent in the direction that this
@@ -51,7 +53,8 @@ public interface PacketListener<T> {
      * @return The packet that should be sent. If this is {@code null}
      *         the packet will stop here.
      */
-    T handle(Player player, T packet);
+    @Override
+    T apply(Player player, T packet);
 
     /**
      * Handle a packet being sent in the direction that this
@@ -62,7 +65,7 @@ public interface PacketListener<T> {
      * @return The packet that should be sent. If this is {@code null}
      *         the packet will stop here.
      */
-    default T handleObj(Player player, Object msg) {
-        return this.handle(player, (T) msg);
+    default T handle(Player player, Object msg) {
+        return this.apply(player, (T) msg);
     }
 }
