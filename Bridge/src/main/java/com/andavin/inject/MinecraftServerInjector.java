@@ -29,6 +29,5 @@ package com.andavin.inject;
  * @author Andavin
  */
 public abstract class MinecraftServerInjector implements Injector {
-
     static final String CLASS_NAME = MINECRAFT_PREFIX + "MinecraftServer.class";
 }

@@ -39,6 +39,7 @@ import java.util.List;
 @FunctionalInterface
 public interface Injector extends Versioned {
 
+    String VERSION_PREFIX = "InjectorVersion-";
     String MINECRAFT_PREFIX = MinecraftVersion.MINECRAFT_PREFIX.replace('.', '/');
     String CRAFTBUKKIT_PREFIX = MinecraftVersion.CRAFTBUKKIT_PREFIX.replace('.', '/');
 

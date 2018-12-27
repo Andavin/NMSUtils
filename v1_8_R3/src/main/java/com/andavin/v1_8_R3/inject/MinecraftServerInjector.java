@@ -31,6 +31,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
@@ -49,6 +50,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
     private static final String SERVER_CONNECTION = MINECRAFT_PREFIX + "ServerConnection";
     private static final String DELEGATE = Type.getInternalName(ServerConnectionProxy.class);
     private static final String NAME = "aq", DESC = 'L' + SERVER_CONNECTION + ';';
+    private static final String VERSION_DESC = VERSION_PREFIX + "1.0"; // Version 1.0
 
     @Override
     public ClassWriter inject(ClassNode node, ClassReader reader, List<Class<?>> classesToAdd) {
@@ -61,7 +63,13 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
             if ((method.access & ACC_PUBLIC) != 0 && method.name.equals(NAME) && method.desc.endsWith(DESC)) {
 
                 if (method.invisibleAnnotations != null) {
-                    return null;
+
+                    for (AnnotationNode annotation : method.invisibleAnnotations) {
+
+                        if (annotation.desc.equals(VERSION_DESC)) {
+                            return null;
+                        }
+                    }
                 }
 
                 methodNode = method;
@@ -72,6 +80,10 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
         if (methodNode == null) {
             Logger.warn("Could not find method with public access with the name {} and descriptor {}.", NAME, DESC);
             return null;
+        }
+
+        if (methodNode.invisibleAnnotations != null) { // Remove older versions
+            methodNode.invisibleAnnotations.removeIf(annotation -> annotation.desc.startsWith(VERSION_PREFIX));
         }
 
         classesToAdd.add(ServerConnectionProxy.class);
@@ -109,7 +121,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
         Label l3 = new Label();
         visitor.visitLabel(l3);
         visitor.visitLocalVariable("this", "L" + MINECRAFT_SERVER + ";", null, l0, l3, 0);
-        visitor.visitAnnotation("Ljava/lang/annotation/Override;", false);
+        visitor.visitAnnotation(VERSION_DESC, false); // Add version
         visitor.visitMaxs(0, 0);
 
         ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);

@@ -51,7 +51,7 @@ import java.util.jar.JarOutputStream;
  * @since December 25, 2018
  * @author Andavin
  */
-public class MinecraftInjector {
+public final class MinecraftInjector {
 
     private static final Map<String, Injector> INJECTIONS = new HashMap<>();
 
@@ -124,14 +124,31 @@ public class MinecraftInjector {
                 Files.copy(jarPath, backup.toPath());
             }
 
+            List<String> classNames = new ArrayList<>(classesToAdd.size() * 2);
+            for (Class<?> clazz : classesToAdd) {
+                String internalName = Type.getInternalName(clazz);
+                String clazzName = internalName + ".class";
+                String subClassPrefix = internalName + '$';
+                classNames.add(clazzName);
+                classNames.add(subClassPrefix);
+            }
+
             Logger.info("Creating temporary injection JAR.");
             File tempJar = new File(parent, "injection-temp.jar");
             Logger.info("Injecting all alterations into the temporary JAR...");
             try (JarOutputStream output = new JarOutputStream(new FileOutputStream(tempJar))) {
 
+                entries:
                 for (JarEntry entry : unchanged) {
 
                     String name = entry.getName();
+                    for (String className : classNames) {
+                        // Remove the classes that need to be added
+                        if (name.startsWith(className)) {
+                            continue entries;
+                        }
+                    }
+
                     output.putNextEntry(new JarEntry(name));
                     try (InputStream input = jar.getInputStream(entry)) {
 
