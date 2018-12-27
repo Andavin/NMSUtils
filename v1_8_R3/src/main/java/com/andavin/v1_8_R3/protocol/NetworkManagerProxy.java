@@ -51,35 +51,65 @@ public class NetworkManagerProxy extends NetworkManager {
     @Override
     public void handle(Packet packet) {
 
-        if (this.g() && this.packetListener != null) {
-
-            packet = this.packetListener.apply("", packet);
-            if (packet == null) {
-                return;
-            }
+        // When this.g() is true, the super method delegates to
+        // the method below (which also handles the listener)
+        if (this.g()) {
+            super.handle(packet);
+            return;
         }
 
-        super.handle(packet);
+        packet = this.handleListener(packet);
+        if (packet != null) {
+            super.handle(packet);
+        }
     }
 
     @SafeVarargs
     @Override
     public final void a(Packet packet, GenericFutureListener<? extends Future<? super Void>> genericfuturelistener,
                         GenericFutureListener<? extends Future<? super Void>>... agenericfuturelistener) {
-        super.a(packet, genericfuturelistener, agenericfuturelistener);
+
+        packet = this.handleListener(packet);
+        if (packet != null) {
+            super.a(packet, genericfuturelistener, agenericfuturelistener);
+        }
     }
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Packet packet) throws Exception {
 
-        if (this.channel.isOpen() && this.packetListener != null) {
+        // When the channel is not open, the packet
+        // won't be handled by the super method
+        if (this.channel.isOpen()) {
 
-            packet = this.packetListener.apply("", packet);
+            packet = this.handleListener(packet);
             if (packet == null) {
                 return;
             }
         }
 
         super.channelRead0(ctx, packet);
+    }
+
+    private Packet handleListener(Packet packet) {
+
+        if (this.packetListener != null) {
+
+            Packet altered = this.packetListener.apply(this.profile.getName(), packet);
+            if (altered == null || altered == packet) {
+                return null;
+            }
+
+            Class<? extends Packet> oldClass = packet.getClass();
+            Class<? extends Packet> alteredClass = altered.getClass();
+            if (alteredClass != oldClass) {
+                throw new IllegalArgumentException("Packet returned expected type " +
+                        oldClass.getName() + ", but got " + alteredClass.getName());
+            }
+
+            return altered;
+        }
+
+        return packet;
     }
 }
