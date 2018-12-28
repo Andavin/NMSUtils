@@ -24,6 +24,7 @@
 
 package com.andavin.v1_8_R3.protocol;
 
+import com.andavin.inject.InjectorVersion;
 import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Future;
@@ -31,6 +32,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.server.v1_8_R3.EnumProtocolDirection;
 import net.minecraft.server.v1_8_R3.NetworkManager;
 import net.minecraft.server.v1_8_R3.Packet;
+import net.minecraft.server.v1_8_R3.PacketLoginInStart;
 
 import java.util.function.BiFunction;
 
@@ -38,6 +40,7 @@ import java.util.function.BiFunction;
  * @since December 06, 2018
  * @author Andavin
  */
+@InjectorVersion("1.1")
 public class NetworkManagerProxy extends NetworkManager {
 
     public BiFunction<String, Packet, Packet> packetListener;
@@ -50,13 +53,6 @@ public class NetworkManagerProxy extends NetworkManager {
 
     @Override
     public void handle(Packet packet) {
-
-        // When this.g() is true, the super method delegates to
-        // the method below (which also handles the listener)
-        if (this.g()) {
-            super.handle(packet);
-            return;
-        }
 
         packet = this.handleListener(packet);
         if (packet != null) {
@@ -93,18 +89,26 @@ public class NetworkManagerProxy extends NetworkManager {
 
     private Packet handleListener(Packet packet) {
 
-        if (this.packetListener != null) {
+        if (this.profile == null) {
+
+            if (packet instanceof PacketLoginInStart) {
+                this.profile = ((PacketLoginInStart) packet).a();
+            }
+        } else if (this.packetListener != null) {
 
             Packet altered = this.packetListener.apply(this.profile.getName(), packet);
-            if (altered == null || altered == packet) {
+            if (altered == null) {
                 return null;
             }
 
-            Class<? extends Packet> oldClass = packet.getClass();
-            Class<? extends Packet> alteredClass = altered.getClass();
-            if (alteredClass != oldClass) {
-                throw new IllegalArgumentException("Packet returned expected type " +
-                        oldClass.getName() + ", but got " + alteredClass.getName());
+            if (altered != packet) {
+
+                Class<? extends Packet> oldClass = packet.getClass();
+                Class<? extends Packet> alteredClass = altered.getClass();
+                if (alteredClass != oldClass) {
+                    throw new IllegalArgumentException("Packet returned expected type " +
+                            oldClass.getName() + ", but got " + alteredClass.getName());
+                }
             }
 
             return altered;

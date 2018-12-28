@@ -35,6 +35,10 @@ import java.util.function.BiFunction;
  * The direction the packet will be traveling when it is handled
  * by this listener is dependent on which of the directional
  * registration methods are used to register the listener.
+ * <p>
+ * Note that it is immensely important that thread blocking
+ * does <b>not</b> occur within one of these listeners as it
+ * will block all network traffic to or from the player.
  *
  * @param <T> The type of packet that is being listened for.
  * @see ProtocolManager#register(Class, PacketListener, ListenerPriority)

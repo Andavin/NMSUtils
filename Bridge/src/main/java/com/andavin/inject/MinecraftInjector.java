@@ -24,18 +24,16 @@
 
 package com.andavin.inject;
 
-import com.andavin.Versioned;
 import com.andavin.util.Logger;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -47,19 +45,55 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 
+import static java.util.stream.Collectors.toSet;
+
 /**
  * @since December 25, 2018
  * @author Andavin
  */
 public final class MinecraftInjector {
 
-    private static final Map<String, Injector> INJECTIONS = new HashMap<>();
+    private static final Map<String, Injector> INJECTORS = new HashMap<>();
+    private static final Map<Class<?>, Plugin> INJECTION_CLASSES = new HashMap<>();
+    private static final String INJECTOR_VERSION = Type.getInternalName(InjectorVersion.class);
+    private static final String INJECTOR_VERSION_DESC = 'L' + INJECTOR_VERSION + ';';
+    private static final String INJECTOR_VERSION_CLASS = INJECTOR_VERSION + ".class";
 
-    static {
-        INJECTIONS.put(MinecraftServerInjector.CLASS_NAME, Versioned.getInstance(MinecraftServerInjector.class));
+    /**
+     * Register an {@link Injector} to inject into a Bukkit or
+     * Minecraft class.
+     *
+     * @param classToAlter The class to inject and alter.
+     * @param injector The injector to do the alterations.
+     */
+    public static void register(Class<?> classToAlter, Injector injector) {
+        INJECTORS.put(Type.getInternalName(classToAlter) + ".class", injector);
     }
 
-    private MinecraftInjector() {
+    /**
+     * Inject the given class into the Minecraft JAR so that
+     * it will be loaded on server startup and can be recognized
+     * by injected code.
+     * <p>
+     * The given class must be annotated with the {@link InjectorVersion}
+     * annotation to signify its version. If the version is the same
+     * as the class found in the JAR, then it will not be replaced.
+     * <p>
+     * Note that the given class must be found within the same JAR as
+     * the {@link Plugin} or it will not be able to be updated in the
+     * Minecraft JAR.
+     *
+     * @param plugin The plugin that the class belongs to.
+     * @param clazz The class to inject into the JAR.
+     */
+    public static void injectClass(Plugin plugin, Class<?> clazz) {
+
+        if (clazz.getDeclaredAnnotation(InjectorVersion.class) != null) {
+            INJECTION_CLASSES.put(clazz, plugin);
+            return;
+        }
+
+        throw new IllegalArgumentException("Class " + clazz.getName() + " is not annotated with InjectorVersion.");
     }
 
     /**
@@ -90,89 +124,116 @@ public final class MinecraftInjector {
 
         try (JarFile jar = new JarFile(jarFile)) {
 
+            boolean annotation = false;
             Enumeration<JarEntry> entries = jar.entries();
-            List<Class<?>> classesToAdd = new LinkedList<>();
             List<JarEntry> unchanged = new ArrayList<>(jar.size());
-            Map<String, ClassWriter> changed = new HashMap<>((int) (INJECTIONS.size() / 0.75));
+            Map<String, ClassWriter> changed = new HashMap<>((int) (INJECTORS.size() / 0.75));
             while (entries.hasMoreElements()) {
 
                 JarEntry entry = entries.nextElement();
                 String name = entry.getName();
-                if (!entry.isDirectory() && name.endsWith(".class") &&
-                        (name.startsWith("org/bukkit") || name.startsWith("net/minecraft"))) {
+                if (name.endsWith(".class")) {
 
-                    Injector injector = INJECTIONS.get(name);
-                    if (injector != null) {
+                    if (name.startsWith("org/bukkit") || name.startsWith("net/minecraft")) {
 
-                        Object writer = inject(jar, entry, injector, classesToAdd);
-                        if (writer instanceof ClassWriter) {
-                            changed.put(entry.getName(), (ClassWriter) writer);
-                        } else {
-                            unchanged.add(entry);
+                        Injector injector = INJECTORS.get(name);
+                        if (injector != null) {
+
+                            Object writer = inject(jar, entry, injector);
+                            if (writer instanceof ClassWriter) {
+                                Logger.debug("Class {} has been found and altered successfully.", name);
+                                changed.put(entry.getName(), (ClassWriter) writer);
+                            } else {
+                                unchanged.add(entry);
+                            }
+
+                            continue;
                         }
-
-                        continue;
+                    } else if (!annotation && name.equals(INJECTOR_VERSION_CLASS)) {
+                        annotation = true;
                     }
                 }
 
                 unchanged.add(entry);
             }
 
-            if (changed.isEmpty() && classesToAdd.isEmpty()) {
+            if (changed.isEmpty() && INJECTION_CLASSES.isEmpty()) {
                 Logger.info("Nothing found to inject.");
+                INJECTORS.clear(); // No memory leaks
                 return false;
             }
 
-            Logger.info("Found {} classes to alter, {} new classes that need to be injected and {} files left unchanged.",
-                    changed.size(), classesToAdd.size(), unchanged.size());
+            Logger.info("Found {} classes to alter and {} new classes that need to be injected.",
+                    changed.size(), INJECTION_CLASSES.size());
 
             Path jarPath = jarFile.toPath();
             String parent = jarFile.getParent();
-            String backupName = jarName.substring(0, jarIndex) + "-backup.jar";
-            File backup = new File(parent, backupName);
-            if (!backup.exists()) {
-                Logger.info("Making a backup of the current server JAR as {}.", backupName);
-                Logger.info("Restore to the backup at any time if there are issues.");
-                Files.copy(jarPath, backup.toPath());
-            }
-
-            List<String> classNames = new ArrayList<>(classesToAdd.size() * 2);
-            for (Class<?> clazz : classesToAdd) {
-                String internalName = Type.getInternalName(clazz);
-                String clazzName = internalName + ".class";
-                String subClassPrefix = internalName + '$';
-                classNames.add(clazzName);
-                classNames.add(subClassPrefix);
-            }
-
-            Logger.info("Creating temporary injection JAR.");
             File tempJar = new File(parent, "injection-temp.jar");
-            Logger.info("Injecting all alterations into the temporary JAR...");
             try (JarOutputStream output = new JarOutputStream(new FileOutputStream(tempJar))) {
 
-                entries:
+                if (!annotation) { // Add the annotation to the JAR
+
+                    try {
+
+                        String path = InjectorVersion.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
+                        try (JarFile annotationJar = new JarFile(new File(path))) {
+
+                            Enumeration<JarEntry> annEntries = annotationJar.entries();
+                            while (annEntries.hasMoreElements()) {
+
+                                JarEntry entry = annEntries.nextElement();
+                                if (entry.getName().equals(INJECTOR_VERSION_CLASS)) {
+                                    writeClass(annotationJar, output, entry);
+                                    break;
+                                }
+                            }
+                        }
+
+                    } catch (URISyntaxException e) {
+                        Logger.severe(e);
+                    }
+                }
+
+                // If there are classes that need injected, then attempt to write them.
+                boolean classesUnwritten = !INJECTION_CLASSES.isEmpty() && writeClasses(output);
+                if (classesUnwritten && changed.isEmpty()) {
+                    // If they do not need to be written and there are no other changes
+                    // then cleanup the file and return that there were no changes
+                    Logger.info("No new class versions were available. Nothing to inject.");
+                    tempJar.delete();
+                    return false;
+                }
+
+                String backupName = jarName.substring(0, jarIndex) + "-backup.jar";
+                File backup = new File(parent, backupName);
+                if (!backup.exists()) {
+                    Logger.info("Making a backup of the current server JAR as {}.", backupName);
+                    Logger.info("Restore to the backup at any time if there are issues.");
+                    Files.copy(jarPath, backup.toPath());
+                }
+
+                Logger.info("Injecting all alterations into a temporary JAR...");
+                Set<String> classNames = INJECTION_CLASSES.keySet().stream().map(Type::getInternalName).collect(toSet());
                 for (JarEntry entry : unchanged) {
 
                     String name = entry.getName();
-                    for (String className : classNames) {
-                        // Remove the classes that need to be added
-                        if (name.startsWith(className)) {
-                            continue entries;
+                    int classIndex = name.indexOf(".class");
+                    if (classIndex != -1) { // Remove the classes that need to be added
+
+                        String className = name.substring(0, classIndex);
+                        if (classNames.contains(className)) {
+                            Logger.debug("Removing old version of class {}.", name);
+                            continue;
+                        }
+
+                        int subIndex = name.indexOf('$');
+                        if (subIndex != -1 && classNames.contains(name.substring(0, subIndex))) {
+                            Logger.debug("Removing old version of class {}.", name);
+                            continue;
                         }
                     }
 
-                    output.putNextEntry(new JarEntry(name));
-                    try (InputStream input = jar.getInputStream(entry)) {
-
-                        byte[] buffer = new byte[4096];
-                        int bytesRead;
-                        while ((bytesRead = input.read(buffer)) != -1) {
-                            output.write(buffer, 0, bytesRead);
-                        }
-                    }
-
-                    output.flush();
-                    output.closeEntry();
+                    writeClass(jar, output, entry);
                 }
 
                 for (Entry<String, ClassWriter> entry : changed.entrySet()) {
@@ -181,55 +242,13 @@ public final class MinecraftInjector {
                     output.flush();
                     output.closeEntry();
                 }
-
-                URL lastLocation = null;
-                JarFile otherJar = null;
-                for (Class<?> clazz : classesToAdd) {
-
-                    URL location = clazz.getProtectionDomain().getCodeSource().getLocation();
-                    if (otherJar == null || lastLocation != location) {
-
-                        lastLocation = location;
-                        try {
-                            otherJar = new JarFile(new File(location.toURI().getPath()));
-                        } catch (URISyntaxException e) {
-                            Logger.severe(e);
-                            continue;
-                        }
-                    }
-
-                    String internalName = Type.getInternalName(clazz);
-                    String clazzName = internalName + ".class";
-                    String subClassPrefix = internalName + '$';
-                    Enumeration<JarEntry> otherEntries = otherJar.entries();
-                    while (otherEntries.hasMoreElements()) {
-
-                        JarEntry entry = otherEntries.nextElement();
-                        String name = entry.getName();
-                        if (name.equals(clazzName) || name.startsWith(subClassPrefix)) { // Write the class and all subclasses
-
-                            output.putNextEntry(new JarEntry(name));
-                            try (InputStream input = otherJar.getInputStream(entry)) {
-
-                                byte[] buffer = new byte[4096];
-                                int bytesRead;
-                                while ((bytesRead = input.read(buffer)) != -1) {
-                                    output.write(buffer, 0, bytesRead);
-                                }
-                            }
-
-                            output.flush();
-                            output.closeEntry();
-                        }
-                    }
-                }
             }
 
             Logger.info("Replacing server JAR ({}) with the injected version.", jarName);
             Files.copy(tempJar.toPath(), jarPath, StandardCopyOption.REPLACE_EXISTING);
             Logger.info("Deleting temporary injected JAR.");
             tempJar.delete();
-            Logger.info("Injection completed successfully. Stopping server.");
+            Logger.info("Injection completed successfully. Please restart the server.");
             Bukkit.shutdown();
 
         } catch (IOException e) {
@@ -239,14 +258,178 @@ public final class MinecraftInjector {
         return true;
     }
 
-    private static Object inject(JarFile jar, JarEntry entry, Injector injector, List<Class<?>> classesToAdd) throws IOException {
+    private static Object inject(JarFile jar, JarEntry entry, Injector injector) throws IOException {
 
         try (InputStream stream = jar.getInputStream(entry)) {
             ClassReader reader = new ClassReader(stream);
             ClassNode node = new ClassNode();
             reader.accept(node, ClassReader.SKIP_FRAMES);
-            ClassWriter writer = injector.inject(node, reader, classesToAdd);
+            ClassWriter writer = injector.inject(node, reader);
             return writer != null ? writer : entry;
         }
+    }
+
+    /**
+     * Attempt to write all of the injected classes to the new
+     * JAR checking their versions against any matching classes
+     * that currently reside in the current JAR and write the
+     * correct class data.
+     * <p>
+     * Note that this method will only write to the JAR if the
+     * version is changed and otherwise will leave it up to the
+     * unchanged class writer to transfer the old class.
+     *
+     * @param output The {@link JarOutputStream} to write the classes to.
+     * @return True if there were no classes that needed to be written at this time.
+     * @throws IOException If anything goes wrong while writing to the JAR.
+     */
+    private static boolean writeClasses(JarOutputStream output) throws IOException {
+
+        JarFile jar = null;
+        URL location = null; // The current location for each class
+        Plugin plugin = null;
+        boolean unchanged = true; // Default to no changes
+        Iterator<Entry<Class<?>, Plugin>> itr = INJECTION_CLASSES.entrySet().iterator();
+        nextInjectionEntry:
+        while (itr.hasNext()) {
+
+            Entry<Class<?>, Plugin> classEntry = itr.next();
+            Class<?> clazz = classEntry.getKey();
+            // Get the current version in the Minecraft JAR
+            String version = clazz.getDeclaredAnnotation(InjectorVersion.class).value();
+            if (jar == null || classEntry.getValue() != plugin) {
+
+                plugin = classEntry.getValue();
+                location = plugin.getClass().getProtectionDomain().getCodeSource().getLocation();
+                try {
+                    jar = new JarFile(new File(location.toURI().getPath()));
+                } catch (URISyntaxException e) {
+                    Logger.severe(e);
+                    continue;
+                }
+            }
+
+            boolean parentWritten = false;
+            List<JarEntry> subClasses = null;
+            String internalName = Type.getInternalName(clazz);
+            String clazzName = internalName + ".class";
+            String subClassPrefix = internalName + '$';
+            Enumeration<JarEntry> entries = jar.entries();
+            while (entries.hasMoreElements()) {
+
+                JarEntry entry = entries.nextElement();
+                if (entry.isDirectory()) {
+                    continue;
+                }
+
+                String name = entry.getName();
+                if (!name.endsWith(".class")) {
+                    continue;
+                }
+
+                boolean subClass = name.startsWith(subClassPrefix);
+                if (subClass && !parentWritten) {
+
+                    if (subClasses == null) {
+                        subClasses = new ArrayList<>(1);
+                    }
+
+                    subClasses.add(entry);
+                    continue;
+                }
+
+                if (subClass || name.equals(clazzName)) { // Write the class and all subclasses
+
+                    // Check that they are in a different JAR (one in plugin the other in server)
+                    // If they are in the same JAR (i.e. in the plugin) just write it immediately
+                    // since it's not yet present in the server JAR
+                    if (subClass || clazz.getProtectionDomain().getCodeSource().getLocation() == location) {
+
+                        if (!subClass) {
+
+                            Logger.debug("Doing initial write of class {}.", name);
+                            parentWritten = true;
+                            writeClass(jar, output, entry);
+                            if (subClasses != null) {
+
+                                for (JarEntry subEntry : subClasses) { // Write all previous subclasses
+                                    writeClass(jar, output, subEntry);
+                                }
+                            }
+                        } else {
+                            writeClass(jar, output, entry);
+                        }
+
+                    } else {
+
+                        try (InputStream input = jar.getInputStream(entry)) {
+
+                            ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
+                            writeClass(input, byteStream); // Write the class to the byte stream
+
+                            ClassReader reader = new ClassReader(byteStream.toByteArray()); // Read the entry
+                            ClassNode node = new ClassNode();
+                            reader.accept(node, ClassReader.SKIP_FRAMES);
+                            if (node.visibleAnnotations != null) {
+
+                                for (AnnotationNode annotationNode : node.visibleAnnotations) {
+
+                                    // Get the version annotation from the class
+                                    if (annotationNode.desc.equals(INJECTOR_VERSION_DESC)) {
+
+                                        List<Object> values = annotationNode.values; // Check that the version is the same
+                                        if (values != null && values.size() >= 2 && values.get(1).equals(version)) {
+                                            itr.remove(); // Remove the entry so the old version will be written
+                                            continue nextInjectionEntry; // This entry doesn't need a change
+                                        }
+
+                                        Logger.info("Found newer version of class {}.", name);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            parentWritten = true;
+                            // Write the entry to the new JAR to override the previous version
+                            output.putNextEntry(new JarEntry(name));
+                            output.write(byteStream.toByteArray()); // Write a new copy
+                            output.flush();
+                            output.closeEntry();
+
+                            if (subClasses != null) {
+
+                                for (JarEntry subEntry : subClasses) {
+                                    writeClass(jar, output, subEntry);
+                                }
+                            }
+                        }
+                    }
+
+                    unchanged = false;
+                }
+            }
+        }
+
+        return unchanged;
+    }
+
+    private static void writeClass(JarFile jar, JarOutputStream output, JarEntry entry) throws IOException {
+
+        try (InputStream input = jar.getInputStream(entry)) {
+            output.putNextEntry(new JarEntry(entry.getName()));
+            writeClass(input, output);
+            output.closeEntry();
+        }
+    }
+
+    private static void writeClass(InputStream input, OutputStream output) throws IOException {
+
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        while ((bytesRead = input.read(buffer)) != -1) {
+            output.write(buffer, 0, bytesRead);
+        }
+
+        output.flush();
     }
 }

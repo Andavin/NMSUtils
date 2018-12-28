@@ -25,7 +25,6 @@
 package com.andavin.v1_8_R3.inject;
 
 import com.andavin.util.Logger;
-import com.andavin.v1_8_R3.protocol.NetworkManagerProxy;
 import com.andavin.v1_8_R3.protocol.ServerConnectionProxy;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -35,7 +34,6 @@ import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
-import java.util.List;
 import java.util.ListIterator;
 
 import static org.objectweb.asm.Opcodes.*;
@@ -53,7 +51,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
     private static final String VERSION_DESC = VERSION_PREFIX + "1.0.1"; // Version 1.0.1
 
     @Override
-    public ClassWriter inject(ClassNode node, ClassReader reader, List<Class<?>> classesToAdd) {
+    public ClassWriter inject(ClassNode node, ClassReader reader) {
 
         MethodNode methodNode = null;
         ListIterator<MethodNode> itr = node.methods.listIterator();
@@ -85,9 +83,6 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
         if (methodNode.invisibleAnnotations != null) { // Remove older versions
             methodNode.invisibleAnnotations.removeIf(annotation -> annotation.desc.startsWith(VERSION_PREFIX));
         }
-
-        classesToAdd.add(ServerConnectionProxy.class);
-        classesToAdd.add(NetworkManagerProxy.class);
 
         MethodNode visitor = new MethodNode(ASM7, methodNode.access, methodNode.name, methodNode.desc, null, null);
         itr.set(visitor); // Set the method to the new one

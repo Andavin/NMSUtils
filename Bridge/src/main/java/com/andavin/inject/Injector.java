@@ -26,13 +26,21 @@ package com.andavin.inject;
 
 import com.andavin.MinecraftVersion;
 import com.andavin.Versioned;
+import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
-import java.util.List;
-
 /**
+ * An injector for a class element. This will find a
+ * class within a Minecraft or CraftBukkit JAR and
+ * alter it using byte code manipulation.
+ * <p>
+ * Any classes that are not contained within the JAR
+ * being altered can be injected into the JAR via the
+ * {@link MinecraftInjector#injectClass(Plugin, Class)}
+ * method and will write it to the JAR.
+ *
  * @since December 25, 2018
  * @author Andavin
  */
@@ -52,10 +60,8 @@ public interface Injector extends Versioned {
      *             the attribute.
      * @param reader The {@link ClassReader} to use to get all of
      *               the attributes of the attribute.
-     * @param classesToAdd The list of new classes that should be
-     *                     injected into the JAR.
      * @return The altered {@link ClassWriter} or {@code null} if there
      *         were no alterations.
      */
-    ClassWriter inject(ClassNode node, ClassReader reader, List<Class<?>> classesToAdd);
+    ClassWriter inject(ClassNode node, ClassReader reader);
 }

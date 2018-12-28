@@ -24,9 +24,33 @@
 
 package com.andavin.inject;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
- * @since December 25, 2018
+ * A signifier for versioning an element that is
+ * injected into a JAR in order to tell if it needs
+ * to be replaced by a new version or not.
+ * <p>
+ * If the element that is registered to be injected is
+ * not annotated with this annotation, then an exception
+ * will be thrown to signify this.
+ *
+ * @since December 27, 2018
  * @author Andavin
  */
-public abstract class MinecraftServerInjector implements Injector {
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ ElementType.TYPE, ElementType.METHOD, ElementType.FIELD, ElementType.CONSTRUCTOR })
+public @interface InjectorVersion {
+
+    /**
+     * The version of the annotated element. When the
+     * version is changed, then the new version will
+     * replace the older injected version.
+     *
+     * @return The version string.
+     */
+    String value();
 }

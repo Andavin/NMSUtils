@@ -24,6 +24,7 @@
 
 package com.andavin.v1_8_R3.protocol;
 
+import com.andavin.inject.InjectorVersion;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.epoll.Epoll;
@@ -44,6 +45,7 @@ import java.util.function.BiFunction;
  * @since December 06, 2018
  * @author Andavin
  */
+@InjectorVersion("1.0")
 public class ServerConnectionProxy extends ServerConnection {
 
     private static final Logger LOGGER = LogManager.getLogger(ServerConnection.class);

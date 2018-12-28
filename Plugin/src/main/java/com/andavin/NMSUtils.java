@@ -25,16 +25,20 @@
 package com.andavin;
 
 import com.andavin.inject.MinecraftInjector;
+import com.andavin.inject.MinecraftServerInjector;
 import com.andavin.nbt.wrapper.*;
 import com.andavin.protocol.DefaultManager;
 import com.andavin.protocol.PacketListener;
 import com.andavin.protocol.ProtocolLibManager;
 import com.andavin.protocol.ProtocolManager;
+import com.andavin.v1_8_R3.protocol.NetworkManagerProxy;
+import com.andavin.v1_8_R3.protocol.ServerConnectionProxy;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import static com.andavin.MinecraftVersion.v1_12_R1;
+import static com.andavin.reflect.Reflection.findMcClass;
 
 public final class NMSUtils extends JavaPlugin {
 
@@ -65,6 +69,14 @@ public final class NMSUtils extends JavaPlugin {
     }
 
     private ProtocolManager protocolManager;
+
+    @Override
+    public void onLoad() {
+        MinecraftInjector.register(findMcClass("MinecraftServer"),
+                Versioned.getInstance(MinecraftServerInjector.class));
+        MinecraftInjector.injectClass(this, ServerConnectionProxy.class);
+        MinecraftInjector.injectClass(this, NetworkManagerProxy.class);
+    }
 
     @Override
     public void onEnable() {
