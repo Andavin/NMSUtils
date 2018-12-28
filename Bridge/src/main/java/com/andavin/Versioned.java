@@ -46,11 +46,12 @@ public interface Versioned {
      * Get an instance of an NMS Utils versioned class.
      *
      * @param clazz The class to get the versioned counterpart for.
+     * @param args The arguments to pass to the constructor.
      * @param <T> The type of class to retrieve.
      * @return The instance of the versioned type.
      * @throws UnsupportedOperationException If the class is not found (no supported).
      */
-    static <T extends Versioned> T getInstance(Class<T> clazz) throws UnsupportedOperationException {
+    static <T extends Versioned> T getInstance(Class<T> clazz, Object... args) throws UnsupportedOperationException {
 
         Class<T> found;
         try {
@@ -60,6 +61,6 @@ public interface Versioned {
                     " is not currently supported for version " + CURRENT_SERVER_VERSION);
         }
 
-        return newInstance(found);
+        return newInstance(found, args);
     }
 }

@@ -59,14 +59,26 @@ public final class MinecraftInjector {
         INJECTIONS.put(MinecraftServerInjector.CLASS_NAME, Versioned.getInstance(MinecraftServerInjector.class));
     }
 
-    public void inject() {
+    private MinecraftInjector() {
+    }
+
+    /**
+     * Inject all of the altered code and carry out those
+     * alterations if needed. If this method succeeds and
+     * there was code that needed to be injected, then the
+     * server will immediately shutdown after this.
+     *
+     * @return If the injection alterations occurred and the
+     *         server will be shutting down.
+     */
+    public static boolean inject() {
 
         String pathToJar;
         try {
             pathToJar = Bukkit.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
         } catch (URISyntaxException e) {
             Logger.severe(e, "Could not locate server JAR. Please inform the developer.");
-            return;
+            return false;
         }
 
         File jarFile = new File(pathToJar);
@@ -108,7 +120,7 @@ public final class MinecraftInjector {
 
             if (changed.isEmpty() && classesToAdd.isEmpty()) {
                 Logger.info("Nothing found to inject.");
-                return;
+                return false;
             }
 
             Logger.info("Found {} classes to alter, {} new classes that need to be injected and {} files left unchanged.",
@@ -223,9 +235,11 @@ public final class MinecraftInjector {
         } catch (IOException e) {
             Logger.severe(e, "Failed to inject JAR. Please inform the developer.");
         }
+
+        return true;
     }
 
-    private Object inject(JarFile jar, JarEntry entry, Injector injector, List<Class<?>> classesToAdd) throws IOException {
+    private static Object inject(JarFile jar, JarEntry entry, Injector injector, List<Class<?>> classesToAdd) throws IOException {
 
         try (InputStream stream = jar.getInputStream(entry)) {
             ClassReader reader = new ClassReader(stream);

@@ -22,23 +22,21 @@
  * SOFTWARE.
  */
 
-package com.andavin.protocol.listener;
+package com.andavin.protocol;
 
-import io.netty.channel.Channel;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.function.BiFunction;
 
 /**
  * @since December 06, 2018
  * @author Andavin
  */
-public abstract class PacketManager implements BiFunction<Channel, Object, Object> {
+public class ProtocolManager {
 
     private final Map<Class<?>, Map<ListenerPriority, List<PacketListener<?>>>> listeners = new HashMap<>();
 
-    protected PacketManager() { // This class is useless if it's not extended
+    protected ProtocolManager() { // This class is useless if it's not extended
     }
 
     /**

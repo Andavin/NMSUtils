@@ -24,44 +24,24 @@
 
 package com.andavin.v1_8_R3.protocol;
 
-import com.andavin.protocol.BootstrapList;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandler;
+import com.andavin.util.Logger;
 import net.minecraft.server.v1_8_R3.MinecraftServer;
-import net.minecraft.server.v1_8_R3.ServerConnection;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
-
-import java.lang.reflect.Field;
-import java.util.List;
-
-import static com.andavin.reflect.Reflection.*;
 
 /**
  * @since December 06, 2018
  * @author Andavin
  */
-public class Protocol extends com.andavin.protocol.Protocol {
+class DefaultManager extends com.andavin.protocol.DefaultManager {
 
-    private static final Field FUTURES = findField(ServerConnection.class, "g");
-    private static final Field NETWORK_MANAGERS = findField(ServerConnection.class, "h");
+    DefaultManager() {
 
-    @Override
-    protected void injectInternal(ChannelHandler handler) {
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-        ServerConnection serverConnection = server.aq();
-        List<ChannelFuture> futures = getValue(FUTURES, serverConnection);
-        setValue(FUTURES, serverConnection, new BootstrapList(futures, handler)); // Replace the future list
-    }
-
-    @Override
-    protected List<Object> getNetworkManagers() {
-        MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-        ServerConnection serverConnection = server.aq();
-        return getValue(NETWORK_MANAGERS, serverConnection);
-    }
-
-    @Override
-    protected void closeInternal() {
+        ServerConnectionProxy serverConnection = (ServerConnectionProxy) server.aq();
+        serverConnection.setPacketListener((name, packet) -> {
+            Logger.info("Packet {} ", packet.getClass().getSimpleName());
+            return packet;
+        });
     }
 }

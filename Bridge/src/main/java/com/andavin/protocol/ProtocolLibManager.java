@@ -22,16 +22,14 @@
  * SOFTWARE.
  */
 
-package com.andavin.protocol.listener;
+package com.andavin.protocol;
 
 import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerOptions;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.injector.packet.PacketRegistry;
-import io.netty.channel.Channel;
 import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
@@ -43,10 +41,10 @@ import static java.util.Collections.singletonList;
  * @since December 12, 2018
  * @author Andavin
  */
-public class ProtocolLibManager extends PacketManager {
+public class ProtocolLibManager extends ProtocolManager {
 
     private final Plugin plugin;
-    private final ProtocolManager manager;
+    private final com.comphenix.protocol.ProtocolManager manager;
     private final Map<PacketListener<?>, PacketAdapter> adapters = new HashMap<>();
 
     public ProtocolLibManager(Plugin plugin) {
@@ -115,10 +113,5 @@ public class ProtocolLibManager extends PacketManager {
             case MONITOR:
                 return com.comphenix.protocol.events.ListenerPriority.MONITOR;
         }
-    }
-
-    @Override
-    public Object apply(Channel channel, Object o) {
-        return o;
     }
 }

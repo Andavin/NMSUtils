@@ -2,5 +2,5 @@ name: NMSUtils
 version: ${project.version}
 main: com.andavin.NMSUtils
 authors: [ Andavin ]
-softdepend: [ WorldEdit, FastAsyncWorldEdit ]
+softdepend: [ WorldEdit, FastAsyncWorldEdit, ProtocolLib ]
 description: ${project.description}

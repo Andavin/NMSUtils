@@ -50,7 +50,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
     private static final String SERVER_CONNECTION = MINECRAFT_PREFIX + "ServerConnection";
     private static final String DELEGATE = Type.getInternalName(ServerConnectionProxy.class);
     private static final String NAME = "aq", DESC = 'L' + SERVER_CONNECTION + ';';
-    private static final String VERSION_DESC = VERSION_PREFIX + "1.0"; // Version 1.0
+    private static final String VERSION_DESC = VERSION_PREFIX + "1.0.1"; // Version 1.0.1
 
     @Override
     public ClassWriter inject(ClassNode node, ClassReader reader, List<Class<?>> classesToAdd) {

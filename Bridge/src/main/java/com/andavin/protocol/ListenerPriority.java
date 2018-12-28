@@ -25,10 +25,42 @@
 package com.andavin.protocol;
 
 /**
- * @since November 19, 2018
+ * A priority to differentiate between different levels of
+ * {@link PacketListener}s while they are called.
+ * <p>
+ * This works similarly to the Bukkit {@code EventPriority}.
+ *
+ * @since December 12, 2018
  * @author Andavin
  */
-public class PlayerInjector {
-
-
+public enum ListenerPriority {
+    /**
+     * Packet listener call is of very low importance and should be ran first,
+     * to allow other listeners to further customise the outcome.
+     */
+    LOWEST,
+    /**
+     * Packet listener call is of low importance.
+     */
+    LOW,
+    /**
+     * Packet listener call is neither important or unimportant, and may be
+     * ran normally.
+     */
+    NORMAL,
+    /**
+     * Packet listener call is of high importance.
+     */
+    HIGH,
+    /**
+     * Packet listener call is critical and must have the final say in what happens
+     * to the packet.
+     */
+    HIGHEST,
+    /**
+     * Packet is listened to purely for monitoring the outcome of an packet.
+     * <p>
+     * No modifications to the packet should be made under this priority.
+     */
+    MONITOR
 }

@@ -51,7 +51,7 @@ public class ServerConnectionProxy extends ServerConnection {
     private final MinecraftServer server;
     private final List<ChannelFuture> futures;
     private final List<NetworkManager> networkManagers;
-    public BiFunction<String, Packet, Packet> packetListener;
+    private BiFunction<String, Packet, Packet> packetListener;
 
     public ServerConnectionProxy(MinecraftServer server) {
 
@@ -109,6 +109,24 @@ public class ServerConnectionProxy extends ServerConnection {
                     networkmanager.a(new HandshakeListener(server, networkmanager));
                 }
             }).group((EventLoopGroup) lazyinitvar.c()).localAddress(address, i).bind().syncUninterruptibly());
+        }
+    }
+
+    /**
+     * Set the {@link BiFunction packet listener} for this
+     * server connection that will be used for every network
+     * manager and packets will be sent to.
+     *
+     * @param packetListener The listener to set to.
+     */
+    public void setPacketListener(BiFunction<String, Packet, Packet> packetListener) {
+
+        this.packetListener = packetListener;
+        synchronized (this.networkManagers) {
+
+            for (NetworkManager manager : this.networkManagers) {
+                ((NetworkManagerProxy) manager).packetListener = packetListener;
+            }
         }
     }
 }

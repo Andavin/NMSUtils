@@ -25,42 +25,10 @@
 package com.andavin.protocol;
 
 import com.andavin.Versioned;
-import com.andavin.reflect.FieldMatcher;
-import io.netty.channel.ChannelHandler;
-
-import java.util.List;
-import java.util.concurrent.Callable;
-
-import static com.andavin.reflect.Reflection.findMcClass;
 
 /**
- * @since November 18, 2018
+ * @since December 12, 2018
  * @author Andavin
  */
-public abstract class Protocol implements Versioned {
-
-    public static final String MINECRAFT_DECODER = "decoder";
-    public static final String MINECRAFT_ENCODER = "encoder";
-    public static final String DELEGATE_DECODER = "nms_utils_decoder";
-    public static final String DELEGATE_ENCODER = "nms_utils_encoder";
-
-    public static final Runnable EMPTY_RUNNABLE = () -> {
-    };
-    public static final Callable<?> EMPTY_CALLABLE = () -> {
-        return null;
-    };
-
-    static final FieldMatcher PACKET_FIELD_MATCHER = new FieldMatcher(findMcClass("Packet"));
-    static Protocol BRIDGE;
-
-    public static void close() {
-        BRIDGE.closeInternal();
-        BRIDGE = null;
-    }
-
-    protected abstract void injectInternal(ChannelHandler handler);
-
-    protected abstract List<Object> getNetworkManagers();
-
-    protected abstract void closeInternal();
+public class DefaultManager extends ProtocolManager implements Versioned {
 }

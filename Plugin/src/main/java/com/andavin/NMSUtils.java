@@ -26,7 +26,12 @@ package com.andavin;
 
 import com.andavin.inject.MinecraftInjector;
 import com.andavin.nbt.wrapper.*;
+import com.andavin.protocol.DefaultManager;
+import com.andavin.protocol.PacketListener;
+import com.andavin.protocol.ProtocolLibManager;
+import com.andavin.protocol.ProtocolManager;
 import org.bukkit.Bukkit;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import static com.andavin.MinecraftVersion.v1_12_R1;
@@ -59,10 +64,20 @@ public final class NMSUtils extends JavaPlugin {
         );
     }
 
+    private ProtocolManager protocolManager;
+
     @Override
     public void onEnable() {
-        new MinecraftInjector().inject();
-        fastAsyncSupport = Bukkit.getPluginManager().getPlugin("FastAsyncWorldEdit") != null;
+
+        if (MinecraftInjector.inject()) {
+            return;
+        }
+
+        PluginManager pluginManager = Bukkit.getPluginManager();
+        fastAsyncSupport = pluginManager.getPlugin("FastAsyncWorldEdit") != null;
+        this.protocolManager = pluginManager.getPlugin("ProtocolLib") != null ?
+                new ProtocolLibManager(this) :
+                Versioned.getInstance(DefaultManager.class);
     }
 
     /**
@@ -72,6 +87,16 @@ public final class NMSUtils extends JavaPlugin {
      */
     public static NMSUtils getInstance() {
         return instance;
+    }
+
+    /**
+     * Get the {@link ProtocolManager} that is used for
+     * registering {@link PacketListener}s.
+     *
+     * @return The ProtocolManager.
+     */
+    public ProtocolManager getProtocolManager() {
+        return protocolManager;
     }
 
     /**

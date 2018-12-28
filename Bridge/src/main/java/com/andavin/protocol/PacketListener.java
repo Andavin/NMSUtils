@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.andavin.protocol.listener;
+package com.andavin.protocol;
 
 import org.bukkit.entity.Player;
 
@@ -37,7 +37,7 @@ import java.util.function.BiFunction;
  * registration methods are used to register the listener.
  *
  * @param <T> The type of packet that is being listened for.
- * @see PacketManager#register(Class, PacketListener, ListenerPriority)
+ * @see ProtocolManager#register(Class, PacketListener, ListenerPriority)
  * @since October 31, 2018
  * @author Andavin
  */

@@ -22,18 +22,37 @@
  * SOFTWARE.
  */
 
-package com.andavin.protocol.listener;
+package com.andavin.protocol;
 
-import io.netty.channel.Channel;
+import com.andavin.Versioned;
 
 /**
- * @since December 12, 2018
+ * @since November 18, 2018
  * @author Andavin
  */
-public class DefaultManager extends PacketManager {
+public abstract class PacketManager implements Versioned {
 
-    @Override
-    public Object apply(Channel channel, Object o) {
-        return o;
+    protected final ProtocolManager packetManager;
+
+    protected PacketManager(ProtocolManager packetManager) {
+        this.packetManager = packetManager;
     }
+
+    /**
+     * Inject the protocol listener into the system and
+     * start listening to all incoming and outgoing packets.
+     * <p>
+     * This and {@link #stop()} can be called multiple
+     * times to start and stop the packet listening process.
+     */
+    public abstract void start();
+
+    /**
+     * Close the protocol listener forcing it to stop
+     * listening to incoming and outgoing packets.
+     * <p>
+     * This and {@link #start()} can be called multiple
+     * times to start and stop the packet listening process.
+     */
+    public abstract void stop();
 }
