@@ -24,6 +24,7 @@
 
 package com.andavin.protocol;
 
+import com.andavin.Versioned;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -32,7 +33,7 @@ import java.util.*;
  * @since December 06, 2018
  * @author Andavin
  */
-public class ProtocolManager {
+public class ProtocolManager implements Versioned {
 
     private final Map<Class<?>, Map<ListenerPriority, List<PacketListener<?>>>> listeners = new HashMap<>();
 
@@ -98,7 +99,7 @@ public class ProtocolManager {
      *         then the packet should not continue to be processed
      *         by the server or sent to the client.
      */
-    final Object call(Player player, Object packet) {
+    protected final Object call(Player player, Object packet) {
 
         if (packet != null) {
 

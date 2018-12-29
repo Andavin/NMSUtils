@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-package com.andavin.v1_8_R3.inject;
+package com.andavin.v1_11_R1.inject;
 
 import com.andavin.inject.MinecraftInjector;
 import com.andavin.util.Logger;
-import com.andavin.v1_8_R3.protocol.NetworkManagerProxy;
-import com.andavin.v1_8_R3.protocol.ServerConnectionProxy;
+import com.andavin.v1_11_R1.protocol.NetworkManagerProxy;
+import com.andavin.v1_11_R1.protocol.ServerConnectionProxy;
 import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
@@ -50,7 +50,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
     private static final String MINECRAFT_SERVER = MINECRAFT_PREFIX + "MinecraftServer";
     private static final String SERVER_CONNECTION = MINECRAFT_PREFIX + "ServerConnection";
     private static final String PROXY = Type.getInternalName(ServerConnectionProxy.class);
-    private static final String METHOD_NAME = "aq", FIELD_NAME = "q", DESC = 'L' + SERVER_CONNECTION + ';';
+    private static final String METHOD_NAME = "an", FIELD_NAME = "p", DESC = 'L' + SERVER_CONNECTION + ';';
     private static final String VERSION_DESC = VERSION_PREFIX + "1.0"; // Version 1.0
 
     public MinecraftServerInjector(Plugin plugin) {

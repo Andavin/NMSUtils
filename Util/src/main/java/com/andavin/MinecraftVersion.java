@@ -32,7 +32,7 @@ import org.bukkit.Bukkit;
  * version of Minecraft to date since Minecraft {@code 1.7.10}.
  * <p>
  * Each version is representative of the latest minor version
- * from within the major version. For example, {@link #v1_9_R1}
+ * from within the major version. For example, {@link #v1_9_R2}
  * is the version {@code 1.9.4} since that was the last version
  * to be released for version {@code 1.9}.
  * <p>
@@ -79,7 +79,7 @@ public enum MinecraftVersion {
      * The name of this enum is actual version string that is inserted
      * into the package name for Minecraft server and CraftBukkit packaged.
      */
-    v1_9_R1,
+    v1_9_R2,
 
     /**
      * The representation of the Minecraft version {@code 1.10.2}.

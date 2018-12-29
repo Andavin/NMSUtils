@@ -22,26 +22,27 @@
  * SOFTWARE.
  */
 
-package com.andavin.v1_8_R3.protocol;
+package com.andavin.v1_13_R2.protocol;
 
-import com.andavin.util.Logger;
-import net.minecraft.server.v1_8_R3.MinecraftServer;
+import net.minecraft.server.v1_13_R2.MinecraftServer;
+import net.minecraft.server.v1_13_R2.Packet;
 import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_8_R3.CraftServer;
+import org.bukkit.craftbukkit.v1_13_R2.CraftServer;
+import org.bukkit.entity.Player;
 
 /**
  * @since December 06, 2018
  * @author Andavin
  */
-class DefaultManager extends com.andavin.protocol.DefaultManager {
+class ProtocolManager extends com.andavin.protocol.ProtocolManager {
 
-    DefaultManager() {
+    ProtocolManager() {
 
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
-        ServerConnectionProxy serverConnection = (ServerConnectionProxy) server.aq();
+        ServerConnectionProxy serverConnection = (ServerConnectionProxy) server.getServerConnection();
         serverConnection.setPacketListener((name, packet) -> {
-            Logger.info("Packet {} ", packet.getClass().getSimpleName());
-            return packet;
+            Player player = Bukkit.getPlayerExact(name);
+            return player != null ? (Packet) this.call(player, packet) : packet;
         });
     }
 }

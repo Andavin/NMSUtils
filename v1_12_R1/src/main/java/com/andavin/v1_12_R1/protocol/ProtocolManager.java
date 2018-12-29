@@ -22,13 +22,27 @@
  * SOFTWARE.
  */
 
-package com.andavin.protocol;
+package com.andavin.v1_12_R1.protocol;
 
-import com.andavin.Versioned;
+import net.minecraft.server.v1_12_R1.MinecraftServer;
+import net.minecraft.server.v1_12_R1.Packet;
+import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_12_R1.CraftServer;
+import org.bukkit.entity.Player;
 
 /**
- * @since December 12, 2018
+ * @since December 06, 2018
  * @author Andavin
  */
-public class DefaultManager extends ProtocolManager implements Versioned {
+class ProtocolManager extends com.andavin.protocol.ProtocolManager {
+
+    ProtocolManager() {
+
+        MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
+        ServerConnectionProxy serverConnection = (ServerConnectionProxy) server.an();
+        serverConnection.setPacketListener((name, packet) -> {
+            Player player = Bukkit.getPlayerExact(name);
+            return player != null ? (Packet) this.call(player, packet) : packet;
+        });
+    }
 }
