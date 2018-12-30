@@ -25,7 +25,6 @@
 package com.andavin.reflect;
 
 import com.andavin.reflect.exception.*;
-import com.andavin.util.MinecraftVersion;
 
 import java.lang.reflect.*;
 import java.util.*;
@@ -34,74 +33,6 @@ import static com.andavin.util.MinecraftVersion.CRAFTBUKKIT_PREFIX;
 import static com.andavin.util.MinecraftVersion.MINECRAFT_PREFIX;
 
 public final class Reflection {
-
-    /**
-     * A general version number for current spigot versions.
-     * This corresponds to the {@link #VERSION_NUMBER} and can
-     * be used in a greater or less than usage. For example,
-     * to see if a version is below 1.11 (i.e. 1.10 or below)
-     * <pre>
-     *     if (Reflection.VERSION_NUMBER &lt; Reflection.v1_11) {
-     *         // Do something
-     *     }
-     * </pre>
-     * This is just a reference point as to not have annoying
-     * bugs that are simply from the version number being
-     * incorrectly interpreted.
-     * <p>
-     * These should not be used to see if a version is equal
-     * to ({@code Reflection.VERSION_NUMBER == Reflection.v1_11})
-     * as it will most likely fail. Nor should it be assumed that
-     * because a version number is higher than {@link #v1_11}
-     * that it means the version is 1.12.
-     * <pre>
-     *     if (Reflection.VERSION_NUMBER &gt; Reflection.v1_11) {
-     *         // Could still be 1.11
-     *     }
-     * </pre>
-     * Instead use a 1.12 comparision
-     * <pre>
-     *     if (Reflection.VERSION_NUMBER &gt;= Reflection.v1_12) {
-     *         // Is 1.12
-     *     }
-     * </pre>
-     *
-     * @deprecated Use {@link MinecraftVersion#compareTo(Enum)}
-     */
-    @Deprecated
-    public static final int v1_13 = 1130, v1_12 = 1120, v1_11 = 1110, v1_10 = 1100, v1_9 = 190, v1_8_8 = 183, v1_8 = 180;
-
-    /**
-     * The version string that makes up part of CraftBukkit or MinecraftServer imports.
-     *
-     * @deprecated Use {@link MinecraftVersion#CURRENT}
-     */
-    @Deprecated
-    public static final String VERSION_STRING = MinecraftVersion.CURRENT.name();
-
-    /**
-     * The version number. 170 for 1_7_R0, 181 for 1_8_R1, etc.
-     *
-     * @deprecated Use {@link MinecraftVersion#compareTo(Enum)}
-     */
-    @Deprecated
-    public static final int VERSION_NUMBER = Integer.parseInt(VERSION_STRING.replaceAll("[v_R]", ""));
-
-    /**
-     * The prefix for all NMS packages (e.g. net.minecraft.server.version.).
-     *
-     * @deprecated Use {@link MinecraftVersion#MINECRAFT_PREFIX}
-     */
-    @Deprecated
-    public static final String NMS_PREFIX = MINECRAFT_PREFIX;
-
-    /**
-     * The prefix for all Craftbukkit packages (e.g. org.bukkit.craftbukkit.version.).
-     *
-     * @deprecated Use {@link MinecraftVersion#CRAFTBUKKIT_PREFIX}
-     */
-    @Deprecated
-    public static final String CRAFT_PREFIX = CRAFTBUKKIT_PREFIX;
 
     private static final ClassResolver CLASS_RESOLVER = /*isAtLeastJava9() ?
             new ModernClassResolver() :*/ new LegacyClassResolver();
@@ -117,40 +48,6 @@ public final class Reflection {
         PRIMITIVES.put(Double.class, Double.TYPE);
         PRIMITIVES.put(Boolean.class, Boolean.TYPE);
         PRIMITIVES.put(Void.class, Void.TYPE);
-    }
-
-    /**
-     * Get an instance of the specified class object optionally
-     * getting the object even if the access is denied.
-     * <br>
-     * If the object is not accessible and access is set to false
-     * or an exception is thrown this will return null.
-     *
-     * @param clazz The class to get an instance of.
-     * @param params The parameters to pass into the constructor method.
-     * @param <T> The object type to get the instance for.
-     * @return A new instance of the given class or null if it is not possible.
-     * @deprecated Use {@link #newInstance(Class, Object...)}
-     */
-    @Deprecated
-    public static <T> T getInstance(Class<T> clazz, Object... params) {
-        return newInstance(clazz, params);
-    }
-
-    /**
-     * Get an instance of the class with the given constructor
-     * using the given parameters. Optionally getting the instance
-     * whether the constructor is accessible or not.
-     *
-     * @param con The constructor of the object class.
-     * @param params The object parameters to pass to the constructor.
-     * @param <T> The type of object to retrieve.
-     * @return The object type of the given constructor.
-     * @deprecated Use {@link #newInstance(Constructor, Object...)}
-     */
-    @Deprecated
-    public static <T> T getInstance(Constructor<T> con, Object... params) {
-        return newInstance(con, params);
     }
 
     /**
@@ -365,22 +262,6 @@ public final class Reflection {
     }
 
     /**
-     * Get the field with the specified name whether it is
-     * accessible or not. If there is no field with the specified
-     * name or if the field is in a parent class in the hierarchy
-     * and is inaccessible then this method will return null.
-     *
-     * @param clazz The class the field belongs to.
-     * @param name The name of the field.
-     * @return The field or null if no field exists.
-     * @deprecated Use {@link #findField(Class, String)}
-     */
-    @Deprecated
-    public static Field getField(Class<?> clazz, String name) {
-        return findField(clazz, name);
-    }
-
-    /**
      * Find a field with the given name in the given class.
      * If the field is not declared by the given class, then
      * the super class (if applicable) will be searched for
@@ -564,23 +445,6 @@ public final class Reflection {
         } catch (IllegalAccessException | InvocationTargetException e) {
             throw wrapException(e);
         }
-    }
-
-    /**
-     * Get the method with the specified name whether it is
-     * accessible or not. If there is no method with the specified
-     * name or if the method is in a parent class in the hierarchy
-     * and is inaccessible then this method will return null.
-     *
-     * @param clazz The class the method belongs to.
-     * @param name The name of the method.
-     * @param paramTypes The parameter types of the method.
-     * @return The method or null if no method exists.
-     * @deprecated Use {@link #findMethod(Class, String, Class...)}
-     */
-    @Deprecated
-    public static Method getMethod(Class<?> clazz, String name, Class<?>... paramTypes) {
-        return findMethod(clazz, name, paramTypes);
     }
 
     /**
@@ -789,21 +653,6 @@ public final class Reflection {
     }
 
     /**
-     * Get the constructor in the given class, who's parameter
-     * types match the parameter types given.
-     *
-     * @param clazz The class to get the constructor from.
-     * @param paramTypes The parameters types to match to.
-     * @param <T> The type of the class to retrieve the constructor for.
-     * @return The constructor that matches the requested or null if none is found.
-     * @deprecated Use {@link #findConstructor(Class, Class[])}
-     */
-    @Deprecated
-    public static <T> Constructor<T> getConstructor(Class<T> clazz, Class<?>... paramTypes) {
-        return findConstructor(clazz, paramTypes);
-    }
-
-    /**
      * Search the given class for a constructor that has matching
      * parameter types to those provided.
      * <p>
@@ -921,44 +770,6 @@ public final class Reflection {
         }
 
         throw wrapException(exception);
-    }
-
-    /**
-     * Get a class in any NMS package omitting the
-     * beginning of the canonical name and enter anything
-     * following the version package.
-     * <p>
-     * For example, to get <b>net.minecraft.server.version.PacketPlayOutChat</b>
-     * simply input <b>PacketPlayOutChat</b> omitting the
-     * <b>net.minecraft.server.version</b>.
-     *
-     * @param name The name of the class to retrieve.
-     * @return The Minecraft class for the given name or null if class was not found.
-     * @deprecated Use {@link #findMcClass(String)}
-     */
-    @Deprecated
-    public static Class<?> getMcClass(String name) {
-        return findClass(NMS_PREFIX + name);
-    }
-
-    /**
-     * Get a class in any Craftbukkit package omitting the
-     * beginning of the canonical name and enter anything
-     * following the version package.
-     * <p>
-     * For example, to get <b>org.bukkit.craftbukkit.version.CraftServer</b>
-     * simply input <b>CraftServer</b> omitting the
-     * <b>org.bukkit.craftbukkit.version</b>. In addition, in order
-     * get <b>org.bukkit.craftbukkit.version.entity.CraftPlayer</b>
-     * simply input <b>entity.CraftPlayer</b>.
-     *
-     * @param name The name of the class to retrieve.
-     * @return The Craftbukkit class for the given name or null if class was not found.
-     * @deprecated Use {@link #findCraftClass(String)}
-     */
-    @Deprecated
-    public static Class<?> getCraftClass(String name) {
-        return findClass(CRAFT_PREFIX + name);
     }
 
     /**

@@ -55,9 +55,13 @@ public final class MinecraftInjector {
 
     private static final Map<String, Injector> INJECTORS = new HashMap<>();
     private static final Map<Class<?>, Plugin> INJECTION_CLASSES = new HashMap<>();
-    private static final String INJECTOR_VERSION = Type.getInternalName(InjectorVersion.class);
-    private static final String INJECTOR_VERSION_DESC = 'L' + INJECTOR_VERSION + ';';
-    private static final String INJECTOR_VERSION_CLASS = INJECTOR_VERSION + ".class";
+    private static final String INJECTOR_VERSION_DESC, INJECTOR_VERSION_CLASS;
+
+    static {
+        String internalName = Type.getInternalName(InjectorVersion.class);
+        INJECTOR_VERSION_DESC = 'L' + internalName + ';';
+        INJECTOR_VERSION_CLASS = internalName + ".class";
+    }
 
     /**
      * Register an {@link Injector} to inject into a Bukkit or

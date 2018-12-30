@@ -58,9 +58,9 @@ import org.bukkit.Bukkit;
 public enum MinecraftVersion {
 
     /**
-     * The representation of the Minecraft version {@code 1.7}. This
-     * is only the major version of the game while minor versions can
-     * be retrieved via the {@link MinorVersion#CURRENT}.
+     * The representation of the Minecraft version {@code 1.7}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
     v1_7,
 
