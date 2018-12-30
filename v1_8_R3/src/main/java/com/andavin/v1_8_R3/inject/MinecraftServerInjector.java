@@ -30,7 +30,6 @@ import com.andavin.v1_8_R3.protocol.NetworkManagerProxy;
 import com.andavin.v1_8_R3.protocol.ServerConnectionProxy;
 import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassReader;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -59,7 +58,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
     }
 
     @Override
-    public ClassWriter inject(ClassNode node, ClassReader reader) {
+    public boolean inject(ClassNode node, ClassReader reader) {
 
         MethodNode methodNode = null;
         ListIterator<MethodNode> itr = node.methods.listIterator();
@@ -73,7 +72,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
                     for (AnnotationNode annotation : method.invisibleAnnotations) {
 
                         if (annotation.desc.equals(VERSION_DESC)) {
-                            return null;
+                            return false;
                         }
                     }
                 }
@@ -85,7 +84,7 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
 
         if (methodNode == null) {
             Logger.warn("Could not find method with public access with the name {} and descriptor {}.", METHOD_NAME, DESC);
-            return null;
+            return false;
         }
 
         if (methodNode.invisibleAnnotations != null) { // Remove older versions
@@ -124,10 +123,6 @@ class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector
         visitor.visitLabel(l3);
         visitor.visitLocalVariable("this", "L" + MINECRAFT_SERVER + ";", null, l0, l3, 0);
         visitor.visitAnnotation(VERSION_DESC, false); // Add version
-        visitor.visitMaxs(0, 0);
-
-        ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
-        node.accept(writer);
-        return writer;
+        return true;
     }
 }

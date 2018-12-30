@@ -265,11 +265,17 @@ public final class MinecraftInjector {
     private static Object inject(JarFile jar, JarEntry entry, Injector injector) throws IOException {
 
         try (InputStream stream = jar.getInputStream(entry)) {
+
             ClassReader reader = new ClassReader(stream);
             ClassNode node = new ClassNode();
             reader.accept(node, ClassReader.SKIP_FRAMES);
-            ClassWriter writer = injector.inject(node, reader);
-            return writer != null ? writer : entry;
+            if (injector.inject(node, reader)) {
+                ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
+                node.accept(writer);
+                return writer;
+            }
+
+            return entry;
         }
     }
 

@@ -32,14 +32,17 @@ import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
 /**
- * An injector for a class element. This will find a
- * class within a Minecraft or CraftBukkit JAR and
- * alter it using byte code manipulation.
+ * An injector for a class element. This will find a class
+ * within a Minecraft or CraftBukkit JAR and alter it using
+ * byte code manipulation.
  * <p>
- * Any classes that are not contained within the JAR
- * being altered can be injected into the JAR via the
- * {@link MinecraftInjector#injectClass(Plugin, Class)}
- * method and will write it to the JAR.
+ * Any classes that are not contained within the JAR being
+ * altered can be injected into the JAR via the
+ * {@link MinecraftInjector#injectClass(Plugin, Class)} method
+ * and will write it to the JAR.
+ * <p>
+ * Each injector is expected to handle it's own versioning for
+ * each of the attributes that it modifies.
  *
  * @since December 25, 2018
  * @author Andavin
@@ -60,8 +63,8 @@ public interface Injector extends Versioned {
      *             the attribute.
      * @param reader The {@link ClassReader} to use to get all of
      *               the attributes of the attribute.
-     * @return The altered {@link ClassWriter} or {@code null} if there
-     *         were no alterations.
+     * @return If the {@link ClassNode} was altered and should
+     *         be written with a {@link ClassWriter}.
      */
-    ClassWriter inject(ClassNode node, ClassReader reader);
+    boolean inject(ClassNode node, ClassReader reader);
 }
