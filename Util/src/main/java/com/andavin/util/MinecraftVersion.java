@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.andavin;
+package com.andavin.util;
 
 import com.andavin.reflect.Reflection;
 import org.bukkit.Bukkit;
@@ -32,19 +32,16 @@ import org.bukkit.Bukkit;
  * version of Minecraft to date since Minecraft {@code 1.7.10}.
  * <p>
  * Each version is representative of the latest minor version
- * from within the major version. For example, {@link #v1_9_R2}
+ * from within the major version. For example, {@link #v1_9}
  * is the version {@code 1.9.4} since that was the last version
  * to be released for version {@code 1.9}.
- * <p>
- * All fields within this class may be statically imported as
- * they are each named in a descriptive manner.
  * <p>
  * Methods provided in this class are shortcut methods that provide
  * easy use of the {@link #compareTo(Enum)} method. They should not
  * be statically imported, but instead used alongside a statically
  * imported field:
  * <pre>
- *     import static com.andavin.MinecraftVersion.v1_12_R1;
+ *     import static com.andavin.util.MinecraftVersion.v1_12_R1;
  *
  *     MinecraftVersion.is(v1_12_R1); // If this version is 1.12.2
  *     MinecraftVersion.lessThan(v1_12_R1); // If this version is 1.11.2 or earlier
@@ -61,86 +58,88 @@ import org.bukkit.Bukkit;
 public enum MinecraftVersion {
 
     /**
-     * The representation of the Minecraft version {@code 1.7.10}.
-     * The name of this enum is actual version string that is inserted
-     * into the package name for Minecraft server and CraftBukkit packaged.
+     * The representation of the Minecraft version {@code 1.7}. This
+     * is only the major version of the game while minor versions can
+     * be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_7_R4,
+    v1_7,
 
     /**
-     * The representation of the Minecraft version {@code 1.8.8}.
-     * The name of this enum is actual version string that is inserted
-     * into the package name for Minecraft server and CraftBukkit packaged.
+     * The representation of the Minecraft version {@code 1.8}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_8_R3,
+    v1_8,
 
     /**
-     * The representation of the Minecraft version {@code 1.9.4}.
-     * The name of this enum is actual version string that is inserted
-     * into the package name for Minecraft server and CraftBukkit packaged.
+     * The representation of the Minecraft version {@code 1.9}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_9_R2,
+    v1_9,
 
     /**
-     * The representation of the Minecraft version {@code 1.10.2}.
-     * The name of this enum is actual version string that is inserted
-     * into the package name for Minecraft server and CraftBukkit packaged.
+     * The representation of the Minecraft version {@code 1.10}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_10_R1,
+    v1_10,
 
     /**
-     * The representation of the Minecraft version {@code 1.11.2}.
-     * The name of this enum is actual version string that is inserted
-     * into the package name for Minecraft server and CraftBukkit packaged.
+     * The representation of the Minecraft version {@code 1.11}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_11_R1,
+    v1_11,
 
     /**
-     * The representation of the Minecraft version {@code 1.12.2}.
-     * The name of this enum is actual version string that is inserted
-     * into the package name for Minecraft server and CraftBukkit packaged.
+     * The representation of the Minecraft version {@code 1.12}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_12_R1,
+    v1_12,
 
     /**
-     * The representation of the Minecraft version {@code 1.13.2}.
-     * The name of this enum is actual version string that is inserted
-     * into the package name for Minecraft server and CraftBukkit packaged.
+     * The representation of the Minecraft version {@code 1.13}.
+     * This is only the major version of the game while minor
+     * versions can be retrieved via the {@link MinorVersion#CURRENT}.
      */
-    v1_13_R2;
+    v1_13;
 
     /**
      * The current {@link MinecraftVersion} of this server.
      */
-    public static final MinecraftVersion CURRENT_SERVER_VERSION;
+    public static final MinecraftVersion CURRENT;
 
     static {
 
-        String versionString = Bukkit.getServer().getClass().getPackage().getName()
-                .substring("org.bukkit.craftbukkit.".length());
+        String name = Bukkit.getServer().getClass().getPackage().getName();
+        String versionString = name.substring("org.bukkit.craftbukkit.".length(), name.lastIndexOf("_R"));
         try {
-            CURRENT_SERVER_VERSION = MinecraftVersion.valueOf(versionString);
+            CURRENT = MinecraftVersion.valueOf(versionString);
         } catch (RuntimeException e) {
             throw new UnsupportedOperationException("Version " + versionString + " is not supported.", e);
         }
     }
+
+    private static final String FULL_VERSION = CURRENT.name() + '_' + MinorVersion.CURRENT;
 
     /**
      * The package prefix for all Minecraft server (NMS) classes.
      *
      * @see Reflection#findMcClass(String)
      */
-    public static final String MINECRAFT_PREFIX = "net.minecraft.server." + CURRENT_SERVER_VERSION + '.';
+    public static final String MINECRAFT_PREFIX = "net.minecraft.server." + CURRENT + '.';
 
     /**
      * The package prefix for all CraftBukkit classes.
      *
      * @see Reflection#findCraftClass(String)
      */
-    public static final String CRAFTBUKKIT_PREFIX = "org.bukkit.craftbukkit." + CURRENT_SERVER_VERSION + '.';
+    public static final String CRAFTBUKKIT_PREFIX = "org.bukkit.craftbukkit." + CURRENT + '.';
 
     /**
-     * Tell if the {@link #CURRENT_SERVER_VERSION current server
+     * Tell if the {@link #CURRENT current server
      * version} is the specified version.
      * <p>
      * For example, if {@code MinecraftVersion.is(v1_8_R3)} is
@@ -150,12 +149,12 @@ public enum MinecraftVersion {
      * @return If the version is the same as the current version.
      */
     public static boolean is(MinecraftVersion version) {
-        return CURRENT_SERVER_VERSION == version;
+        return CURRENT == version;
     }
 
     /**
      * Tell if the specified server version is less than (i.e. older
-     * than) the {@link #CURRENT_SERVER_VERSION current server version}.
+     * than) the {@link #CURRENT current server version}.
      * <p>
      * For example, if {@code MinecraftVersion.lessThan(v1_10_R1)} is
      * {@code true}, then the current server version is {@code 1.9.4}
@@ -165,12 +164,12 @@ public enum MinecraftVersion {
      * @return If the version is less than the current version.
      */
     public static boolean lessThan(MinecraftVersion version) {
-        return CURRENT_SERVER_VERSION.ordinal() < version.ordinal();
+        return CURRENT.ordinal() < version.ordinal();
     }
 
     /**
      * Tell if the specified server version is greater than (i.e. newer
-     * than) the {@link #CURRENT_SERVER_VERSION current server version}.
+     * than) the {@link #CURRENT current server version}.
      * <p>
      * For example, if {@code MinecraftVersion.greaterThan(v1_8_R3)} is
      * {@code true}, then the current server version is {@code 1.9.4}
@@ -181,12 +180,12 @@ public enum MinecraftVersion {
      * @return If the version is greater than the current version.
      */
     public static boolean greaterThan(MinecraftVersion version) {
-        return CURRENT_SERVER_VERSION.ordinal() > version.ordinal();
+        return CURRENT.ordinal() > version.ordinal();
     }
 
     /**
      * Tell if the specified server version is greater than or equal to
-     * (i.e. newer than or the same as) the {@link #CURRENT_SERVER_VERSION
+     * (i.e. newer than or the same as) the {@link #CURRENT
      * current server version}.
      * <p>
      * For example, if {@code MinecraftVersion.greaterThanOrEqual(v1_8_R3)}
@@ -198,6 +197,42 @@ public enum MinecraftVersion {
      * @return If the version is greater than or equal to the current version.
      */
     public static boolean greaterThanOrEqual(MinecraftVersion version) {
-        return CURRENT_SERVER_VERSION.ordinal() >= version.ordinal();
+        return CURRENT.ordinal() >= version.ordinal();
+    }
+
+    @Override
+    public String toString() {
+        return FULL_VERSION;
+    }
+
+    /**
+     * A class that represents the minor version for the Bukkit
+     * version barrier. For example, Minecraft {@code 1.7.10} is
+     * {@link #v1_7} for the major version and {@link #R4} for the
+     * minor making {@code v1_7_R4}.
+     * <p>
+     * {@link #compareTo(Enum)} can be used to determine the exact
+     * minor version if or when that may be needed using the
+     * {@link #CURRENT} field to compare against.
+     */
+    public enum MinorVersion {
+
+        R1, R2, R3, R4, R5;
+
+        /**
+         * The current {@link MinorVersion} of this server.
+         */
+        public static final MinorVersion CURRENT;
+
+        static {
+
+            String name = Bukkit.getServer().getClass().getPackage().getName();
+            String versionString = name.substring(name.indexOf('R'));
+            try {
+                CURRENT = MinorVersion.valueOf(versionString);
+            } catch (RuntimeException e) {
+                throw new UnsupportedOperationException("Minor version " + versionString + " is not supported.", e);
+            }
+        }
     }
 }

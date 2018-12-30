@@ -26,8 +26,6 @@ package com.andavin.protocol;
 
 import org.bukkit.entity.Player;
 
-import java.util.function.BiFunction;
-
 /**
  * A simple bi-directional packet listener that can handle
  * packets being sent to or coming from a player.
@@ -58,7 +56,7 @@ import java.util.function.BiFunction;
  * @author Andavin
  */
 @FunctionalInterface
-public interface PacketListener<T> extends BiFunction<Player, T, T> {
+public interface PacketListener<T> {
 
     /**
      * Handle a packet being sent in the direction that this
@@ -66,12 +64,12 @@ public interface PacketListener<T> extends BiFunction<Player, T, T> {
      *
      * @param player The player the packet is being sent to or from.
      * @param packet The packet that is being sent.
+     * @param cancelled If this packet was cancelled by another handler.
      * @return The packet that should be sent. In order to stop a packet
-     *         from continuing to be handled and sent or received {@code null}
-     *         should be returned from this method.
+     *         from continuing to be sent or received {@code null} should
+     *         be returned from this method.
      */
-    @Override
-    T apply(Player player, T packet);
+    T handle(Player player, T packet, boolean cancelled);
 
     /**
      * Handle a packet being sent in the direction that this
@@ -79,11 +77,12 @@ public interface PacketListener<T> extends BiFunction<Player, T, T> {
      *
      * @param player The player the packet is being sent to or from.
      * @param msg The packet that is being sent.
+     * @param cancelled If this packet was cancelled by another handler.
      * @return The packet that should be sent. In order to stop a packet
-     *         from continuing to be handled and sent or received {@code null}
-     *         should be returned from this method.
+     *         from continuing to be sent or received {@code null} should
+     *         be returned from this method.
      */
-    default T handle(Player player, Object msg) {
-        return this.apply(player, (T) msg);
+    default T handleMsg(Player player, Object msg, boolean cancelled) {
+        return this.handle(player, (T) msg, cancelled);
     }
 }

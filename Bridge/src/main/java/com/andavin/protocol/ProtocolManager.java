@@ -108,17 +108,13 @@ public class ProtocolManager implements Versioned {
                 return packet;
             }
 
-            for (ListenerPriority priority : ListenerPriority.values()) {
+            for (List<PacketListener<?>> listeners : priorities.values()) { // Iterates in natural order
 
-                List<PacketListener<?>> listeners = priorities.get(priority);
-                if (listeners != null) {
+                for (PacketListener<?> listener : listeners) {
 
-                    for (PacketListener<?> listener : listeners) {
-
-                        packet = listener.handle(player, packet);
-                        if (packet == null) {
-                            return null;
-                        }
+                    packet = listener.handleMsg(player, packet, false);
+                    if (packet == null) {
+                        return null;
                     }
                 }
             }

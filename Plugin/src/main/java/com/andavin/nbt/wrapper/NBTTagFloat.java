@@ -58,7 +58,7 @@ public final class NBTTagFloat extends NBTNumber implements DataHolder<Float> {
 
     NBTTagFloat(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     @Override

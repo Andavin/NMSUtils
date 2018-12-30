@@ -48,7 +48,7 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
     private static final Field CHUNK = findField(PacketPlayOutMultiBlockChange.class, "a");
     private static final Field PACKET_BLOCK_DATA = findField(PacketPlayOutMultiBlockChange.class, "b");
     private static final Field POSITION = findField(PacketPlayOutBlockChange.class, "a");
-    private static final List<IBlockData> BLOCK_DATA = getValue(RegistryID.class, Block.d, "b");
+    private static final List<IBlockData> BLOCK_DATA = getFieldValue(RegistryID.class, Block.d, "b");
 
     @Override
     protected void sendBlocks(Player player, Object chunkPair, List<VisualBlock> blocks) {
@@ -62,7 +62,7 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
         if (blocks.size() == 1) {
             VisualBlock block = blocks.get(0);
             PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange();
-            setValue(POSITION, packet, new BlockPosition(block.getX(), block.getY(), block.getZ())); // Set the position
+            setFieldValue(POSITION, packet, new BlockPosition(block.getX(), block.getY(), block.getZ())); // Set the position
             packet.block = toData(block); // And the data
             sendPacket(player, packet);
             return;
@@ -72,8 +72,8 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
         PacketPlayOutMultiBlockChange packet = new PacketPlayOutMultiBlockChange();
         MultiBlockChangeInfo[] blockData = new MultiBlockChangeInfo[blocks.size()];
 
-        setValue(CHUNK, packet, chunkPair); // Set the chunk that it is in
-        setValue(PACKET_BLOCK_DATA, packet, blockData); // Place the array into the packet
+        setFieldValue(CHUNK, packet, chunkPair); // Set the chunk that it is in
+        setFieldValue(PACKET_BLOCK_DATA, packet, blockData); // Place the array into the packet
         // Then update the array with all of the data and positions
         int i = 0;
         for (VisualBlock block : blocks) {

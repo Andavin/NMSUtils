@@ -216,7 +216,7 @@ public final class NBTHelper {
     public static Object deserializeNMS(InputStream stream) throws UncheckedIOException {
 
         try {
-            return invoke(READ, null, stream);
+            return invokeMethod(READ, null, stream);
         } catch (UncheckedInvocationTargetException e) {
 
             Throwable cause = e.getCause();
@@ -271,7 +271,7 @@ public final class NBTHelper {
     public static void serialize(OutputStream stream, Object tag) throws UncheckedIOException {
 
         try {
-            invoke(WRITE, null, tag, stream);
+            invokeMethod(WRITE, null, tag, stream);
         } catch (UncheckedInvocationTargetException e) {
 
             Throwable cause = e.getCause();

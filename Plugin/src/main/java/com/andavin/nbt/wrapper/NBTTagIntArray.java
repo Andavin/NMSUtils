@@ -58,7 +58,7 @@ public final class NBTTagIntArray extends NBTBase implements DataHolder<int[]> {
 
     NBTTagIntArray(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     /**

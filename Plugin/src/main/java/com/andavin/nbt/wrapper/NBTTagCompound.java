@@ -101,7 +101,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
 
     NBTTagCompound(Object wrapped) {
         super(wrapped);
-        this.map = Reflection.getValue(DATA, wrapped);
+        this.map = Reflection.getFieldValue(DATA, wrapped);
         if (!this.map.isEmpty()) {
             this.wrapped = new HashMap<>(this.map.size());
             this.map.forEach((key, value) -> this.wrapped.put(key, NBTHelper.wrap(value)));
@@ -691,7 +691,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 
         stream.defaultReadObject();
-        this.map = getValue(DATA, this.wrapped);
+        this.map = getFieldValue(DATA, this.wrapped);
         if (!this.wrapped.isEmpty()) {
             this.wrapped.forEach((key, value) -> this.map.put(key, value.wrapped));
         }

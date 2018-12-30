@@ -24,10 +24,10 @@
 
 package com.andavin.visual.block;
 
-import com.andavin.MinecraftVersion;
 import com.andavin.Versioned;
 import com.andavin.util.LocationUtil;
 import com.andavin.util.LongHash;
+import com.andavin.util.MinecraftVersion;
 import com.andavin.visual.VisualBridge;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -41,7 +41,7 @@ import org.bukkit.util.Vector;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-import static com.andavin.MinecraftVersion.v1_12_R1;
+import static com.andavin.util.MinecraftVersion.v1_12;
 import static com.google.common.base.Preconditions.checkArgument;
 
 /**
@@ -110,7 +110,7 @@ public final class VisualBlock {
      */
     public VisualBlock(int x, int y, int z, Material type, int data) {
         this(ID.getAndIncrement(), x, y, z, type, data,
-                MinecraftVersion.greaterThan(v1_12_R1) ? type.createBlockData() : null);
+                MinecraftVersion.greaterThan(v1_12) ? type.createBlockData() : null);
     }
 
     /**

@@ -56,7 +56,7 @@ public final class NBTTagByte extends NBTNumber implements DataHolder<Byte> {
 
     NBTTagByte(Object wrapped) {
         super(wrapped);
-        this.data = getValue(DATA, wrapped);
+        this.data = getFieldValue(DATA, wrapped);
     }
 
     @Override

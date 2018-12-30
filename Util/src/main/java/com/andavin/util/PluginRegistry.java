@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.getValue;
+import static com.andavin.reflect.Reflection.getFieldValue;
 
 /**
  * @author Andavin
@@ -153,7 +153,7 @@ public final class PluginRegistry {
     private static void refresh() {
         // Use reflection to bypass the synchronization of Bukkit.getPluginManager().getPlugins()
         // This should avoid deadlocks and getting exact lists isn't super important here
-        List<Plugin> plugins = getValue(PLUGINS_FIELD, Bukkit.getPluginManager());
+        List<Plugin> plugins = getFieldValue(PLUGINS_FIELD, Bukkit.getPluginManager());
         //noinspection ConstantConditions
         for (Plugin plugin : plugins.toArray(new Plugin[0])) { // No ConcurrentModifications with toArray
 

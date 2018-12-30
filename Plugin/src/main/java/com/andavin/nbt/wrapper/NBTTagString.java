@@ -54,7 +54,7 @@ public final class NBTTagString extends NBTBase implements DataHolder<String> {
 
     NBTTagString(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     @Override

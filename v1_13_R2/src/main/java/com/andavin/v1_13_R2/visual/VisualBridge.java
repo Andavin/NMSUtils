@@ -43,7 +43,7 @@ import java.util.List;
 
 import static com.andavin.protocol.PacketSender.sendPacket;
 import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.setValue;
+import static com.andavin.reflect.Reflection.setFieldValue;
 
 /**
  * @since November 15, 2018
@@ -67,7 +67,7 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
         if (blocks.size() == 1) {
             VisualBlock block = blocks.get(0);
             PacketPlayOutBlockChange packet = new PacketPlayOutBlockChange();
-            setValue(POSITION, packet, new BlockPosition(block.getX(), block.getY(), block.getZ())); // Set the position
+            setFieldValue(POSITION, packet, new BlockPosition(block.getX(), block.getY(), block.getZ())); // Set the position
             packet.block = toData(block); // And the data
             sendPacket(player, packet);
             return;
@@ -77,8 +77,8 @@ class VisualBridge extends com.andavin.visual.VisualBridge {
         PacketPlayOutMultiBlockChange packet = new PacketPlayOutMultiBlockChange();
         MultiBlockChangeInfo[] blockData = new MultiBlockChangeInfo[blocks.size()];
 
-        setValue(CHUNK, packet, chunkPair); // Set the chunk that it is in
-        setValue(PACKET_BLOCK_DATA, packet, blockData); // Place the array into the packet
+        setFieldValue(CHUNK, packet, chunkPair); // Set the chunk that it is in
+        setFieldValue(PACKET_BLOCK_DATA, packet, blockData); // Place the array into the packet
         // Then update the array with all of the data and positions
         int i = 0;
         for (VisualBlock block : blocks) {

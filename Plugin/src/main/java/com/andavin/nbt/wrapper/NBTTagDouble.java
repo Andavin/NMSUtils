@@ -54,7 +54,7 @@ public final class NBTTagDouble extends NBTNumber implements DataHolder<Double> 
 
     NBTTagDouble(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     @Override

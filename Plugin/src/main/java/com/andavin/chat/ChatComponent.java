@@ -52,7 +52,7 @@ public class ChatComponent {
 
         Class<?> format = findMcClass("EnumChatFormat");
         for (ChatColor color : ChatColor.values()) {
-            NMS_COLORS.put(color, getValue(format, null, color.name()));
+            NMS_COLORS.put(color, getFieldValue(format, null, color.name()));
         }
 
         Class<?> iBaseClass = findMcClass("IChatBaseComponent");
@@ -69,8 +69,8 @@ public class ChatComponent {
         }
 
         Field mods = findField(Field.class, "modifiers");
-        setValue(mods, CHAT, CHAT.getModifiers() & ~Modifier.FINAL);
-        setValue(mods, MESSAGE, MESSAGE.getModifiers() & ~Modifier.FINAL);
+        setFieldValue(mods, CHAT, CHAT.getModifiers() & ~Modifier.FINAL);
+        setFieldValue(mods, MESSAGE, MESSAGE.getModifiers() & ~Modifier.FINAL);
     }
 
     /**
@@ -93,7 +93,7 @@ public class ChatComponent {
      */
     public static ChatComponent fromString(String str) {
 
-        Object[] comps = invoke(FROM_STRING, null, str);
+        Object[] comps = invokeMethod(FROM_STRING, null, str);
         if (comps != null) {
             return ChatComponent.wrap(comps[0]);
         }
@@ -118,12 +118,12 @@ public class ChatComponent {
     private ChatComponent(String text) {
         this.base = null;
 //        this.base = new ChatComponentText(text);
-        this.siblings = getValue(SIBLINGS, this.base);
+        this.siblings = getFieldValue(SIBLINGS, this.base);
     }
 
     private ChatComponent(Object baseComponent) {
         this.base = baseComponent;
-        this.siblings = getValue(SIBLINGS, this.base);
+        this.siblings = getFieldValue(SIBLINGS, this.base);
     }
 
     /**
@@ -145,7 +145,7 @@ public class ChatComponent {
      * @return A reference to the new ChatComponent sibling.
      */
     public ChatComponent addSibling(ChatComponent component) {
-        invoke(ADD_SIBLING, this.base, component.base);
+        invokeMethod(ADD_SIBLING, this.base, component.base);
         this.current = component;
         return component;
     }

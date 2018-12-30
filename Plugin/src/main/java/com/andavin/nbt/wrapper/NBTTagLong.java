@@ -54,7 +54,7 @@ public final class NBTTagLong extends NBTNumber implements DataHolder<Long> {
 
     NBTTagLong(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     @Override

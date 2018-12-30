@@ -25,8 +25,8 @@
 package com.andavin;
 
 import com.andavin.reflect.exception.UncheckedClassNotFoundException;
+import com.andavin.util.MinecraftVersion;
 
-import static com.andavin.MinecraftVersion.CURRENT_SERVER_VERSION;
 import static com.andavin.reflect.Reflection.findClass;
 import static com.andavin.reflect.Reflection.newInstance;
 
@@ -40,7 +40,7 @@ import static com.andavin.reflect.Reflection.newInstance;
 public interface Versioned {
 
     String PACKAGE = Versioned.class.getPackage().getName();
-    String VERSION_PREFIX = PACKAGE + '.' + CURRENT_SERVER_VERSION;
+    String VERSION_PREFIX = PACKAGE + '.' + MinecraftVersion.CURRENT;
 
     /**
      * Get an instance of an NMS Utils versioned class.
@@ -58,7 +58,7 @@ public interface Versioned {
             found = findClass(VERSION_PREFIX + clazz.getName().substring(PACKAGE.length()));
         } catch (UncheckedClassNotFoundException e) {
             throw new UnsupportedOperationException("Class " + clazz +
-                    " is not currently supported for version " + CURRENT_SERVER_VERSION);
+                    " is not currently supported for version " + MinecraftVersion.CURRENT);
         }
 
         return newInstance(found, args);

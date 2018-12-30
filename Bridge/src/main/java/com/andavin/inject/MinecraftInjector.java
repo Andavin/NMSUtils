@@ -226,7 +226,7 @@ public final class MinecraftInjector {
                             continue;
                         }
 
-                        int subIndex = name.indexOf('$');
+                        int subIndex = name.lastIndexOf('$');
                         if (subIndex != -1 && classNames.contains(name.substring(0, subIndex))) {
                             Logger.debug("Removing old version of class {}.", name);
                             continue;
@@ -369,7 +369,7 @@ public final class MinecraftInjector {
 
                             ClassReader reader = new ClassReader(byteStream.toByteArray()); // Read the entry
                             ClassNode node = new ClassNode();
-                            reader.accept(node, ClassReader.SKIP_FRAMES);
+                            reader.accept(node, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
                             if (node.visibleAnnotations != null) {
 
                                 for (AnnotationNode annotationNode : node.visibleAnnotations) {

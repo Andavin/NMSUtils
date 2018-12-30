@@ -24,8 +24,8 @@
 
 package com.andavin.inject;
 
-import com.andavin.MinecraftVersion;
 import com.andavin.Versioned;
+import com.andavin.util.MinecraftVersion;
 import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;

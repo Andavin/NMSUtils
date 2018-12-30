@@ -54,7 +54,7 @@ public final class NBTTagInt extends NBTNumber implements DataHolder<Integer> {
 
     NBTTagInt(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     @Override

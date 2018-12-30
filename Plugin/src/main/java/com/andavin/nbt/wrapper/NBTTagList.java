@@ -74,7 +74,7 @@ public final class NBTTagList<E extends NBTBase & DataHolder> extends NBTBase im
 
     NBTTagList(Object wrapped) {
         super(wrapped);
-        this.list = getValue(DATA, wrapped);
+        this.list = getFieldValue(DATA, wrapped);
         if (!this.list.isEmpty()) {
             this.wrapped = new ArrayList<>(this.list.size());
             this.list.forEach(nbt -> this.wrapped.add(NBTHelper.wrap(nbt)));
@@ -244,7 +244,7 @@ public final class NBTTagList<E extends NBTBase & DataHolder> extends NBTBase im
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 
         stream.defaultReadObject();
-        this.list = getValue(DATA, this.wrapped);
+        this.list = getFieldValue(DATA, this.wrapped);
         if (!this.wrapped.isEmpty()) {
             this.wrapped.stream().map(NBTBase::getWrapped).forEach(this.list::add);
         }

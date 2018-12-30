@@ -29,10 +29,11 @@ import com.andavin.inject.MinecraftServerInjector;
 import com.andavin.nbt.wrapper.*;
 import com.andavin.protocol.PacketListener;
 import com.andavin.protocol.ProtocolManager;
+import com.andavin.util.MinecraftVersion;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import static com.andavin.MinecraftVersion.v1_12_R1;
 import static com.andavin.reflect.Reflection.findMcClass;
+import static com.andavin.util.MinecraftVersion.v1_12;
 
 public final class NMSUtils extends JavaPlugin {
 
@@ -42,7 +43,7 @@ public final class NMSUtils extends JavaPlugin {
     public NMSUtils() {
 
         instance = this;
-        if (MinecraftVersion.greaterThanOrEqual(v1_12_R1)) {
+        if (MinecraftVersion.greaterThanOrEqual(v1_12)) {
             NBTHelper.register(NBTTagLongArray.class);
         }
 

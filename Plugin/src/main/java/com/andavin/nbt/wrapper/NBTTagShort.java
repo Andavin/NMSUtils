@@ -58,7 +58,7 @@ public final class NBTTagShort extends NBTNumber implements DataHolder<Short> {
 
     NBTTagShort(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     @Override

@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.andavin.reflect.Reflection.findMcClass;
-import static com.andavin.reflect.Reflection.getValue;
+import static com.andavin.reflect.Reflection.getFieldValue;
 
 /**
  * An NBT number wrapper for the primitive array type {@code byte}.
@@ -58,7 +58,7 @@ public final class NBTTagByteArray extends NBTBase implements DataHolder<byte[]>
 
     NBTTagByteArray(Object wrapped) {
         super(wrapped);
-        this.data = getValue(DATA, wrapped);
+        this.data = getFieldValue(DATA, wrapped);
     }
 
     /**

@@ -24,13 +24,14 @@
 
 package com.andavin.reflect;
 
-import com.andavin.MinecraftVersion;
 import com.andavin.reflect.exception.*;
+import com.andavin.util.MinecraftVersion;
 
 import java.lang.reflect.*;
 import java.util.*;
 
-import static com.andavin.MinecraftVersion.*;
+import static com.andavin.util.MinecraftVersion.CRAFTBUKKIT_PREFIX;
+import static com.andavin.util.MinecraftVersion.MINECRAFT_PREFIX;
 
 public final class Reflection {
 
@@ -73,10 +74,10 @@ public final class Reflection {
     /**
      * The version string that makes up part of CraftBukkit or MinecraftServer imports.
      *
-     * @deprecated Use {@link MinecraftVersion#CURRENT_SERVER_VERSION}
+     * @deprecated Use {@link MinecraftVersion#CURRENT}
      */
     @Deprecated
-    public static final String VERSION_STRING = CURRENT_SERVER_VERSION.name();
+    public static final String VERSION_STRING = MinecraftVersion.CURRENT.name();
 
     /**
      * The version number. 170 for 1_7_R0, 181 for 1_8_R1, etc.
@@ -269,9 +270,9 @@ public final class Reflection {
      * @throws UncheckedIllegalAccessException If there was an attempt to access the
      *                                         field that failed.
      */
-    public static <T> T getValue(Class<?> clazz, Object instance, String name) throws ClassCastException,
+    public static <T> T getFieldValue(Class<?> clazz, Object instance, String name) throws ClassCastException,
             SecurityException, UncheckedNoSuchFieldException, UncheckedIllegalAccessException {
-        return getValue(findField(clazz, name), instance);
+        return getFieldValue(findField(clazz, name), instance);
     }
 
     /**
@@ -294,7 +295,7 @@ public final class Reflection {
      *                                         field that failed.
      */
     // May need to validate the generic return type T by taking a Class<T> as parameter
-    public static <T> T getValue(Field field, Object instance) throws ClassCastException,
+    public static <T> T getFieldValue(Field field, Object instance) throws ClassCastException,
             SecurityException, UncheckedIllegalAccessException {
 
         if (!field.isAccessible()) {
@@ -327,9 +328,9 @@ public final class Reflection {
      * @throws UncheckedIllegalAccessException If there was an attempt to access the
      *                                         field that failed.
      */
-    public static void setValue(Class<?> clazz, Object instance, String name, Object value)
+    public static void setFieldValue(Class<?> clazz, Object instance, String name, Object value)
             throws SecurityException, UncheckedNoSuchFieldException, UncheckedIllegalAccessException {
-        setValue(findField(clazz, name), instance, value);
+        setFieldValue(findField(clazz, name), instance, value);
     }
 
     /**
@@ -349,7 +350,7 @@ public final class Reflection {
      * @throws UncheckedIllegalAccessException If there was an attempt to access the
      *                                         field that failed.
      */
-    public static void setValue(Field field, Object instance, Object value)
+    public static void setFieldValue(Field field, Object instance, Object value)
             throws SecurityException, UncheckedIllegalAccessException {
 
         if (!field.isAccessible()) {
@@ -477,42 +478,6 @@ public final class Reflection {
     }
 
     /**
-     * Invoke a method from the given class with the given name
-     * and matching the types of the parameters given returning
-     * the type given. If the type given is not the type of the
-     * return value of the method found then a {@link ClassCastException}
-     * will be thrown.
-     *
-     * @param clazz The class that the method belong to.
-     * @param instance The instance to invoke the method on.
-     * @param name The name of the method to invoke.
-     * @param params The parameters to pass to the method.
-     * @param <T> The method return type (if different an exception will be thrown).
-     * @return The value that the method returned.
-     * @deprecated Use {@link #invoke(Class, Object, String, Object...)}
-     */
-    @Deprecated
-    public static <T> T invokeMethod(Class<?> clazz, Object instance, String name, Object... params) {
-        return invoke(findMethod(clazz, name, getClassesForObjects(params)), instance, params);
-    }
-
-    /**
-     * Invoke the given method on the given object instance and with
-     * the given parameters.
-     *
-     * @param method The method to invoke.
-     * @param instance The instance to invoke the method on.
-     * @param params The parameters to pass to the method.
-     * @param <T> The method return type (if different an exception will be thrown).
-     * @return The value that the method returned.
-     * @deprecated Use {@link #invoke(Method, Object, Object...)}
-     */
-    @Deprecated
-    public static <T> T invokeMethod(Method method, Object instance, Object... params) {
-        return invoke(method, instance, params);
-    }
-
-    /**
      * Find a method using the name and class and invoke it on the
      * object instance and passing in the given parameters. If the
      * method is not currently accessible, then an attempt will be
@@ -533,7 +498,7 @@ public final class Reflection {
      * the {@link #findMethod(Class, String, Class[])} method.
      * On the other hand, if {@code null} is needed as a parameter,
      * then {@link #findMethod(Class, String, Class[])} should be
-     * used and then {@link #invoke(Method, Object, Object...)}
+     * used and then {@link #invokeMethod(Method, Object, Object...)}
      * instead of this method (which is basically a shortcut between the two).
      * <p>
      * Any checked {@link Exception}s will be wrapped into a similar
@@ -555,9 +520,9 @@ public final class Reflection {
      *                                            invocation of the method. The exception
      *                                            will be wrapped into this exception as the cause.
      */
-    public static <T> T invoke(Class<?> clazz, Object instance, String name, Object... params) throws ClassCastException,
+    public static <T> T invokeMethod(Class<?> clazz, Object instance, String name, Object... params) throws ClassCastException,
             SecurityException, UncheckedNoSuchMethodException, UncheckedIllegalAccessException, UncheckedInvocationTargetException {
-        return invoke(findMethod(clazz, name, getClassesForObjects(params)), instance, params);
+        return invokeMethod(findMethod(clazz, name, getClassesForObjects(params)), instance, params);
     }
 
     /**
@@ -587,7 +552,7 @@ public final class Reflection {
      *                                            will be wrapped into this exception as the cause.
      */
     // May need to validate the generic return type T by taking a Class<T> as parameter
-    public static <T> T invoke(Method method, Object instance, Object... params) throws ClassCastException,
+    public static <T> T invokeMethod(Method method, Object instance, Object... params) throws ClassCastException,
             SecurityException, UncheckedIllegalAccessException, UncheckedInvocationTargetException {
 
         if (!method.isAccessible()) {
@@ -876,7 +841,8 @@ public final class Reflection {
      * @throws UncheckedNoSuchMethodException If the constructor with the
      *                                        parameters was not found.
      */
-    public static <T> Constructor<T> findConstructor(Class<T> clazz, Class<?>... paramTypes) throws UncheckedNoSuchMethodException {
+    public static <T> Constructor<T> findConstructor(Class<T> clazz, Class<?>... paramTypes)
+            throws UncheckedNoSuchMethodException {
         return findConstructor(clazz, true, paramTypes);
     }
 

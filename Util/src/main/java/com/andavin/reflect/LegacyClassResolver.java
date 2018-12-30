@@ -30,7 +30,7 @@ import java.lang.reflect.Method;
 import java.util.logging.Level;
 
 import static com.andavin.reflect.Reflection.findMethod;
-import static com.andavin.reflect.Reflection.invoke;
+import static com.andavin.reflect.Reflection.invokeMethod;
 
 /**
  * @since October 31, 2018
@@ -63,7 +63,7 @@ public class LegacyClassResolver implements ClassResolver {
         if (stackTraceMethod != null) {
 
             try {
-                return Reflection.<StackTraceElement>invoke(this.stackTraceMethod,
+                return Reflection.<StackTraceElement>invokeMethod(this.stackTraceMethod,
                         throwable, depth + DEPTH_ADDITION).getClassName();
             } catch (Exception e) {
                 Bukkit.getLogger().log(Level.SEVERE, "Failed to get single stack trace element from throwable", e);
@@ -86,7 +86,7 @@ public class LegacyClassResolver implements ClassResolver {
 
     private static Method getStackTraceMethod() {
         Method method = findMethod(Throwable.class, "getStackTraceElement", int.class);
-        StackTraceElement element = invoke(method, new Throwable(), 0);
+        StackTraceElement element = invokeMethod(method, new Throwable(), 0);
         return LegacyClassResolver.class.getName().equals(element.getClassName()) ? method : null;
     }
 }

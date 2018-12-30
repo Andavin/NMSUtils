@@ -33,7 +33,7 @@ import org.bukkit.inventory.ItemStack;
 import java.lang.reflect.Field;
 
 import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.getValue;
+import static com.andavin.reflect.Reflection.getFieldValue;
 
 /**
  * @since November 12, 2018
@@ -55,7 +55,7 @@ class ItemBridge extends com.andavin.inventory.ItemBridge {
 
     @Override
     protected <T> T getNmsItemStack(ItemStack item) {
-        return CraftItemStack.class == item.getClass() ? getValue(HANDLE, item) :
+        return CraftItemStack.class == item.getClass() ? getFieldValue(HANDLE, item) :
                 (T) CraftItemStack.asNMSCopy(item);
     }
 

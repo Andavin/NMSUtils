@@ -24,16 +24,16 @@
 
 package com.andavin.chat;
 
-import com.andavin.MinecraftVersion;
 import com.andavin.protocol.PacketSender;
 import com.andavin.reflect.Reflection;
+import com.andavin.util.MinecraftVersion;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.Constructor;
 
-import static com.andavin.MinecraftVersion.v1_12_R1;
+import static com.andavin.util.MinecraftVersion.v1_12;
 
 /**
  * @author Andavin
@@ -45,7 +45,7 @@ public final class ActionBarUtil {
 
     static {
 
-        if (MinecraftVersion.lessThan(v1_12_R1)) {
+        if (MinecraftVersion.lessThan(v1_12)) {
             CHAT = Reflection.findConstructor(Reflection.findMcClass("ChatComponentText"), String.class);
             PACKET = Reflection.findConstructor(Reflection.findMcClass("PacketPlayOutChat"),
                     Reflection.findMcClass("IChatBaseComponent"), byte.class);

@@ -60,7 +60,7 @@ public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]>
 
     NBTTagLongArray(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getValue(DATA, wrapped);
+        this.data = Reflection.getFieldValue(DATA, wrapped);
     }
 
     /**

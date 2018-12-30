@@ -47,7 +47,7 @@ public enum ListenerPriority {
     LOW,
 
     /**
-     * Packet listener call is neither important or unimportant, and may be
+     * Packet listener call is neither important nor unimportant and may be
      * ran normally.
      */
     NORMAL,
@@ -64,7 +64,7 @@ public enum ListenerPriority {
     HIGHEST,
 
     /**
-     * Packet is listened to purely for monitoring the outcome of an packet.
+     * Packet is listened to purely for monitoring the outcome of a packet.
      * <p>
      * No modifications to the packet should be made under this priority.
      */
