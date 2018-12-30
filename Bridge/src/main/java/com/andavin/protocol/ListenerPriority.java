@@ -34,29 +34,35 @@ package com.andavin.protocol;
  * @author Andavin
  */
 public enum ListenerPriority {
+
     /**
      * Packet listener call is of very low importance and should be ran first,
      * to allow other listeners to further customise the outcome.
      */
     LOWEST,
+
     /**
      * Packet listener call is of low importance.
      */
     LOW,
+
     /**
      * Packet listener call is neither important or unimportant, and may be
      * ran normally.
      */
     NORMAL,
+
     /**
      * Packet listener call is of high importance.
      */
     HIGH,
+
     /**
      * Packet listener call is critical and must have the final say in what happens
      * to the packet.
      */
     HIGHEST,
+
     /**
      * Packet is listened to purely for monitoring the outcome of an packet.
      * <p>

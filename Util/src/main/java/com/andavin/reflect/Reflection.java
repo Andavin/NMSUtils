@@ -332,7 +332,6 @@ public final class Reflection {
         setValue(findField(clazz, name), instance, value);
     }
 
-
     /**
      * Set the value of the given field using the given object instance.
      * If the field is not currently accessible, then an attempt

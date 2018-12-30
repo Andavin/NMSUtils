@@ -32,13 +32,25 @@ import java.util.function.BiFunction;
  * A simple bi-directional packet listener that can handle
  * packets being sent to or coming from a player.
  * <p>
- * The direction the packet will be traveling when it is handled
- * by this listener is dependent on which of the directional
- * registration methods are used to register the listener.
+ * The direction the packet will be traveling is determined
+ * by the packet itself as each type of packet has a specific
+ * direction in which it is always sent denoted by the {@code In}
+ * or {@code Out} in the packet class name (e.g. {@code PacketPlayInArmAnimation}
+ * or {@code PacketLoginOutCustomPayload}).
+ * <p>
+ * The ability of this listener class is limited to packets
+ * that are sent or received after the {@link Player} object is
+ * created (as the Player object is included in the handler).
+ * Therefore, any packets sent before it is created, for example
+ * {@code PacketLoginInStart} or {@code PacketLoginOutEncryptionBegin},
+ * cannot be listened to via this class. These include most packets
+ * that are not included in the {@code Play} or {@code Status} protocol
+ * categories (i.e. {@code Login} or {@code Handshaking}).
  * <p>
  * Note that it is immensely important that thread blocking
  * does <b>not</b> occur within one of these listeners as it
- * will block all network traffic to or from the player.
+ * will block all network traffic to or from the player and can
+ * severely lag their gameplay.
  *
  * @param <T> The type of packet that is being listened for.
  * @see ProtocolManager#register(Class, PacketListener, ListenerPriority)
@@ -54,8 +66,9 @@ public interface PacketListener<T> extends BiFunction<Player, T, T> {
      *
      * @param player The player the packet is being sent to or from.
      * @param packet The packet that is being sent.
-     * @return The packet that should be sent. If this is {@code null}
-     *         the packet will stop here.
+     * @return The packet that should be sent. In order to stop a packet
+     *         from continuing to be handled and sent or received {@code null}
+     *         should be returned from this method.
      */
     @Override
     T apply(Player player, T packet);
@@ -66,8 +79,9 @@ public interface PacketListener<T> extends BiFunction<Player, T, T> {
      *
      * @param player The player the packet is being sent to or from.
      * @param msg The packet that is being sent.
-     * @return The packet that should be sent. If this is {@code null}
-     *         the packet will stop here.
+     * @return The packet that should be sent. In order to stop a packet
+     *         from continuing to be handled and sent or received {@code null}
+     *         should be returned from this method.
      */
     default T handle(Player player, Object msg) {
         return this.apply(player, (T) msg);
