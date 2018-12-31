@@ -24,6 +24,7 @@
 
 package com.andavin.reflect;
 
+import com.andavin.reflect.exception.UncheckedNoSuchMethodException;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.Method;
@@ -85,8 +86,13 @@ public class LegacyClassResolver implements ClassResolver {
     }
 
     private static Method getStackTraceMethod() {
-        Method method = findMethod(Throwable.class, "getStackTraceElement", int.class);
-        StackTraceElement element = invokeMethod(method, new Throwable(), 0);
-        return LegacyClassResolver.class.getName().equals(element.getClassName()) ? method : null;
+
+        try {
+            Method method = findMethod(Throwable.class, "getStackTraceElement", int.class);
+            StackTraceElement element = invokeMethod(method, new Throwable(), 0);
+            return LegacyClassResolver.class.getName().equals(element.getClassName()) ? method : null;
+        } catch (UncheckedNoSuchMethodException e) {
+            return null;
+        }
     }
 }
