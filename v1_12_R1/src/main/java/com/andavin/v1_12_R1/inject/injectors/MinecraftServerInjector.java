@@ -22,12 +22,12 @@
  * SOFTWARE.
  */
 
-package com.andavin.v1_11_R1.inject;
+package com.andavin.v1_12_R1.inject.injectors;
 
 import com.andavin.inject.MinecraftInjector;
 import com.andavin.util.Logger;
-import com.andavin.v1_11_R1.protocol.NetworkManagerProxy;
-import com.andavin.v1_11_R1.protocol.ServerConnectionProxy;
+import com.andavin.v1_12_R1.protocol.NetworkManagerProxy;
+import com.andavin.v1_12_R1.protocol.ServerConnectionProxy;
 import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Label;
@@ -44,7 +44,7 @@ import static org.objectweb.asm.Opcodes.*;
  * @since December 25, 2018
  * @author Andavin
  */
-class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector {
+class MinecraftServerInjector extends com.andavin.inject.injectors.MinecraftServerInjector {
 
     private static final String MINECRAFT_SERVER = MINECRAFT_PREFIX + "MinecraftServer";
     private static final String SERVER_CONNECTION = MINECRAFT_PREFIX + "ServerConnection";

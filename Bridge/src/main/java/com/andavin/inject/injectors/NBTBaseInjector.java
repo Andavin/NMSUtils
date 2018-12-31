@@ -22,11 +22,13 @@
  * SOFTWARE.
  */
 
-package com.andavin.inject;
+package com.andavin.inject.injectors;
+
+import com.andavin.inject.Injector;
 
 /**
- * @since December 25, 2018
+ * @since December 30, 2018
  * @author Andavin
  */
-public abstract class MinecraftServerInjector implements Injector {
+public abstract class NBTBaseInjector implements Injector {
 }

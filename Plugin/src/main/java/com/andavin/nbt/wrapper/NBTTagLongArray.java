@@ -25,15 +25,14 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
-import com.andavin.reflect.Reflection;
+import com.andavin.reflect.FieldMatcher;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.findMcClass;
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * An NBT number wrapper for the primitive array type {@code long}.
@@ -47,7 +46,7 @@ import static com.andavin.reflect.Reflection.findMcClass;
 @NBTTag(typeId = NBTType.LONG_ARRAY, params = long[].class)
 public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]> {
 
-    private static final Field DATA = findField(findMcClass("NBTTagLongArray"), "b");
+    private static final Field DATA = findField(findMcClass("NBTTagLongArray"), new FieldMatcher(long[].class));
     private final long[] data;
 
     public NBTTagLongArray(long... data) {
@@ -60,7 +59,7 @@ public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]>
 
     NBTTagLongArray(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getFieldValue(DATA, wrapped);
+        this.data = getFieldValue(DATA, wrapped);
     }
 
     /**

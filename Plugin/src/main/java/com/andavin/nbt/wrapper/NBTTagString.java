@@ -25,14 +25,12 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
-import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
 import java.util.Map;
 
-import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.findMcClass;
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * An NBT wrapper for the {@link String}. This simply holds
@@ -54,7 +52,7 @@ public final class NBTTagString extends NBTBase implements DataHolder<String> {
 
     NBTTagString(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getFieldValue(DATA, wrapped);
+        this.data = getFieldValue(DATA, wrapped);
     }
 
     @Override

@@ -25,10 +25,13 @@
 package com.andavin;
 
 import com.andavin.inject.MinecraftInjector;
-import com.andavin.inject.MinecraftServerInjector;
+import com.andavin.inject.injectors.MinecraftServerInjector;
+import com.andavin.inject.injectors.NBTBaseInjector;
 import com.andavin.nbt.wrapper.*;
 import com.andavin.protocol.PacketListener;
 import com.andavin.protocol.ProtocolManager;
+import com.andavin.reflect.exception.UncheckedClassNotFoundException;
+import com.andavin.util.Logger;
 import com.andavin.util.MinecraftVersion;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -43,10 +46,6 @@ public final class NMSUtils extends JavaPlugin {
     public NMSUtils() {
 
         instance = this;
-        if (MinecraftVersion.greaterThanOrEqual(v1_12)) {
-            NBTHelper.register(NBTTagLongArray.class);
-        }
-
         NBTHelper.register(
                 NBTTagEnd.class,
                 NBTTagByte.class,
@@ -61,14 +60,25 @@ public final class NMSUtils extends JavaPlugin {
                 NBTTagList.class,
                 NBTTagString.class
         );
+
+        try {
+            NBTHelper.register(NBTTagLongArray.class);
+        } catch (UncheckedClassNotFoundException e) {
+            Logger.debug(e, "Registering NBTTagLongArray");
+        }
     }
 
     private ProtocolManager protocolManager;
 
     @Override
     public void onLoad() {
+
         MinecraftInjector.register(findMcClass("MinecraftServer"),
                 Versioned.getInstance(MinecraftServerInjector.class, this));
+        if (MinecraftVersion.lessThan(v1_12)) {
+            MinecraftInjector.register(findMcClass("NBTBase"),
+                    Versioned.getInstance(NBTBaseInjector.class, this));
+        }
     }
 
     @Override

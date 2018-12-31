@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package com.andavin.v1_9_R2.inject;
+package com.andavin.v1_9_R2.inject.injectors;
 
 import com.andavin.inject.MinecraftInjector;
 import com.andavin.util.Logger;
@@ -44,7 +44,7 @@ import static org.objectweb.asm.Opcodes.*;
  * @since December 25, 2018
  * @author Andavin
  */
-class MinecraftServerInjector extends com.andavin.inject.MinecraftServerInjector {
+class MinecraftServerInjector extends com.andavin.inject.injectors.MinecraftServerInjector {
 
     private static final String MINECRAFT_SERVER = MINECRAFT_PREFIX + "MinecraftServer";
     private static final String SERVER_CONNECTION = MINECRAFT_PREFIX + "ServerConnection";

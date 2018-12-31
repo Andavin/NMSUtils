@@ -24,7 +24,6 @@
 
 package com.andavin.util;
 
-import com.andavin.reflect.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
@@ -37,8 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.getFieldValue;
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * @author Andavin
@@ -98,9 +96,9 @@ public final class PluginRegistry {
      */
     static Logger getLogger() {
 
-        Plugin plugin = getPlugin(Reflection.getCallerClass(1));
+        Plugin plugin = getPlugin(getCallerClass(1));
         for (int tries = 2; plugin == null && tries <= LOGGER_ATTEMPTS; tries++) {
-            plugin = getPlugin(Reflection.getCallerClass(tries));
+            plugin = getPlugin(getCallerClass(tries));
         }
 
         return plugin != null ? plugin.getLogger() : Bukkit.getLogger();
@@ -117,10 +115,10 @@ public final class PluginRegistry {
      */
     public static Plugin getPlugin(int attempts) {
 
-        String className = Reflection.getCallerClass(1); // Exclude the class that called this
+        String className = getCallerClass(1); // Exclude the class that called this
         Plugin plugin = getPlugin(className);
         for (int tries = 2; plugin == null && tries <= attempts; tries++) {
-            plugin = getPlugin(Reflection.getCallerClass(tries));
+            plugin = getPlugin(getCallerClass(tries));
         }
 
         return plugin != null ? plugin : defPlugin.get();

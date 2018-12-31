@@ -25,7 +25,6 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
-import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import javax.annotation.Nonnull;
@@ -101,7 +100,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
 
     NBTTagCompound(Object wrapped) {
         super(wrapped);
-        this.map = Reflection.getFieldValue(DATA, wrapped);
+        this.map = getFieldValue(DATA, wrapped);
         if (!this.map.isEmpty()) {
             this.wrapped = new HashMap<>(this.map.size());
             this.map.forEach((key, value) -> this.wrapped.put(key, NBTHelper.wrap(value)));
@@ -622,7 +621,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
             return true;
         }
 
-        if (typeId != NBTType.UUID) {
+        if (typeId != NBTType.ANY_NUMBER) {
             return false;
         }
 
@@ -646,7 +645,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return If there is a {@code UUID} mapped to the given key.
      */
     public boolean hasUniqueId(String key) {
-        return this.hasKey(key + "Most", NBTType.UUID) && this.hasKey(key + "Least", NBTType.UUID);
+        return this.hasKey(key + "Most", NBTType.ANY_NUMBER) && this.hasKey(key + "Least", NBTType.ANY_NUMBER);
     }
 
     /**

@@ -25,15 +25,13 @@
 package com.andavin.nbt.wrapper;
 
 import com.andavin.DataHolder;
-import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-import static com.andavin.reflect.Reflection.findField;
-import static com.andavin.reflect.Reflection.findMcClass;
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * An NBT number wrapper for the primitive array type {@code int}.
@@ -58,7 +56,7 @@ public final class NBTTagIntArray extends NBTBase implements DataHolder<int[]> {
 
     NBTTagIntArray(Object wrapped) {
         super(wrapped);
-        this.data = Reflection.getFieldValue(DATA, wrapped);
+        this.data = getFieldValue(DATA, wrapped);
     }
 
     /**
