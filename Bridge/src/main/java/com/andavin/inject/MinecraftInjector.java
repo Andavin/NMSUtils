@@ -276,6 +276,9 @@ public final class MinecraftInjector {
             }
 
             return entry;
+        } catch (Exception e) {
+            Logger.severe(e, "Exception thrown during injection for injector {}", injector.getClass().getName());
+            return entry; // No change
         }
     }
 
