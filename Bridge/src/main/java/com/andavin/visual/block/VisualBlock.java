@@ -410,7 +410,9 @@ public final class VisualBlock {
         if (this.directional) {
 
             Class<? extends MaterialData> dataType = this.type.getData();
-            if (Directional.class.isAssignableFrom(dataType)) {
+            if (Door.class.isAssignableFrom(dataType) && (this.data & 0x8) == 0x8) {
+                data = this.data;
+            } else if (Directional.class.isAssignableFrom(dataType)) {
                 MaterialData typeData = this.type.getNewData(this.data);
                 Directional direction = (Directional) typeData;
                 BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, true, false);
@@ -464,7 +466,9 @@ public final class VisualBlock {
         if (this.directional) {
 
             Class<? extends MaterialData> dataType = this.type.getData();
-            if (Directional.class.isAssignableFrom(dataType)) {
+            if (Door.class.isAssignableFrom(dataType) && (this.data & 0x8) == 0x8) { // Top half of the door (not directional)
+                data = this.data;
+            } else if (Directional.class.isAssignableFrom(dataType)) {
                 MaterialData typeData = this.type.getNewData(this.data);
                 Directional direction = (Directional) typeData;
                 BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, false);
@@ -530,7 +534,9 @@ public final class VisualBlock {
         if (this.directional) {
 
             Class<? extends MaterialData> dataType = this.type.getData();
-            if (Directional.class.isAssignableFrom(dataType)) {
+            if (Door.class.isAssignableFrom(dataType) && (this.data & 0x8) == 0x8) {
+                data = this.data;
+            } else if (Directional.class.isAssignableFrom(dataType)) {
                 MaterialData typeData = this.type.getNewData(this.data);
                 Directional direction = (Directional) typeData;
                 BlockFace face = LocationUtil.rotate(direction.getFacing(), degrees, false, true);

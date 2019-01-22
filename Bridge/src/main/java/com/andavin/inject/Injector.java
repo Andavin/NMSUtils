@@ -27,7 +27,6 @@ package com.andavin.inject;
 import com.andavin.Versioned;
 import com.andavin.util.MinecraftVersion;
 import org.bukkit.plugin.Plugin;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.tree.ClassNode;
 
@@ -60,11 +59,10 @@ public interface Injector extends Versioned {
      *
      * @param node The {@link ClassNode} to use to receive
      *             the information on the current state of
-     *             the attribute.
-     * @param reader The {@link ClassReader} to use to get all of
-     *               the attributes of the attribute.
+     *             the attribute and can be edited in order
+     *             to edit the final class.
      * @return If the {@link ClassNode} was altered and should
      *         be written with a {@link ClassWriter}.
      */
-    boolean inject(ClassNode node, ClassReader reader);
+    boolean inject(ClassNode node);
 }

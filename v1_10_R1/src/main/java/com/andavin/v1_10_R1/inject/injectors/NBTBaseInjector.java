@@ -28,7 +28,6 @@ import com.andavin.inject.MinecraftInjector;
 import com.andavin.util.Logger;
 import net.minecraft.server.v1_10_R1.NBTTagLongArray;
 import org.bukkit.plugin.Plugin;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -54,7 +53,7 @@ public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjecto
     }
 
     @Override
-    public boolean inject(ClassNode node, ClassReader reader) {
+    public boolean inject(ClassNode node) {
 
         MethodNode methodVisitor = null, clinitVisitor = null;
         ListIterator<MethodNode> itr = node.methods.listIterator();

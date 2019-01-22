@@ -29,7 +29,6 @@ import com.andavin.util.Logger;
 import com.andavin.v1_8_R3.protocol.NetworkManagerProxy;
 import com.andavin.v1_8_R3.protocol.ServerConnectionProxy;
 import org.bukkit.plugin.Plugin;
-import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
@@ -58,7 +57,7 @@ class MinecraftServerInjector extends com.andavin.inject.injectors.MinecraftServ
     }
 
     @Override
-    public boolean inject(ClassNode node, ClassReader reader) {
+    public boolean inject(ClassNode node) {
 
         MethodNode methodNode = null;
         ListIterator<MethodNode> itr = node.methods.listIterator();

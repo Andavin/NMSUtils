@@ -45,16 +45,17 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarOutputStream;
 
-import static java.util.stream.Collectors.toSet;
-
 /**
  * @since December 25, 2018
  * @author Andavin
  */
 public final class MinecraftInjector {
 
+    private static final Set<String> EXCLUDED = new HashSet<>(); // Excluded from the new JAR
     private static final Map<String, Injector> INJECTORS = new HashMap<>();
-    private static final Map<Class<?>, Plugin> INJECTION_CLASSES = new HashMap<>();
+    private static final Map<Class<?>, Plugin> INJECTION_CLASSES = new LinkedHashMap<>();
+    private static final List<ClassEntry> BYTE_INJECTION_CLASSES = new ArrayList<>();
+
     private static final String INJECTOR_VERSION_DESC, INJECTOR_VERSION_CLASS;
 
     static {
@@ -98,6 +99,35 @@ public final class MinecraftInjector {
         }
 
         throw new IllegalArgumentException("Class " + clazz.getName() + " is not annotated with InjectorVersion.");
+    }
+
+    /**
+     * Inject the given class into the Minecraft JAR so that
+     * it will be loaded on server startup and can be recognized
+     * by injected code.
+     * <p>
+     * The given class must be annotated with the {@link InjectorVersion}
+     * annotation to signify its version. If the version is the same
+     * as the class found in the JAR, then it will not be replaced.
+     * <p>
+     * The class will be injected directly using the bytes given that
+     * describe it. The bytes must be structured according to the Java
+     * language specification for a class. If the class is malformed in
+     * any way, an error will not be thrown here and instead will be
+     * given during runtime when the class is referenced or not at all
+     * if the class exists elsewhere as a functioning version.
+     * <br>
+     * It is recommended to avoid using this method unless absolutely
+     * necessary. Instead it is preferred to create a function class
+     * via the Java compiler and use the {@link #injectClass(Plugin, Class)}
+     * method instead to ensure class structure and validity.
+     *
+     * @param plugin The plugin that is injecting the class.
+     * @param classBytes The bytes that make up the class to be injected.
+     * @see #injectClass(Plugin, Class)
+     */
+    public static void injectClass(Plugin plugin, byte[] classBytes) {
+        BYTE_INJECTION_CLASSES.add(new ClassEntry(classBytes));
     }
 
     /**
@@ -217,7 +247,6 @@ public final class MinecraftInjector {
                 }
 
                 Logger.info("Injecting all alterations into a temporary JAR...");
-                Set<String> classNames = INJECTION_CLASSES.keySet().stream().map(Type::getInternalName).collect(toSet());
                 for (JarEntry entry : unchanged) {
 
                     String name = entry.getName();
@@ -225,13 +254,13 @@ public final class MinecraftInjector {
                     if (classIndex != -1) { // Remove the classes that need to be added
 
                         String className = name.substring(0, classIndex);
-                        if (classNames.contains(className)) {
+                        if (EXCLUDED.contains(className)) {
                             Logger.debug("Removing old version of class {}.", name);
                             continue;
                         }
 
                         int subIndex = name.lastIndexOf('$');
-                        if (subIndex != -1 && classNames.contains(name.substring(0, subIndex))) {
+                        if (subIndex != -1 && EXCLUDED.contains(name.substring(0, subIndex))) {
                             Logger.debug("Removing old version of class {}.", name);
                             continue;
                         }
@@ -262,14 +291,14 @@ public final class MinecraftInjector {
         return true;
     }
 
-    private static Object inject(JarFile jar, JarEntry entry, Injector injector) throws IOException {
+    private static Object inject(JarFile jar, JarEntry entry, Injector injector) {
 
         try (InputStream stream = jar.getInputStream(entry)) {
 
             ClassReader reader = new ClassReader(stream);
             ClassNode node = new ClassNode();
             reader.accept(node, ClassReader.SKIP_FRAMES);
-            if (injector.inject(node, reader)) {
+            if (injector.inject(node)) {
                 ClassWriter writer = new ClassWriter(reader, ClassWriter.COMPUTE_FRAMES);
                 node.accept(writer);
                 return writer;
@@ -302,11 +331,9 @@ public final class MinecraftInjector {
         URL location = null; // The current location for each class
         Plugin plugin = null;
         boolean unchanged = true; // Default to no changes
-        Iterator<Entry<Class<?>, Plugin>> itr = INJECTION_CLASSES.entrySet().iterator();
         nextInjectionEntry:
-        while (itr.hasNext()) {
+        for (Entry<Class<?>, Plugin> classEntry : INJECTION_CLASSES.entrySet()) {
 
-            Entry<Class<?>, Plugin> classEntry = itr.next();
             Class<?> clazz = classEntry.getKey();
             // Get the current version in the Minecraft JAR
             String version = clazz.getDeclaredAnnotation(InjectorVersion.class).value();
@@ -392,7 +419,6 @@ public final class MinecraftInjector {
 
                                         List<Object> values = annotationNode.values; // Check that the version is the same
                                         if (values != null && values.size() >= 2 && values.get(1).equals(version)) {
-                                            itr.remove(); // Remove the entry so the old version will be written
                                             continue nextInjectionEntry; // This entry doesn't need a change
                                         }
 
@@ -402,6 +428,7 @@ public final class MinecraftInjector {
                                 }
                             }
 
+                            EXCLUDED.add(internalName); // Exclude so the old version will not be written
                             parentWritten = true;
                             // Write the entry to the new JAR to override the previous version
                             output.putNextEntry(new JarEntry(name));
@@ -422,6 +449,47 @@ public final class MinecraftInjector {
                 }
             }
         }
+
+//        nextByteEntry:
+//        for (ClassEntry entry : BYTE_INJECTION_CLASSES) {
+//
+//            String internalName = entry.name;
+//            ClassReader reader = entry.reader;
+//            ClassNode node = new ClassNode();
+//            reader.accept(node, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+//            if (node.visibleAnnotations != null) {
+//
+//                for (AnnotationNode annotationNode : node.visibleAnnotations) {
+//
+//                    // Get the version annotation from the class
+//                    if (annotationNode.desc.equals(INJECTOR_VERSION_DESC)) {
+//
+//                        List<Object> values = annotationNode.values; // Check that the version is the same
+//                        if (values != null && values.size() >= 2 && values.get(1).equals(version)) {
+//                            continue nextByteEntry; // This entry doesn't need a change
+//                        }
+//
+//                        Logger.info("Found newer version of class {}.", name);
+//                        break;
+//                    }
+//                }
+//            }
+//
+//            EXCLUDED.add(internalName); // Exclude so the old version will not be written
+//            parentWritten = true;
+//            // Write the entry to the new JAR to override the previous version
+//            output.putNextEntry(new JarEntry(name));
+//            output.write(byteStream.toByteArray()); // Write a new copy
+//            output.flush();
+//            output.closeEntry();
+//
+//            if (subClasses != null) {
+//
+//                for (JarEntry subEntry : subClasses) {
+//                    writeClass(jar, output, subEntry);
+//                }
+//            }
+//        }
 
         return unchanged;
     }
@@ -444,5 +512,18 @@ public final class MinecraftInjector {
         }
 
         output.flush();
+    }
+
+    private static class ClassEntry {
+
+        private final String name;
+        private final byte[] bytes;
+        private final ClassReader reader;
+
+        ClassEntry(byte[] bytes) {
+            this.bytes = bytes;
+            this.reader = new ClassReader(Arrays.copyOf(bytes, bytes.length));
+            this.name = this.reader.getClassName();
+        }
     }
 }

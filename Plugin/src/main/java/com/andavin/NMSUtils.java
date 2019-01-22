@@ -42,8 +42,10 @@ public final class NMSUtils extends JavaPlugin {
 
     private static NMSUtils instance;
     private static boolean fastAsyncSupport;
+    private ProtocolManager protocolManager;
 
-    public NMSUtils() {
+    @Override
+    public void onLoad() {
 
         instance = this;
         NBTHelper.register(
@@ -66,12 +68,6 @@ public final class NMSUtils extends JavaPlugin {
         } catch (UncheckedClassNotFoundException e) {
             Logger.debug(e, "Registering NBTTagLongArray");
         }
-    }
-
-    private ProtocolManager protocolManager;
-
-    @Override
-    public void onLoad() {
 
         MinecraftInjector.register(findMcClass("MinecraftServer"),
                 Versioned.getInstance(MinecraftServerInjector.class, this));
