@@ -73,7 +73,7 @@ public final class NMSUtils extends JavaPlugin {
                 Versioned.getInstance(MinecraftServerInjector.class, this));
         if (MinecraftVersion.lessThan(v1_12)) {
             MinecraftInjector.register(findMcClass("NBTBase"),
-                    Versioned.getInstance(NBTBaseInjector.class, this));
+                    Versioned.getInstance(NBTBaseInjector.class));
         }
     }
 

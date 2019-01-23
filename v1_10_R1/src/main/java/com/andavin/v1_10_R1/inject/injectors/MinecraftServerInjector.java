@@ -30,6 +30,7 @@ import com.andavin.v1_10_R1.protocol.NetworkManagerProxy;
 import com.andavin.v1_10_R1.protocol.ServerConnectionProxy;
 import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
@@ -37,13 +38,11 @@ import org.objectweb.asm.tree.MethodNode;
 
 import java.util.ListIterator;
 
-import static org.objectweb.asm.Opcodes.*;
-
 /**
  * @since December 25, 2018
  * @author Andavin
  */
-class MinecraftServerInjector extends com.andavin.inject.injectors.MinecraftServerInjector {
+class MinecraftServerInjector extends com.andavin.inject.injectors.MinecraftServerInjector implements Opcodes {
 
     private static final String MINECRAFT_SERVER = MINECRAFT_PREFIX + "MinecraftServer";
     private static final String SERVER_CONNECTION = MINECRAFT_PREFIX + "ServerConnection";

@@ -26,30 +26,27 @@ package com.andavin.v1_10_R1.inject.injectors;
 
 import com.andavin.inject.MinecraftInjector;
 import com.andavin.util.Logger;
-import net.minecraft.server.v1_10_R1.NBTTagLongArray;
-import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
 
 import java.util.ListIterator;
 
-import static org.objectweb.asm.Opcodes.*;
-
 /**
  * @since December 30, 2018
  * @author Andavin
  */
-public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjector {
+public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjector implements Opcodes {
 
     private static final String NBT_BASE = MINECRAFT_PREFIX + "NBTBase";
     private static final String NBT_DESC = "(B)L" + NBT_BASE + ';';
     private static final String METHOD_NAME = "createTag", FIELD_NAME = "a";
     private static final String VERSION_DESC = VERSION_PREFIX + "1.0"; // Version 1.0
 
-    public NBTBaseInjector(Plugin plugin) {
-        MinecraftInjector.injectClass(plugin, NBTTagLongArray.class);
+    public NBTBaseInjector() {
+        MinecraftInjector.injectClass(new NBTTagLongArray());
     }
 
     @Override
@@ -63,7 +60,7 @@ public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjecto
             if ((method.access & ACC_STATIC) != 0 && method.name.equals("<clinit>")) {
                 clinitVisitor = new MethodNode(ASM7, method.access, method.name, method.desc, null, null);
                 itr.set(clinitVisitor);
-            } else if ((method.access & ACC_PUBLIC) != 0 && method.name.equals(METHOD_NAME) && method.desc.equals(NBT_DESC)) {
+            } else if ((method.access & ACC_PROTECTED) != 0 && method.name.equals(METHOD_NAME) && method.desc.equals(NBT_DESC)) {
 
                 if (method.invisibleAnnotations != null) {
 
@@ -84,14 +81,17 @@ public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjecto
             }
         }
 
-        if (methodVisitor == null || clinitVisitor == null) {
-            Logger.warn("Could not find method with public access with the name {} and descriptor {}.", METHOD_NAME, NBT_DESC);
+        if (clinitVisitor == null) {
+            Logger.warn("Could not find <clinit> method.");
             return false;
         }
 
-        Label label0 = new Label();
-        clinitVisitor.visitLabel(label0);
-        clinitVisitor.visitIntInsn(BIPUSH, 12);
+        if (methodVisitor == null) {
+            Logger.warn("Could not find method with protected access with the name {} and descriptor {}.", METHOD_NAME, NBT_DESC);
+            return false;
+        }
+
+        clinitVisitor.visitIntInsn(BIPUSH, 13);
         clinitVisitor.visitTypeInsn(ANEWARRAY, "java/lang/String");
         clinitVisitor.visitInsn(DUP);
         clinitVisitor.visitInsn(ICONST_0);
@@ -153,124 +153,122 @@ public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjecto
         }
 
         methodVisitor.visitCode();
-        Label l0 = new Label();
-        methodVisitor.visitLabel(l0);
         methodVisitor.visitVarInsn(ILOAD, 0);
-        Label l1 = new Label();
-        Label l2 = new Label();
-        Label l3 = new Label();
-        Label l4 = new Label();
-        Label l5 = new Label();
-        Label l6 = new Label();
-        Label l7 = new Label();
-        Label l8 = new Label();
-        Label l9 = new Label();
-        Label l10 = new Label();
-        Label l11 = new Label();
-        Label l12 = new Label();
-        Label l13 = new Label();
-        Label l14 = new Label();
-        methodVisitor.visitTableSwitchInsn(0, 11, l14, l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, l11, l12, l13);
-        methodVisitor.visitLabel(l1);
+        Label case0 = new Label();
+        Label case1 = new Label();
+        Label case2 = new Label();
+        Label case3 = new Label();
+        Label case4 = new Label();
+        Label case5 = new Label();
+        Label case6 = new Label();
+        Label case7 = new Label();
+        Label case8 = new Label();
+        Label case9 = new Label();
+        Label case10 = new Label();
+        Label case11 = new Label();
+        Label case12 = new Label();
+        Label defaultCase = new Label();
 
+        // Create switch
+        methodVisitor.visitTableSwitchInsn(0, 12, defaultCase, case0, case1, case2, case3, case4, case5,
+                case6, case7, case8, case9, case10, case11, case12);
+
+        methodVisitor.visitLabel(case0);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagEnd");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagEnd", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l2);
 
+        methodVisitor.visitLabel(case1);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagByte");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagByte", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l3);
 
+        methodVisitor.visitLabel(case2);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagShort");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagShort", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l4);
 
+        methodVisitor.visitLabel(case3);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagInt");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagInt", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l5);
 
+        methodVisitor.visitLabel(case4);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagLong");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagLong", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l6);
 
+        methodVisitor.visitLabel(case5);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagFloat");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagFloat", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l7);
 
+        methodVisitor.visitLabel(case6);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagDouble");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagDouble", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l8);
 
+        methodVisitor.visitLabel(case7);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagByteArray");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagByteArray", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l9);
 
+        methodVisitor.visitLabel(case8);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagString");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagString", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l10);
 
+        methodVisitor.visitLabel(case9);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagList");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagList", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l11);
 
+        methodVisitor.visitLabel(case10);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagCompound");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagCompound", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l12);
 
+        methodVisitor.visitLabel(case11);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagIntArray");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagIntArray", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l13);
 
+        methodVisitor.visitLabel(case12);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitTypeInsn(NEW, MINECRAFT_PREFIX + "NBTTagLongArray");
         methodVisitor.visitInsn(DUP);
         methodVisitor.visitMethodInsn(INVOKESPECIAL, MINECRAFT_PREFIX + "NBTTagLongArray", "<init>", "()V", false);
         methodVisitor.visitInsn(ARETURN);
-        methodVisitor.visitLabel(l14);
 
+        methodVisitor.visitLabel(defaultCase);
         methodVisitor.visitFrame(F_SAME, 0, null, 0, null);
         methodVisitor.visitInsn(ACONST_NULL);
         methodVisitor.visitInsn(ARETURN);
 
-        Label l15 = new Label();
-        methodVisitor.visitLabel(l15);
-        methodVisitor.visitLocalVariable("b0", "B", null, l0, l15, 0);
         methodVisitor.visitAnnotation(VERSION_DESC, false); // Add version
         return true;
     }

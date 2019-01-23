@@ -54,7 +54,7 @@ public final class MinecraftInjector {
     private static final Set<String> EXCLUDED = new HashSet<>(); // Excluded from the new JAR
     private static final Map<String, Injector> INJECTORS = new HashMap<>();
     private static final Map<Class<?>, Plugin> INJECTION_CLASSES = new LinkedHashMap<>();
-    private static final List<ClassEntry> BYTE_INJECTION_CLASSES = new ArrayList<>();
+    private static final List<ByteClassInjector> BYTE_INJECTION_CLASSES = new ArrayList<>();
 
     private static final String INJECTOR_VERSION_DESC, INJECTOR_VERSION_CLASS;
 
@@ -110,24 +110,16 @@ public final class MinecraftInjector {
      * annotation to signify its version. If the version is the same
      * as the class found in the JAR, then it will not be replaced.
      * <p>
-     * The class will be injected directly using the bytes given that
-     * describe it. The bytes must be structured according to the Java
-     * language specification for a class. If the class is malformed in
-     * any way, an error will not be thrown here and instead will be
-     * given during runtime when the class is referenced or not at all
-     * if the class exists elsewhere as a functioning version.
-     * <br>
      * It is recommended to avoid using this method unless absolutely
      * necessary. Instead it is preferred to create a function class
      * via the Java compiler and use the {@link #injectClass(Plugin, Class)}
      * method instead to ensure class structure and validity.
      *
-     * @param plugin The plugin that is injecting the class.
-     * @param classBytes The bytes that make up the class to be injected.
+     * @param injector The {@link ByteClassInjector} to use to inject the byte class.
      * @see #injectClass(Plugin, Class)
      */
-    public static void injectClass(Plugin plugin, byte[] classBytes) {
-        BYTE_INJECTION_CLASSES.add(new ClassEntry(classBytes));
+    public static void injectClass(ByteClassInjector injector) {
+        BYTE_INJECTION_CLASSES.add(injector);
     }
 
     /**
@@ -198,7 +190,7 @@ public final class MinecraftInjector {
             }
 
             Logger.info("Found {} classes to alter and {} new classes that need to be injected.",
-                    changed.size(), INJECTION_CLASSES.size());
+                    changed.size(), INJECTION_CLASSES.size() + BYTE_INJECTION_CLASSES.size());
 
             Path jarPath = jarFile.toPath();
             String parent = jarFile.getParent();
@@ -450,46 +442,34 @@ public final class MinecraftInjector {
             }
         }
 
-//        nextByteEntry:
-//        for (ClassEntry entry : BYTE_INJECTION_CLASSES) {
-//
-//            String internalName = entry.name;
-//            ClassReader reader = entry.reader;
-//            ClassNode node = new ClassNode();
-//            reader.accept(node, ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
-//            if (node.visibleAnnotations != null) {
-//
-//                for (AnnotationNode annotationNode : node.visibleAnnotations) {
-//
-//                    // Get the version annotation from the class
-//                    if (annotationNode.desc.equals(INJECTOR_VERSION_DESC)) {
-//
-//                        List<Object> values = annotationNode.values; // Check that the version is the same
-//                        if (values != null && values.size() >= 2 && values.get(1).equals(version)) {
-//                            continue nextByteEntry; // This entry doesn't need a change
-//                        }
-//
-//                        Logger.info("Found newer version of class {}.", name);
-//                        break;
-//                    }
-//                }
-//            }
-//
-//            EXCLUDED.add(internalName); // Exclude so the old version will not be written
-//            parentWritten = true;
-//            // Write the entry to the new JAR to override the previous version
-//            output.putNextEntry(new JarEntry(name));
-//            output.write(byteStream.toByteArray()); // Write a new copy
-//            output.flush();
-//            output.closeEntry();
-//
-//            if (subClasses != null) {
-//
-//                for (JarEntry subEntry : subClasses) {
-//                    writeClass(jar, output, subEntry);
-//                }
-//            }
-//        }
+        for (ByteClassInjector injector : BYTE_INJECTION_CLASSES) {
+
+            String name = injector.getInternalName();
+            String version = injector.getVersion();
+            try {
+                // Get the current class wherever it is - since there's only one version
+                // of the compiled class (unlike above) we don't have to worry about mismatches
+                Class<?> clazz = Class.forName(name.replace('/', '.'));
+                InjectorVersion annotation = clazz.getDeclaredAnnotation(InjectorVersion.class);
+                if (annotation != null && annotation.value().equals(version)) {
+                    continue;
+                }
+
+                Logger.info("Found newer version of class {}.", name);
+            } catch (ClassNotFoundException e) {
+                // If the class does not exist then default to this version
+                Logger.debug("Doing initial write of class {}.", name);
+            }
+
+            // Exclude so the old version will not be written
+            EXCLUDED.add(name);
+            // Write the entry to the new JAR to override the previous version
+            output.putNextEntry(new JarEntry(name + ".class"));
+            output.write(injector.dump());
+            output.flush();
+            output.closeEntry();
+            unchanged = false;
+        }
 
         return unchanged;
     }
@@ -512,18 +492,5 @@ public final class MinecraftInjector {
         }
 
         output.flush();
-    }
-
-    private static class ClassEntry {
-
-        private final String name;
-        private final byte[] bytes;
-        private final ClassReader reader;
-
-        ClassEntry(byte[] bytes) {
-            this.bytes = bytes;
-            this.reader = new ClassReader(Arrays.copyOf(bytes, bytes.length));
-            this.name = this.reader.getClassName();
-        }
     }
 }
