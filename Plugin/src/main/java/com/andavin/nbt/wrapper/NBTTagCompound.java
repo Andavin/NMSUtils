@@ -347,9 +347,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * Wrap the given primitive {@code long[]} array into an
      * {@link NBTTagLongArray} and set it using the
      * {@link #set(String, NBTBase)} method.
-     * <p>
-     * <b>Warning</b> {@link NBTTagLongArray} is only supported
-     * on server versions {@code 1.12} and above!
      *
      * @param key The {@link String key} to set the value under.
      * @param value The {@code long[]} array value to store under the key.
@@ -550,9 +547,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
 
     /**
      * Get the {@code long[]} mapped to the given key.
-     * <p>
-     * <b>Warning</b> {@link NBTTagLongArray} is only supported
-     * on server versions {@code 1.12} and above!
      *
      * @param key The key to retrieve the value mapping from.
      * @return The value stored at the location or an empty array

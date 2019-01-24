@@ -37,8 +37,6 @@ import static com.andavin.reflect.Reflection.*;
 /**
  * An NBT number wrapper for the primitive array type {@code long}.
  * This simply holds the value and the wrapped NMS object.
- * <p>
- * <b>Warning</b> only supported on server version {@code 1.12} and above!
  *
  * @author Andavin
  * @since May 12, 2018
