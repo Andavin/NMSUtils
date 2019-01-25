@@ -40,9 +40,9 @@ import java.io.IOException;
 @InjectorVersion("1.0")
 public final class NBTTagLongArray extends ByteClassInjector implements Opcodes {
 
-    private static final String NAME = "net/minecraft/server/v1_11_R1/NBTTagLongArray";
-    private static final String NBT_BASE = "net/minecraft/server/v1_11_R1/NBTBase";
-    private static final String READ_LIMITER = "net/minecraft/server/v1_11_R1/NBTReadLimiter";
+    private static final String NAME = MINECRAFT_PREFIX + "NBTTagLongArray";
+    private static final String NBT_BASE = MINECRAFT_PREFIX + "NBTBase";
+    private static final String READ_LIMITER = MINECRAFT_PREFIX + "NBTReadLimiter";
 
     NBTTagLongArray() {
         super(NAME);

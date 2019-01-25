@@ -26,6 +26,7 @@ package com.andavin.inject;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.tree.ClassNode;
 
 import java.io.IOException;
 
@@ -49,7 +50,7 @@ import java.io.IOException;
  * @since January 23, 2019
  * @author Andavin
  */
-public abstract class ByteClassInjector {
+public abstract class ByteClassInjector implements Injector { // implement simply for ease of access to static fields
 
     private final String internalName, version;
 
@@ -70,6 +71,11 @@ public abstract class ByteClassInjector {
 
         this.version = version.value();
         this.internalName = internalName;
+    }
+
+    @Override
+    public final boolean inject(ClassNode node) {
+        return false;
     }
 
     /**
