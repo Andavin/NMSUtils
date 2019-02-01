@@ -65,7 +65,7 @@ public class ProtocolManager implements Versioned {
      */
     public <T> void register(Class<T> packetClass, PacketListener<T> listener, ListenerPriority priority) {
         this.listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ListenerPriority.class))
-                .computeIfAbsent(priority, __ -> new LinkedList<>()).add(listener);
+                .computeIfAbsent(priority, __ -> new ArrayList<>(2)).add(listener);
     }
 
     /**
