@@ -34,6 +34,7 @@ import io.netty.handler.timeout.ReadTimeoutHandler;
 import net.minecraft.server.v1_9_R2.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.bukkit.entity.Player;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -53,7 +54,7 @@ public class ServerConnectionProxy extends ServerConnection {
     private final MinecraftServer server;
     private final List<ChannelFuture> futures;
     private final List<NetworkManager> networkManagers;
-    private BiFunction<String, Packet, Packet> packetListener;
+    private BiFunction<Player, Packet, Packet> packetListener;
 
     public ServerConnectionProxy(MinecraftServer server) {
 
@@ -122,7 +123,7 @@ public class ServerConnectionProxy extends ServerConnection {
      *
      * @param packetListener The listener to set to.
      */
-    public void setPacketListener(BiFunction<String, Packet, Packet> packetListener) {
+    public void setPacketListener(BiFunction<Player, Packet, Packet> packetListener) {
 
         this.packetListener = packetListener;
         synchronized (this.networkManagers) {

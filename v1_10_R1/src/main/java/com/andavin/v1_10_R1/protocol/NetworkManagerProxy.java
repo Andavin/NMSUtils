@@ -25,14 +25,12 @@
 package com.andavin.v1_10_R1.protocol;
 
 import com.andavin.inject.InjectorVersion;
-import com.mojang.authlib.GameProfile;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import net.minecraft.server.v1_10_R1.EnumProtocolDirection;
-import net.minecraft.server.v1_10_R1.NetworkManager;
-import net.minecraft.server.v1_10_R1.Packet;
-import net.minecraft.server.v1_10_R1.PacketLoginInStart;
+import net.minecraft.server.v1_10_R1.*;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 import java.util.function.BiFunction;
 
@@ -43,10 +41,10 @@ import java.util.function.BiFunction;
 @InjectorVersion("1.0")
 public class NetworkManagerProxy extends NetworkManager {
 
-    public BiFunction<String, Packet, Packet> packetListener;
-    private GameProfile profile;
+    public BiFunction<Player, Packet, Packet> packetListener;
+    private String name;
 
-    public NetworkManagerProxy(EnumProtocolDirection enumprotocoldirection, BiFunction<String, Packet, Packet> packetListener) {
+    public NetworkManagerProxy(EnumProtocolDirection enumprotocoldirection, BiFunction<Player, Packet, Packet> packetListener) {
         super(enumprotocoldirection);
         this.packetListener = packetListener;
     }
@@ -89,14 +87,22 @@ public class NetworkManagerProxy extends NetworkManager {
 
     private Packet handleListener(Packet packet) {
 
-        if (this.profile == null) {
+        if (this.name == null) {
 
             if (packet instanceof PacketLoginInStart) {
-                this.profile = ((PacketLoginInStart) packet).a();
+                this.name = ((PacketLoginInStart) packet).a().getName();
             }
         } else if (this.packetListener != null) {
 
-            Packet altered = this.packetListener.apply(this.profile.getName(), packet);
+            PacketListener listener = this.i();
+            Player player = listener instanceof PlayerConnection ?
+                    ((PlayerConnection) listener).player.getBukkitEntity() :
+                    Bukkit.getPlayerExact(this.name);
+            if (player == null) {
+                return packet;
+            }
+
+            Packet altered = this.packetListener.apply(player, packet);
             if (altered == null) {
                 return null;
             }

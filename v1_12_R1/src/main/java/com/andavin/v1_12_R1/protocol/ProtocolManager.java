@@ -37,12 +37,12 @@ import org.bukkit.entity.Player;
 class ProtocolManager extends com.andavin.protocol.ProtocolManager {
 
     ProtocolManager() {
-
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
         ServerConnectionProxy serverConnection = (ServerConnectionProxy) server.an();
-        serverConnection.setPacketListener((name, packet) -> {
-            Player player = Bukkit.getPlayerExact(name);
-            return player != null ? (Packet) this.call(player, packet) : packet;
-        });
+        serverConnection.setPacketListener(this::apply);
+    }
+
+    private Packet apply(Player player, Packet packet) {
+        return (Packet) this.call(player, packet);
     }
 }

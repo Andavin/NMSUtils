@@ -33,12 +33,19 @@ import com.andavin.protocol.ProtocolManager;
 import com.andavin.reflect.exception.UncheckedClassNotFoundException;
 import com.andavin.util.Logger;
 import com.andavin.util.MinecraftVersion;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.material.Directional;
+import org.bukkit.material.Stairs;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import static com.andavin.reflect.Reflection.findMcClass;
 import static com.andavin.util.MinecraftVersion.v1_12;
 
-public final class NMSUtils extends JavaPlugin {
+public final class NMSUtils extends JavaPlugin implements Listener {
 
     private static NMSUtils instance;
     private static boolean fastAsyncSupport;
@@ -85,6 +92,7 @@ public final class NMSUtils extends JavaPlugin {
         }
 
         this.protocolManager = Versioned.getInstance(ProtocolManager.class);
+        Bukkit.getPluginManager().registerEvents(this, this);
     }
 
     /**
@@ -96,6 +104,18 @@ public final class NMSUtils extends JavaPlugin {
         return instance;
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        Directional data = (Directional) Material.COBBLESTONE_STAIRS.getNewData((byte) 0);
+        Logger.info("Initial direction {}", data.getFacing());
+        data.setFacingDirection(data.getFacing());
+        Logger.info("Set direction to same {}", data.getFacing());
+        ((Stairs) data).setInverted(true);
+        Logger.info("Inverted direction {}", data.getFacing());
+        data.setFacingDirection(data.getFacing());
+        Logger.info("Set inverted direction to same {}", data.getFacing());
+    }
+
     /**
      * Get the {@link ProtocolManager} that is used for
      * registering {@link PacketListener}s.
@@ -105,4 +125,6 @@ public final class NMSUtils extends JavaPlugin {
     public ProtocolManager getProtocolManager() {
         return protocolManager;
     }
+
+
 }
