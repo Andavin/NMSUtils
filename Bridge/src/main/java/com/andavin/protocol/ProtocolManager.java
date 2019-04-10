@@ -48,7 +48,7 @@ public class ProtocolManager implements Versioned {
      * @param packetClass The class of the {@code Packet} that
      *                    is being listened to.
      * @param listener The PacketListener to register.
-     * @param <T> The type of packet that should be listened to.
+     * @param <T> The type of packet that is being listened for.
      */
     public <T> void register(Class<T> packetClass, PacketListener<T> listener) {
         this.register(packetClass, ProtocolPriority.NORMAL, listener);
@@ -63,7 +63,7 @@ public class ProtocolManager implements Versioned {
      * @param priority The {@link ProtocolPriority} the packet should
      *                 be registered under.
      * @param listener The PacketListener to register.
-     * @param <T> The type of packet that should be listened to.
+     * @param <T> The type of packet that is being listened for.
      */
     public <T> void register(Class<T> packetClass, ProtocolPriority priority, PacketListener<T> listener) {
         this.listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ProtocolPriority.class))
