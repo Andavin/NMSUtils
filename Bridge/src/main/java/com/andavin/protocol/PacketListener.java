@@ -51,7 +51,7 @@ import org.bukkit.entity.Player;
  * severely lag their gameplay.
  *
  * @param <T> The type of packet that is being listened for.
- * @see ProtocolManager#register(Class, PacketListener, ListenerPriority)
+ * @see ProtocolManager#register(Class, ProtocolPriority, PacketListener)
  * @since October 31, 2018
  * @author Andavin
  */
@@ -64,12 +64,11 @@ public interface PacketListener<T> {
      *
      * @param player The player the packet is being sent to or from.
      * @param packet The packet that is being sent.
-     * @param cancelled If this packet was cancelled by another handler.
      * @return The packet that should be sent. In order to stop a packet
      *         from continuing to be sent or received {@code null} should
      *         be returned from this method.
      */
-    T handle(Player player, T packet, boolean cancelled);
+    T handle(Player player, T packet);
 
     /**
      * Handle a packet being sent in the direction that this
@@ -77,12 +76,11 @@ public interface PacketListener<T> {
      *
      * @param player The player the packet is being sent to or from.
      * @param msg The packet that is being sent.
-     * @param cancelled If this packet was cancelled by another handler.
      * @return The packet that should be sent. In order to stop a packet
      *         from continuing to be sent or received {@code null} should
      *         be returned from this method.
      */
-    default T handleMsg(Player player, Object msg, boolean cancelled) {
-        return this.handle(player, (T) msg, cancelled);
+    default T handleMsg(Player player, Object msg) {
+        return this.handle(player, (T) msg);
     }
 }

@@ -35,7 +35,7 @@ import java.util.*;
  */
 public class ProtocolManager implements Versioned {
 
-    private final Map<Class<?>, Map<ListenerPriority, List<PacketListener<?>>>> listeners = new HashMap<>();
+    private final Map<Class<?>, Map<ProtocolPriority, List<PacketListener<?>>>> listeners = new HashMap<>();
 
     protected ProtocolManager() { // This class is useless if it's not extended
     }
@@ -43,14 +43,14 @@ public class ProtocolManager implements Versioned {
     /**
      * Register the given {@link PacketListener} to listen to
      * the Minecraft packet that is the given packet class under
-     * the {@link ListenerPriority#NORMAL} priority.
+     * the {@link ProtocolPriority#NORMAL} priority.
      *
      * @param packetClass The class of the {@code Packet} that
      *                    is being listened to.
      * @param listener The PacketListener to register.
      */
     public <T> void register(Class<T> packetClass, PacketListener<T> listener) {
-        this.register(packetClass, listener, ListenerPriority.NORMAL);
+        this.register(packetClass, ProtocolPriority.NORMAL, listener);
     }
 
     /**
@@ -59,13 +59,13 @@ public class ProtocolManager implements Versioned {
      *
      * @param packetClass The class of the {@code Packet} that
      *                    is being listened to.
-     * @param priority The {@link ListenerPriority} the packet should
+     * @param priority The {@link ProtocolPriority} the packet should
      *                 be registered under.
      * @param listener The PacketListener to register.
      */
-    public <T> void register(Class<T> packetClass, PacketListener<T> listener, ListenerPriority priority) {
-        this.listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ListenerPriority.class))
-                .computeIfAbsent(priority, __ -> new ArrayList<>(2)).add(listener);
+    public <T> void register(Class<T> packetClass, ProtocolPriority priority, PacketListener<T> listener) {
+        this.listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ProtocolPriority.class))
+                .computeIfAbsent(priority, __ -> new ArrayList<>(1)).add(listener);
     }
 
     /**
@@ -103,7 +103,7 @@ public class ProtocolManager implements Versioned {
 
         if (packet != null) {
 
-            Map<ListenerPriority, List<PacketListener<?>>> priorities = this.listeners.get(packet.getClass());
+            Map<ProtocolPriority, List<PacketListener<?>>> priorities = this.listeners.get(packet.getClass());
             if (priorities == null) {
                 return packet;
             }
@@ -112,7 +112,7 @@ public class ProtocolManager implements Versioned {
 
                 for (PacketListener<?> listener : listeners) {
 
-                    packet = listener.handleMsg(player, packet, false);
+                    packet = listener.handleMsg(player, packet);
                     if (packet == null) {
                         return null;
                     }

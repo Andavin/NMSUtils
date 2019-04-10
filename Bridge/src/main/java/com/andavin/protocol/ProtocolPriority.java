@@ -33,7 +33,7 @@ package com.andavin.protocol;
  * @since December 12, 2018
  * @author Andavin
  */
-public enum ListenerPriority {
+public enum ProtocolPriority {
 
     /**
      * Packet listener call is of very low importance and should be ran first,
