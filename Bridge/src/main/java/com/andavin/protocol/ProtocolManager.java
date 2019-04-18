@@ -25,6 +25,7 @@
 package com.andavin.protocol;
 
 import com.andavin.Versioned;
+import com.andavin.util.Logger;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -142,7 +143,12 @@ public class ProtocolManager implements Versioned {
 
                 for (PacketListener<?> listener : listeners) {
 
-                    packet = listener.handleMsg(player, packet);
+                    try {
+                        packet = listener.handleMsg(player, packet);
+                    } catch (Throwable e) {
+                        Logger.severe(e, "Exception thrown by packet listener {} for packet {}", listener.getClass(), clazz);
+                    }
+
                     if (packet == null) {
                         return null;
                     }
