@@ -38,7 +38,7 @@ import java.io.IOException;
  * @author Andavin
  */
 @InjectorVersion("1.0")
-public final class NBTTagLongArray extends ByteClassInjector implements Opcodes {
+public final class NBTTagLongArray extends ByteClassInjector {
 
     private static final String NAME = MINECRAFT_PREFIX + "NBTTagLongArray";
     private static final String NBT_BASE = MINECRAFT_PREFIX + "NBTBase";

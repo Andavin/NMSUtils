@@ -27,7 +27,6 @@ package com.andavin.v1_8_R3.inject.injectors;
 import com.andavin.inject.MinecraftInjector;
 import com.andavin.util.Logger;
 import org.objectweb.asm.Label;
-import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.AnnotationNode;
 import org.objectweb.asm.tree.ClassNode;
 import org.objectweb.asm.tree.MethodNode;
@@ -38,7 +37,7 @@ import java.util.ListIterator;
  * @since December 30, 2018
  * @author Andavin
  */
-public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjector implements Opcodes {
+public class NBTBaseInjector extends com.andavin.inject.injectors.NBTBaseInjector {
 
     private static final String NBT_BASE = MINECRAFT_PREFIX + "NBTBase";
     private static final String NBT_DESC = "(B)L" + NBT_BASE + ';';

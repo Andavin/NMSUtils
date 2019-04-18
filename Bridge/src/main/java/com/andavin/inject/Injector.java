@@ -28,6 +28,7 @@ import com.andavin.Versioned;
 import com.andavin.util.MinecraftVersion;
 import org.bukkit.plugin.Plugin;
 import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.tree.ClassNode;
 
 /**
@@ -47,7 +48,7 @@ import org.objectweb.asm.tree.ClassNode;
  * @author Andavin
  */
 @FunctionalInterface
-public interface Injector extends Versioned {
+public interface Injector extends Versioned, Opcodes {
 
     String VERSION_PREFIX = "InjectorVersion-";
     String MINECRAFT_PREFIX = MinecraftVersion.MINECRAFT_PREFIX.replace('.', '/');

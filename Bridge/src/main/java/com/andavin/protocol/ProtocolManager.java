@@ -25,6 +25,7 @@
 package com.andavin.protocol;
 
 import com.andavin.Versioned;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.*;
@@ -35,7 +36,8 @@ import java.util.*;
  */
 public class ProtocolManager implements Versioned {
 
-    private final Map<Class<?>, Map<ProtocolPriority, List<PacketListener<?>>>> listeners = new HashMap<>();
+    private final Map<Class<?>, Map<ProtocolPriority, List<PacketListener<?>>>> nettyListeners = new HashMap<>();
+    private final Map<Class<?>, Map<ProtocolPriority, List<PacketListener<?>>>> mainThreadListeners = new HashMap<>();
 
     protected ProtocolManager() { // This class is useless if it's not extended
     }
@@ -66,7 +68,28 @@ public class ProtocolManager implements Versioned {
      * @param <T> The type of packet that is being listened for.
      */
     public <T> void register(Class<T> packetClass, ProtocolPriority priority, PacketListener<T> listener) {
-        this.listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ProtocolPriority.class))
+        this.nettyListeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ProtocolPriority.class))
+                .computeIfAbsent(priority, __ -> new ArrayList<>(1)).add(listener);
+    }
+
+    /**
+     * Register the given {@link PacketListener} to listen to
+     * the Minecraft packet that is the given packet class.
+     *
+     * @param packetClass The class of the {@code Packet} that
+     *                    is being listened to.
+     * @param mainThread If the packet listener should be called
+     *                   when a packet is handled on the main thread
+     *                   rather than when it comes down the netty pipeline.
+     * @param priority The {@link ProtocolPriority} the packet should
+     *                 be registered under.
+     * @param listener The PacketListener to register.
+     * @param <T> The type of packet that is being listened for.
+     */
+    public <T> void register(Class<T> packetClass, boolean mainThread, ProtocolPriority priority, PacketListener<T> listener) {
+        Map<Class<?>, Map<ProtocolPriority, List<PacketListener<?>>>> listeners =
+                mainThread ? this.mainThreadListeners : this.nettyListeners;
+        listeners.computeIfAbsent(packetClass, __ -> new EnumMap<>(ProtocolPriority.class))
                 .computeIfAbsent(priority, __ -> new ArrayList<>(1)).add(listener);
     }
 
@@ -80,7 +103,9 @@ public class ProtocolManager implements Versioned {
         // Remove the listener
         // Remove the list of listeners if it contained the listener (remove it) and is now empty
         // Remove the priority map if it removed a listener list and is now empty
-        this.listeners.values().removeIf(priorities -> priorities.values().removeIf(listeners ->
+        this.nettyListeners.values().removeIf(priorities -> priorities.values().removeIf(listeners ->
+                listeners.remove(listener) && listeners.isEmpty()) && priorities.isEmpty());
+        this.mainThreadListeners.values().removeIf(priorities -> priorities.values().removeIf(listeners ->
                 listeners.remove(listener) && listeners.isEmpty()) && priorities.isEmpty());
     }
 
@@ -105,7 +130,10 @@ public class ProtocolManager implements Versioned {
 
         if (packet != null) {
 
-            Map<ProtocolPriority, List<PacketListener<?>>> priorities = this.listeners.get(packet.getClass());
+            Class<?> clazz = packet.getClass();
+            Map<Class<?>, Map<ProtocolPriority, List<PacketListener<?>>>> listenerMap =
+                    Bukkit.isPrimaryThread() ? this.mainThreadListeners : this.nettyListeners;
+            Map<ProtocolPriority, List<PacketListener<?>>> priorities = listenerMap.get(clazz);
             if (priorities == null) {
                 return packet;
             }
@@ -117,6 +145,11 @@ public class ProtocolManager implements Versioned {
                     packet = listener.handleMsg(player, packet);
                     if (packet == null) {
                         return null;
+                    }
+                    // If the packet differs in type from the original packet
+                    // then call the listeners on the new type of packet
+                    if (clazz != packet.getClass()) {
+                        return this.call(player, packet);
                     }
                 }
             }
