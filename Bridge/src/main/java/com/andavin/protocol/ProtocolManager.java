@@ -143,20 +143,23 @@ public class ProtocolManager implements Versioned {
 
                 for (PacketListener<?> listener : listeners) {
 
+                    Object altered;
                     try {
-                        packet = listener.handleMsg(player, packet);
+                        altered = listener.handleMsg(player, packet);
                     } catch (Throwable e) {
                         Logger.severe(e, "Exception thrown by packet listener {} for packet {}", listener.getClass(), clazz);
+                        continue;
                     }
 
-                    if (packet == null) {
+                    if (altered == null) {
                         return null;
                     }
-                    // If the packet differs in type from the original packet
-                    // then call the listeners on the new type of packet
-                    if (clazz != packet.getClass()) {
-                        return this.call(player, packet);
+
+                    if (clazz != altered.getClass()) {
+                        return this.call(player, altered);
                     }
+
+                    packet = altered;
                 }
             }
         }

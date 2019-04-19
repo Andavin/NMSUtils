@@ -28,7 +28,6 @@ import net.minecraft.server.v1_9_R2.MinecraftServer;
 import net.minecraft.server.v1_9_R2.Packet;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_9_R2.CraftServer;
-import org.bukkit.entity.Player;
 
 /**
  * @since December 06, 2018
@@ -39,10 +38,6 @@ class ProtocolManager extends com.andavin.protocol.ProtocolManager {
     ProtocolManager() {
         MinecraftServer server = ((CraftServer) Bukkit.getServer()).getServer();
         ServerConnectionProxy serverConnection = (ServerConnectionProxy) server.am();
-        serverConnection.setPacketListener(this::apply);
-    }
-
-    private Packet apply(Player player, Packet packet) {
-        return (Packet) this.call(player, packet);
+        serverConnection.setPacketListener((player, packet) -> (Packet) this.call(player, packet));
     }
 }

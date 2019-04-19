@@ -29,7 +29,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import net.minecraft.server.v1_10_R1.*;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.util.function.BiFunction;
@@ -95,29 +94,14 @@ public class NetworkManagerProxy extends NetworkManager {
         } else if (this.packetListener != null) {
 
             PacketListener listener = this.i();
-            Player player = listener instanceof PlayerConnection ?
-                    ((PlayerConnection) listener).player.getBukkitEntity() :
-                    Bukkit.getPlayerExact(this.name);
-            if (player == null) {
-                return packet;
-            }
+            if (listener instanceof PlayerConnection) {
 
-            Packet altered = this.packetListener.apply(player, packet);
-            if (altered == null) {
-                return null;
-            }
-
-            if (altered != packet) {
-
-                Class<? extends Packet> oldClass = packet.getClass();
-                Class<? extends Packet> alteredClass = altered.getClass();
-                if (alteredClass != oldClass) {
-                    throw new IllegalArgumentException("Packet returned expected type " +
-                            oldClass.getName() + ", but got " + alteredClass.getName());
+                try {
+                    return this.packetListener.apply(((PlayerConnection) listener).player.getBukkitEntity(), packet);
+                } catch (Throwable e) {
+                    MinecraftServer.LOGGER.error("Exception thrown while handling packet listener.", e);
                 }
             }
-
-            return altered;
         }
 
         return packet;
