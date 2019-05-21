@@ -33,20 +33,20 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <name>1.8.8</name>
-    <artifactId>nms-utils-v1_8_R3</artifactId>
+    <name>1.14.1</name>
+    <artifactId>nms-utils-v1_14_R1</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <version>1.14.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <version>1.14.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!-- explicitly add ASM 7.0 -->
@@ -74,5 +74,6 @@
             <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
+
 
 </project>
