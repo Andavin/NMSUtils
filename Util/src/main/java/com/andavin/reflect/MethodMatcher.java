@@ -45,27 +45,28 @@ import static java.util.stream.Collectors.joining;
 public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
 
     private static final int BRIDGE = 0x40;
+    private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
     private final Class<?>[] parametersTypes;
 
     /**
      * Create a new matcher to find a method that
      * does not match the return type of the method
-     * nor the parameters.
+     * has no parameters.
      */
     public MethodMatcher() {
-        this(null, (Class<?>[]) null);
+        this(null, EMPTY_CLASS_ARRAY);
     }
 
     /**
      * Create a new matcher to find a method that
-     * does not match parameters.
+     * has no parameters.
      *
      * @param returnType The {@link Class return type} of
      *                   the method to match to. If {@code null}
      *                   is provided then any type can match.
      */
     public MethodMatcher(Class<?> returnType) {
-        this(returnType, (Class<?>[]) null);
+        this(returnType, EMPTY_CLASS_ARRAY);
     }
 
     /**
