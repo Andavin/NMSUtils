@@ -36,6 +36,21 @@ import java.lang.reflect.Modifier;
  */
 public class FieldMatcher extends AttributeMatcher<Field, FieldMatcher> {
 
+    /**
+     * Create a new matcher to find a field that
+     * does not match the type of the field.
+     */
+    public FieldMatcher() {
+        this(null);
+    }
+
+    /**
+     * Create a new matcher to find a field.
+     *
+     * @param type The {@link Class type} of
+     *             the method to match to. If {@code null}
+     *             is provided then any type can match.
+     */
     public FieldMatcher(Class<?> type) {
         super(type, Modifier.fieldModifiers());
     }
@@ -47,7 +62,8 @@ public class FieldMatcher extends AttributeMatcher<Field, FieldMatcher> {
 
     @Override
     UncheckedReflectiveOperationException buildException() {
-        return new UncheckedNoSuchFieldException("Could not find field with type " + this.mainType.getSimpleName() +
+        return new UncheckedNoSuchFieldException("Could not find field with type " + (this.mainType != null ?
+                this.mainType.getSimpleName() : "anyType") +
                 " requiring " + Integer.toBinaryString(this.requiredModifiers) + " and disallowing " +
                 Integer.toBinaryString(this.disallowedModifiers));
     }

@@ -165,9 +165,10 @@ abstract class AttributeMatcher<T extends AccessibleObject & Member, C extends A
         if ((this.requiredModifiers & modifiers) != modifiers || (this.disallowedModifiers & modifiers) != 0) {
             return false;
         }
-
-        // Test for exact match if it is required
-        return this.requireExactMatch ? mainType == this.mainType :
+        // If main type is null then anything can match
+        return this.mainType == null ||
+                // Test for exact match if it is required
+                this.requireExactMatch ? mainType == this.mainType :
                 // A.isAssignableFrom(B) -> B instanceOf A
                 this.mainType.isAssignableFrom(mainType);
     }

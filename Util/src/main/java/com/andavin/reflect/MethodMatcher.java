@@ -48,10 +48,32 @@ public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
     private final Class<?>[] parametersTypes;
 
     /**
+     * Create a new matcher to find a method that
+     * does not match the return type of the method
+     * nor the parameters.
+     */
+    public MethodMatcher() {
+        this(null, (Class<?>[]) null);
+    }
+
+    /**
+     * Create a new matcher to find a method that
+     * does not match parameters.
+     *
+     * @param returnType The {@link Class return type} of
+     *                   the method to match to. If {@code null}
+     *                   is provided then any type can match.
+     */
+    public MethodMatcher(Class<?> returnType) {
+        this(returnType, (Class<?>[]) null);
+    }
+
+    /**
      * Create a new matcher to find a method.
      *
      * @param returnType The {@link Class return type} of
-     *                   the method to match to.
+     *                   the method to match to. If {@code null}
+     *                   is provided then any type can match.
      * @param parametersTypes The types of the parameters for the
      *                        method to match to in order of how
      *                        they are declared on the method.
@@ -114,14 +136,16 @@ public class MethodMatcher extends AttributeMatcher<Method, MethodMatcher> {
 
     @Override
     boolean match(Method method) {
-        return this.match(method.getModifiers(), method.getReturnType()) &&
-                compare(method.getParameterTypes(), this.parametersTypes, this.requireExactMatch);
+        return this.match(method.getModifiers(), method.getReturnType()) && (this.parametersTypes == null ||
+                compare(method.getParameterTypes(), this.parametersTypes, this.requireExactMatch));
     }
 
     @Override
     UncheckedReflectiveOperationException buildException() {
-        return new UncheckedNoSuchMethodException("Could not find method " + this.mainType.getSimpleName() + " anyMethod(" +
-                Arrays.stream(this.parametersTypes).map(Class::getSimpleName).collect(joining(", ")) +
+        return new UncheckedNoSuchMethodException("Could not find method " + (this.mainType != null ?
+                this.mainType.getSimpleName() : "anyType") + " anyMethod(" +
+                (this.parametersTypes != null ? Arrays.stream(this.parametersTypes)
+                        .map(Class::getSimpleName).collect(joining(", ")) : "any parameters") +
                 ") requiring " + Integer.toBinaryString(this.requiredModifiers) + " and disallowing " +
                 Integer.toBinaryString(this.disallowedModifiers));
     }

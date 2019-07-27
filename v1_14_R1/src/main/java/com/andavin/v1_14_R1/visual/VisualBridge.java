@@ -25,6 +25,7 @@
 package com.andavin.v1_14_R1.visual;
 
 import com.andavin.visual.block.VisualBlock;
+import net.minecraft.server.v1_14_R1.*;
 import net.minecraft.server.v1_14_R1.PacketPlayOutMultiBlockChange.MultiBlockChangeInfo;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;

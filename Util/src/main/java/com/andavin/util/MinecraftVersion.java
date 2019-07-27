@@ -37,9 +37,9 @@ import org.bukkit.Bukkit;
  * to be released for version {@code 1.9}.
  * <p>
  * Methods provided in this class are shortcut methods that provide
- * easy use of the {@link #compareTo(Enum)} method. They should not
- * be statically imported, but instead used alongside a statically
- * imported field:
+ * easy use of the {@link #compareTo(MinecraftVersion)} method.
+ * They should not be statically imported, but instead used alongside
+ * a statically imported field:
  * <pre>
  *     import static com.andavin.util.MinecraftVersion.v1_12_R1;
  *
@@ -211,7 +211,7 @@ public enum MinecraftVersion {
      * {@link #v1_7} for the major version and {@link #R4} for the
      * minor making {@code v1_7_R4}.
      * <p>
-     * {@link #compareTo(Enum)} can be used to determine the exact
+     * {@link #compareTo(MinorVersion)} can be used to determine the exact
      * minor version if or when that may be needed using the
      * {@link #CURRENT} field to compare against.
      */

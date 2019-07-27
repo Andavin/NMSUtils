@@ -78,7 +78,8 @@ class ItemBridge extends com.andavin.inventory.ItemBridge {
 
         net.minecraft.server.v1_14_R1.ItemStack nmsItem = getNmsItemStack(item);
         int originalDamage = nmsItem.getDamage();
-        nmsItem.damage(amount, ((CraftLivingEntity) livingEntity).getHandle());
+        nmsItem.damage(amount, ((CraftLivingEntity) livingEntity).getHandle(), entity -> {
+        });
         if (!isCraftItem(item)) {
 
             int newDamage = nmsItem.getDamage();
