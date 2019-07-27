@@ -44,14 +44,15 @@ import static java.util.stream.Collectors.joining;
  */
 public class ConstructorMatcher extends AttributeMatcher<Constructor, ConstructorMatcher> {
 
+    private static final Class<?>[] EMPTY_CLASS_ARRAY = new Class[0];
     private final Class<?>[] parametersTypes;
 
     /**
      * Create a new matcher to find a constructor that
-     * does not match the parameters of the constructor.
+     * has no parameters.
      */
     public ConstructorMatcher() {
-        this((Class<?>[]) null);
+        this(EMPTY_CLASS_ARRAY);
     }
 
     /**
