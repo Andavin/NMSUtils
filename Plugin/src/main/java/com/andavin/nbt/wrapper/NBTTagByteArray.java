@@ -24,16 +24,13 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
-import com.andavin.reflect.Reflection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-import static com.andavin.reflect.Reflection.findMcClass;
-import static com.andavin.reflect.Reflection.getFieldValue;
+import static com.andavin.reflect.Reflection.*;
 
 /**
  * An NBT number wrapper for the primitive array type {@code byte}.
@@ -43,13 +40,13 @@ import static com.andavin.reflect.Reflection.getFieldValue;
  * @since May 12, 2018
  */
 @NBTTag(typeId = NBTType.BYTE_ARRAY, params = byte[].class)
-public final class NBTTagByteArray extends NBTBase implements DataHolder<byte[]> {
+public final class NBTTagByteArray extends NBTBase<byte[]> {
 
-    private static final Field DATA = Reflection.findField(findMcClass("NBTTagByteArray"), "data");
+    private static final Field DATA = findField(findMcClass("NBTTagByteArray"), "data");
     private final byte[] data;
 
     public NBTTagByteArray(byte... data) {
-        this(NBTHelper.createTag(NBTTagByteArray.class, (Object) data));
+        this(NBTHelper.createTag(NBTTagByteArray.class, data));
     }
 
     public NBTTagByteArray(List<Byte> data) {

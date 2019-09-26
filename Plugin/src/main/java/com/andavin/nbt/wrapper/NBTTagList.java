@@ -24,7 +24,6 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.io.IOException;
@@ -45,7 +44,7 @@ import static com.andavin.reflect.Reflection.*;
  * @since May 12, 2018
  */
 @NBTTag(typeId = NBTType.LIST)
-public final class NBTTagList<E extends NBTBase & DataHolder> extends NBTBase implements DataHolder<List<E>>, Iterable<E> {
+public final class NBTTagList<E extends NBTBase> extends NBTBase<List<E>> implements Iterable<E> {
 
     private static final Field DATA = findField(findMcClass("NBTTagList"), "list");
 
@@ -244,7 +243,7 @@ public final class NBTTagList<E extends NBTBase & DataHolder> extends NBTBase im
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
 
         stream.defaultReadObject();
-        this.list = getFieldValue(DATA, this.wrapped);
+        this.list = getFieldValue(DATA, this.getWrapped());
         if (!this.wrapped.isEmpty()) {
             this.wrapped.stream().map(NBTBase::getWrapped).forEach(this.list::add);
         }

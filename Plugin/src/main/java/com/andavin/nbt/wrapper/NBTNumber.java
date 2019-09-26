@@ -24,6 +24,10 @@
 
 package com.andavin.nbt.wrapper;
 
+import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
+import java.util.function.LongSupplier;
+
 /**
  * An NBT number corresponding and wrapping the
  * {@code NBTNumber} version in NMS. This will
@@ -32,7 +36,8 @@ package com.andavin.nbt.wrapper;
  * @author Andavin
  * @since May 12, 2018
  */
-public abstract class NBTNumber extends NBTBase {
+public abstract class NBTNumber<T extends Number> extends NBTBase<T>
+        implements IntSupplier, DoubleSupplier, LongSupplier {
 
     NBTNumber(Object wrapped) {
         super(wrapped);
@@ -98,6 +103,21 @@ public abstract class NBTNumber extends NBTBase {
      * @return The data as a float.
      */
     public abstract float asFloat();
+
+    @Override
+    public double getAsDouble() {
+        return asDouble();
+    }
+
+    @Override
+    public int getAsInt() {
+        return asInt();
+    }
+
+    @Override
+    public long getAsLong() {
+        return asLong();
+    }
 
     @Override
     public final boolean isEmpty() {

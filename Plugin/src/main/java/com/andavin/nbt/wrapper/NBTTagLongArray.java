@@ -24,7 +24,6 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
 import com.andavin.reflect.FieldMatcher;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
@@ -42,13 +41,13 @@ import static com.andavin.reflect.Reflection.*;
  * @since May 12, 2018
  */
 @NBTTag(typeId = NBTType.LONG_ARRAY, params = long[].class)
-public final class NBTTagLongArray extends NBTBase implements DataHolder<long[]> {
+public final class NBTTagLongArray extends NBTBase<long[]> {
 
     private static final Field DATA = findField(findMcClass("NBTTagLongArray"), new FieldMatcher(long[].class));
     private final long[] data;
 
     public NBTTagLongArray(long... data) {
-        this(NBTHelper.createTag(NBTTagLongArray.class, (Object) data));
+        this(NBTHelper.createTag(NBTTagLongArray.class, data));
     }
 
     public NBTTagLongArray(List<Long> data) {

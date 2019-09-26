@@ -24,16 +24,15 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
-import java.util.Collections;
 import java.util.Map;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Collections.singletonMap;
 
 /**
  * A basic class that holds a wrapped NBT object and that
@@ -48,7 +47,7 @@ import static com.google.common.base.Preconditions.checkState;
  * @author Andavin
  * @since May 12, 2018
  */
-public abstract class NBTBase implements ConfigurationSerializable, Serializable {
+public abstract class NBTBase<T> implements Serializable, ConfigurationSerializable {
 
     /**
      * This is the actual reference to the NMS NBT object.
@@ -107,6 +106,13 @@ public abstract class NBTBase implements ConfigurationSerializable, Serializable
         return wrapped;
     }
 
+    /**
+     * Get the data that this object is holding.
+     *
+     * @return The data value.
+     */
+    public abstract T getData();
+
     @Override
     public final boolean equals(Object o) {
         return o instanceof NBTBase && this.wrapped.equals(((NBTBase) o).wrapped);
@@ -124,9 +130,7 @@ public abstract class NBTBase implements ConfigurationSerializable, Serializable
 
     @Override
     public Map<String, Object> serialize() {
-        return this instanceof DataHolder ?
-                Collections.singletonMap("data", ((DataHolder) this).getData()) :
-                Collections.emptyMap();
+        return singletonMap("data", this.getData());
     }
 
     private void readObject(ObjectInputStream stream) throws IOException, ClassNotFoundException {
@@ -138,7 +142,7 @@ public abstract class NBTBase implements ConfigurationSerializable, Serializable
                 this.wrapped = NBTHelper.createTag(this.getClass());
                 break;
             case 1:
-                this.wrapped = NBTHelper.createTag(this.getClass(), ((DataHolder) this).getData());
+                this.wrapped = NBTHelper.createTag(this.getClass(), this.getData());
                 break;
         }
     }

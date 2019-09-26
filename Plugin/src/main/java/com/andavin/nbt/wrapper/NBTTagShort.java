@@ -24,7 +24,6 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
@@ -40,7 +39,7 @@ import static com.andavin.reflect.Reflection.*;
  * @since May 12, 2018
  */
 @NBTTag(typeId = NBTType.SHORT, params = short.class)
-public final class NBTTagShort extends NBTNumber implements DataHolder<Short> {
+public final class NBTTagShort extends NBTNumber<Short> {
 
     private static final Field DATA = findField(findMcClass("NBTTagShort"), "data");
     private final short data;

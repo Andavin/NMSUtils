@@ -24,11 +24,8 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -44,7 +41,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 /**
  * An NBT wrapper for the {@code NBTTagCompound} NMS class.
  * This is very similar to a {@link Map} and is, in fact, backed by
- * a {@code Map}.
+ * a {@linkplain Map}.
  * <p>
  * There are a couple extra methods provided in this class over the NMS
  * wrapped class. These include
@@ -66,7 +63,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * @see NBTHelper#deserialize(InputStream)
  */
 @NBTTag(typeId = NBTType.COMPOUND)
-public final class NBTTagCompound extends NBTBase implements DataHolder<Map<String, NBTBase>> {
+public final class NBTTagCompound extends NBTBase<Map<String, NBTBase>> {
 
     private static final Field DATA = findField(findMcClass("NBTTagCompound"), "map");
     private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
@@ -390,7 +387,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         if either the key does not exist or the value type does is not
      *         an instance of {@link T}.
      */
-    @Nullable
     public <T extends NBTBase> T get(String key) {
 
         try {
@@ -511,7 +507,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      * @return The value stored at the location or an empty String
      *         ({@code ""}) if there was no mapping for the key.
      */
-    @Nonnull
     public String getString(String key) {
         NBTTagString tag = this.get(key);
         return tag != null ? tag.toString() : "";
@@ -525,7 +520,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         ({@code byte[0]}) if there was no mapping for the key
      *         or if the mapping was not of the type {@link NBTTagLongArray}.
      */
-    @Nonnull
     public byte[] getByteArray(String key) {
         NBTTagByteArray tag = this.get(key);
         return tag != null ? tag.getData() : EMPTY_BYTE_ARRAY;
@@ -539,7 +533,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         ({@code int[0]}) if there was no mapping for the key
      *         or if the mapping was not of the type {@link NBTTagIntArray}.
      */
-    @Nonnull
     public int[] getIntArray(String key) {
         NBTTagIntArray tag = this.get(key);
         return tag != null ? tag.getData() : EMPTY_INT_ARRAY;
@@ -553,7 +546,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         ({@code long[0]}) if there was no mapping for the key
      *         or if the mapping was not of the type {@link NBTTagLongArray}.
      */
-    @Nonnull
     public long[] getLongArray(String key) {
         NBTTagLongArray tag = this.get(key);
         return tag != null ? tag.getData() : EMPTY_LONG_ARRAY;
@@ -567,7 +559,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
      *         or null if there was no mapping for the key or if
      *         the mappings did not conform to {@code long}s properly.
      */
-    @Nullable
     public UUID getUniqueId(String key) {
         NBTTagLong most = this.get(key + "Most"), least = this.get(key + "Least");
         return most != null && least != null ? new UUID(most.asLong(), least.asLong()) : null;
@@ -690,7 +681,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         }
     }
 
-    private class DualSetDelegate<T> extends AbstractSet<T> {
+    private static class DualSetDelegate<T> extends AbstractSet<T> {
 
         private final Set<T> set, alt;
 
@@ -711,7 +702,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         }
 
         @Override
-        @Nonnull
         public Iterator<T> iterator() {
             return new DualIteratorDelegate<>(this.set.iterator(), this.alt.iterator());
         }
@@ -727,7 +717,7 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         }
     }
 
-    private class DualCollectionDelegate extends AbstractCollection<NBTBase> {
+    private static class DualCollectionDelegate extends AbstractCollection<NBTBase> {
 
         private final Collection<?> alt;
         private final Collection<NBTBase> collection;
@@ -749,7 +739,6 @@ public final class NBTTagCompound extends NBTBase implements DataHolder<Map<Stri
         }
 
         @Override
-        @Nonnull
         public Iterator<NBTBase> iterator() {
             return new DualIteratorDelegate<>(this.collection.iterator(), this.alt.iterator());
         }

@@ -45,6 +45,11 @@ public final class NBTTagEnd extends NBTBase {
         super(wrapped);
     }
 
+    @Override
+    public Object getData() {
+        return null;
+    }
+
     /**
      * Deserialize the map into a new NBTBase object as
      * specified by {@link ConfigurationSerializable}.

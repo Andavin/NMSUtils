@@ -24,7 +24,9 @@
 
 package com.andavin.nbt.wrapper;
 
+import com.andavin.reflect.exception.UncheckedClassNotFoundException;
 import com.andavin.reflect.exception.UncheckedInvocationTargetException;
+import com.andavin.util.Logger;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 
 import java.io.*;
@@ -35,6 +37,7 @@ import java.util.Map;
 
 import static com.andavin.reflect.Reflection.*;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * A basic helper class to store wrapped and wrapping class
@@ -52,10 +55,34 @@ public final class NBTHelper {
     private static final Map<Class<?>, Constructor<? extends NBTBase>> WRAPPERS = new HashMap<>();
 
     static {
+
         Class<?> compoundTag = findMcClass("NBTTagCompound");
         Class<?> streamTools = findMcClass("NBTCompressedStreamTools");
         READ = findMethod(streamTools, "a", InputStream.class);
         WRITE = findMethod(streamTools, "a", compoundTag, OutputStream.class);
+
+        NBTHelper.register(
+                NBTTagEnd.class,
+                NBTTagByte.class,
+                NBTTagShort.class,
+                NBTTagInt.class,
+                NBTTagLong.class,
+                NBTTagFloat.class,
+                NBTTagDouble.class,
+                NBTTagByteArray.class,
+                NBTTagIntArray.class,
+                NBTTagCompound.class,
+                NBTTagList.class,
+                NBTTagString.class
+        );
+
+        try {
+            // Try to register this. If the byte code insertion
+            // was successful this will also be successful
+            NBTHelper.register(NBTTagLongArray.class);
+        } catch (UncheckedClassNotFoundException e) {
+            Logger.debug(e, "Registering NBTTagLongArray");
+        }
     }
 
     /**
@@ -64,13 +91,13 @@ public final class NBTHelper {
      * @param classes The classes to register.
      */
     @SafeVarargs
-    public static void register(Class<? extends NBTBase>... classes) {
+    private static void register(Class<? extends NBTBase>... classes) {
 
         for (Class<? extends NBTBase> clazz : classes) {
 
             String name = clazz.getSimpleName();
             NBTTag type = clazz.getDeclaredAnnotation(NBTTag.class);
-            checkNotNull(type, "[NBT] Type " + name + " is not annotated with NBTTag");
+            checkState(type != null, "type %s is not annotated with NBTTag", name);
             ConfigurationSerialization.registerClass(clazz);
 
             Class<?> nmsType = findMcClass(name);
@@ -123,7 +150,7 @@ public final class NBTHelper {
         checkNotNull(nbt, "NBT object cannot be null");
         Class<?> clazz = nbt.getClass();
         Constructor<? extends NBTBase> wrapper = WRAPPERS.get(clazz);
-        supportCheck(wrapper, clazz.getSimpleName());
+        supportCheck(wrapper, clazz.getName());
         return (T) newInstance(wrapper, nbt);
     }
 
@@ -145,7 +172,7 @@ public final class NBTHelper {
     public static <T extends NBTBase> T wrap(byte typeId, Object nbt) {
         checkNotNull(nbt, "NBT object cannot be null");
         Constructor<? extends NBTBase> con = TYPE_IDS.get(typeId);
-        supportCheck(con, nbt.getClass().getSimpleName());
+        supportCheck(con, nbt.getClass().getName());
         return (T) newInstance(con, nbt);
     }
 
@@ -159,7 +186,7 @@ public final class NBTHelper {
      */
     public static Object createTag(Class<? extends NBTBase> clazz, Object... args) {
         Constructor<?> con = WRAPPED.get(clazz);
-        supportCheck(con, clazz.getSimpleName());
+        supportCheck(con, clazz.getName());
         return newInstance(con, args);
     }
 

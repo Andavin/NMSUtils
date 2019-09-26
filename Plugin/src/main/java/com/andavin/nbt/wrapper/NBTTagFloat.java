@@ -1,3 +1,4 @@
+
 /*
  * MIT License
  *
@@ -24,7 +25,6 @@
 
 package com.andavin.nbt.wrapper;
 
-import com.andavin.DataHolder;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.lang.reflect.Field;
@@ -40,7 +40,7 @@ import static com.andavin.reflect.Reflection.*;
  * @since May 12, 2018
  */
 @NBTTag(typeId = NBTType.FLOAT, params = float.class)
-public final class NBTTagFloat extends NBTNumber implements DataHolder<Float> {
+public final class NBTTagFloat extends NBTNumber<Float> {
 
     private static final Field DATA = findField(findMcClass("NBTTagFloat"), "data");
     private final float data;
